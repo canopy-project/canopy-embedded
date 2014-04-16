@@ -50,7 +50,7 @@ TOASTER OVEN
             "datetype" : "ranged-float",
             "min-value" : -180.0
             "max-value" : 180.0
-            "description" : "Longitudinal value in degrees."
+            "description" : "Longitudinal value in degrees"
             "virtual" : true,
         }
     }

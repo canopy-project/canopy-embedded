@@ -1,0 +1,16 @@
+{
+    "std.common" : {
+        "master-on-off" : {
+            "type" : "control",
+            "datatype" : "boolean",
+            "description" : "Master power switch"
+        },
+        "dimmer" : {
+            "type" : "control",
+            "datatype" : "ranged-float",
+            "min-value" : 0.0,
+            "max-value" : 1.0,
+            "description" : "Y-axis acceleration in m/s^2"
+        },
+    }
+}

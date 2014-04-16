@@ -1,0 +1,19 @@
+{
+    "std.gyro" : {
+        "alpha" : {
+            "type" : "sensor",
+            "datetype" : "float",
+            "description" : "Rotational speed around X axis"
+        },
+        "beta" : {
+            "type" : "sensor",
+            "datetype" : "float",
+            "description" : "Rotational speed around Y axis"
+        },
+        "gamma" : {
+            "type" : "sensor",
+            "datetype" : "float",
+            "description" : "Rotational speed around Z axis"
+        },
+    }
+}
