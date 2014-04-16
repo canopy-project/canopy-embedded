@@ -1,0 +1,83 @@
+SMART DEVICE DESCRIPTION LANGUAGE
+------------------------------------------------------------------------------
+
+SDDL is a file format for describing the sensors and effectors that make up a
+smart object.  It is a subset of JSON.
+
+
+{
+    <INTERFACE_NAME> : {
+        <PROPERTY_NAME> : {
+            role
+        };
+    }
+}
+
+
+TOASTER OVEN
+
+{
+    "sunbeam.toaster" : {
+        "master" : "std.common:master-on-off"
+        "lat" : "std.gps:lat",
+        "long" : "std.gps:long",
+        "bagel-mode" : {
+            "type" : "toggle",
+            "datatype" : "boolean",
+        },
+        "lever" : {
+            "category" : "sensor",
+            "datatype" : "ranged-integer",
+            "min-value" : 0,
+            "max-value" : 100,
+            "description" : "Height of lever.  0=down & toasting, 100=up".
+        },
+        "darkness" : {
+            "category" : "effector",
+            "datatype" : "ranged-float",
+            "min-value" : 0,
+            "max-value" : 10,
+            "description" : "Darkness level".
+        },
+    ],
+}   
+
+
+{
+    "std.gps" : {
+        "lat" : {
+            "category" : "sensor",
+            "datetype" : "ranged-float",
+            "min-value" : -180.0
+            "max-value" : 180.0
+            "description" : "Longitudinal value in degrees."
+            "virtual" : true,
+        }
+    }
+}
+"std.gps:lat"
+"std.gps:long"
+
+
+TOASTER:
+- Slots
+- Levers
+
+
+DATATYPES:
+    - boolean
+    - ranged-integer
+    - ranged-float
+    - enum
+    - datetime
+
+UNITS:
+    - "meter"
+    - "decimeter"
+    - "centimeter"
+    - "millimeter"
+    - "micrometer"
+    - "fehrenheit"
+    - "celsius"
+
+
