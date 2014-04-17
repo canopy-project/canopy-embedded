@@ -1,0 +1,106 @@
+<html>
+<head>
+<link href='http://fonts.googleapis.com/css?family=ABeeZee|Titillium+Web:300,400,700' rel='stylesheet' type='text/css'>
+<style>
+body {
+    margin: 0px;
+    padding: 0px;
+    font-family: "Titillium Web", sans-serif;
+    font-weight: 300;
+    font-size: 14pt;
+}
+.center_channel {
+    width: 940px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.blue_banner {
+    padding:16px;
+    background: #3060a0;
+    color: #ffffff;
+}
+.logo-in-text {
+    font-family: "ABeeZee";
+    color: #3060a0;
+}
+.logo {
+    font-family: "ABeeZee";
+    font-size: 35px;
+}
+.white_banner {
+    padding:16px;
+    background: #ffffff;
+    color: #303030;
+}
+.gray_banner {
+    padding:16px;
+    background: #a8a3a0;
+    color: #101010;
+}
+.menu--selected {
+    color: #ffffff;
+    margin-right: 2em;
+    font-weight: 400;
+    background: #3060a0;
+    border-radius: 6px;
+    padding: 6px;
+    display: inline-block;
+}
+.menu {
+    color: #3060a0;
+    margin-right: 2em;
+    font-weight: 400;
+    border-radius: 6px;
+    padding: 6px;
+    display: inline-block;
+}
+</style>
+</head>
+<body>
+    <div class=blue_banner>
+        <div class=center_channel>
+            <div class=logo>haive</div>
+            An open source platform for the Internet of Things.
+        </div>
+    </div>
+    <div class=white_banner>
+        <div class=center_channel>
+            <div class=menu--selected>Overview</div>
+            <div class=menu>haive EMBEDDED</div>
+            <div class=menu>haive CLOUD</div>
+            <div class=menu>haive APP</div>
+            <div class=menu>the REGISTRY</div>
+            <br><br>
+            <span class=logo-in-text>haive</span> is a collection of free and open
+            software projects that simplify the development of smart devices.
+            <p>
+            <span class=logo-in-text>haive EMBEDDED (aka "haived")</span> is a daemon process that
+            runs on your device, written in C.  It provides hooks for custom
+            data gathering, configuration, and control specific to your device.
+            It communicates with <span class=logo-in-text>haive CLOUD</span>
+            over secure websockets for high performance and security.
+            <p>
+
+            <span class=logo-in-text>haive CLOUD</span> is a server-side
+            application that exposes a REST API for remotely managing smart
+            devices.  The <span class=logo-in-text>haive CLOUD</span> stores
+            time-series and event-based data obtained from the sensors on your
+            device, for visualization and analysis.  It also has a powerful
+            rule engine.  The <span class=logo-in-text>haive CLOUD</span> is
+            written in golang, uses cassandra for data storage, and
+            communicates with devices over websockets.
+            
+            <p>
+
+            <span class=logo-in-text>haive APP</span> is frontend to the haive
+            CLOUD, for the web and mobile web.  The front-end provides an
+            easy-to-use interface for remotely managing your smart devices,
+            visualizing sensor data, creating rules, and connecting the output
+            of one device to the input of another.  The <span
+            class=logo-in-text>haive APP</span> is written entirely in
+            javascript and HTML.
+
+        </div>
+    </div>
+</body>
+</html>
