@@ -4,7 +4,7 @@
 static int ws_callback(
         struct libwebsocket_context *this,
         struct libwebsocket *wsi,
-        enum libwebsocket_callback_reason reason,
+        enum libwebsocket_callback_reasons reason,
         void *user,
         void *in,
         size_t len)
@@ -47,6 +47,8 @@ static struct libwebsocket_protocols sHaiveWsProtocols[] = {
 int ws_main()
 {
     struct lws_context_creation_info info;
+    struct libwebsocket *wsi;
+    struct libwebsocket_context *context;
     info.port = HAIVE_WS_PORT;
     info.protocols = sHaiveWsProtocols;
     info.gid = -1;
@@ -83,5 +85,5 @@ int ws_main()
     }
 
     libwebsocket_context_destroy(context);
-    return;
+    return 0;
 }
