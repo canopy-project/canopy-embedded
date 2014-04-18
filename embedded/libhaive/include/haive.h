@@ -5,8 +5,12 @@
 #ifndef HAIVE_INCLUDED
 #define HAIVE_INCLUDED
 
-typedef void * HaiveContext;
-typedef void * HaiveReport;
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdint.h>
+
+typedef struct HaiveContextStruct * HaiveContext;
+typedef struct HaiveReportStruct * HaiveReport;
 
 typedef enum
 {
@@ -17,8 +21,15 @@ typedef enum
     HAIVE_DATATYPE_FLOAT32,
     HAIVE_DATATYPE_FLOAT64,
     HAIVE_DATATYPE_STRING,
-    HAIVE_DATATYPE_DATETIME,
+    HAIVE_DATATYPE_DATETIME
 } HaiveDatatypeEnum;
+
+typedef enum
+{
+    HAIVE_EVENT_REPORT_REQUESTED
+} HaiveEventEnum;
+
+typedef bool (*HaiveEventCallbackRoutine)(HaiveContext, HaiveEventEnum, void *);
 
 HaiveContext haive_init();
 
