@@ -8,6 +8,18 @@
 typedef void * HaiveContext;
 typedef void * HaiveReport;
 
+typedef enum
+{
+    HAIVE_DATATYPE_INT8,
+    HAIVE_DATATYPE_UINT8,
+    HAIVE_DATATYPE_INT32,
+    HAIVE_DATATYPE_UINT32,
+    HAIVE_DATATYPE_FLOAT32,
+    HAIVE_DATATYPE_FLOAT64,
+    HAIVE_DATATYPE_STRING,
+    HAIVE_DATATYPE_DATETIME,
+} HaiveDatatypeEnum;
+
 HaiveContext haive_init();
 
 bool haive_connect(const char *websocket_url);
@@ -25,7 +37,6 @@ bool haive_report_i32(HaiveReport report, const char *parameter, int32_t value);
 bool haive_report_u32(HaiveReport report, const char *parameter, uint32_t value);
 bool haive_report_string(HaiveReport report, const char *parameter, const char *value);
 
-bool haive_finish_report(HaiveReport report);
 bool haive_send_report(HaiveReport report);
 
 void haive_shutdown(HaiveContext haive);
