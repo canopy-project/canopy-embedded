@@ -24,7 +24,7 @@ HaiveContext haive_init();
 
 bool haive_connect(const char *websocket_url);
 
-bool haive_register_callback(HaiveContext ctx, HaiveCallbackEnum cb, HaiveCallbackRoutine fn, void *extra);
+bool haive_register_event_callback(HaiveContext haive, HaiveEventCallbackRoutine fn, void *extra);
 
 bool haive_load_device_description(HaiveContext haive, const char *filename);
 bool haive_load_device_description_file(HaiveContext haive, FILE *file);
@@ -38,6 +38,10 @@ bool haive_report_u32(HaiveReport report, const char *parameter, uint32_t value)
 bool haive_report_string(HaiveReport report, const char *parameter, const char *value);
 
 bool haive_send_report(HaiveReport report);
+
+bool haive_event_loop(HaiveContext haive);
+
+void haive_quit(HaiveContext haive);
 
 void haive_shutdown(HaiveContext haive);
 #endif

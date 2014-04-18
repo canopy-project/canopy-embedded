@@ -21,10 +21,10 @@ int main(void)
 {
     HaiveContext haive;
     haive = haive_init();
-    haive_load_device_description("/etc/haive/my_temp_sensor.sddl");
-    haive_connect("ws://foobar");
+    haive_load_device_description(haive, "/etc/haive/my_temp_sensor.sddl");
+    haive_connect(haive, "ws://foobar");
     haive_register_callback(haive, HAIVE_CB_EVENT_HANDLER, handle_haive_event, NULL);
-    haive_event_loop();
+    haive_event_loop(haive);
     haive_shutdown(haive);
     return 0;
 }

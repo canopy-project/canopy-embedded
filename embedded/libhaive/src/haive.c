@@ -30,6 +30,9 @@ typedef struct HaiveContextStruct
 {
     bool initialized;
     RedHash properties;
+    HaiveCallbackRoutine cb;
+    HaiveCallbackRoutine cbExtra;
+    bool quitRequested;
 } HaiveContextStruct;
 
 HaiveContext haive_init()
@@ -57,6 +60,14 @@ fail:
     }
     return NULL;
 }
+
+bool haive_register_event_callback(HaiveContext haive, HaiveEventCallbackRoutine fn, void *extra)
+{
+    haive->cb = fn;
+    haive->cbExtra = extra;
+    return true;
+}
+
 
 HaiveReport haive_begin_report(HaiveContext haive)
 {
@@ -133,20 +144,64 @@ bool haive_report_i8(HaiveReport report, const char *parameter, int8_t value)
     return true;
 }
 
-bool haive_end_report(HaiveReport report)
-{
-    if (report->finished)
-    {
-        // report already finished
-        return false;
-    }
-    report->finished = true;
-    return true;
-}
-
 bool haive_send_report(HaiveReport report)
 {
     // construct websocket message
 }
 
+bool haive_load_device_description(HaiveContext haive, const char *filename)
+{
+    FILE *fp;
+    bool result;
+    fp = fopen(filename, "r");
+    if (!fp)
+    {
+        return false;
+    }
+    result = haive_load_device_description_file(haive, fp);
+    fclose(fp);
+    return result;
+}
 
+bool haive_load_device_description_file(HaiveContext haive, FILE *file)
+{
+    /* Read entire file into memory */
+    fseek(file, 0, SEEK_END);
+    long filesize = ftell(file);
+    char *buffer = malloc(filesize);
+    fread(&buffer, 1, filesize, file);
+    haive_load_device_description_string(haive, buffer);
+    free(buffer);
+}
+
+bool haive_load_device_description_string(HaiveContext haive, const char *szDesc);
+{
+    RedJsonObject jsonObj = RedJson_Parse(szDesc);
+    
+    for (int i = 0; i < RedJsonObject_NumItems(jsonObj); i++)
+    {
+        RedJsonObject_GetKeyByIndex(jsonObj, i)
+    }
+}
+
+bool haive_event_loop(HaiveContext haive)
+{
+    while (!haive->quitRequested)
+    {
+        if (haive->cb)
+        {
+            haive->cb(haive, HAIVE_EVENT_REPORT_REQUESTED, haive->cbExtra);
+        }
+        sleep(10)
+    }
+}
+
+void haive_quit(HaiveContext haive)
+{
+    haive->quitRequested = true;
+}
+
+void haive_shutdown(HaiveContext haive)
+{
+    free(haive);
+}
