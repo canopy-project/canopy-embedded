@@ -1,0 +1,15 @@
+- SDDL documentation
+- SDRL documentation
+- SDDL registry website
+- SDDL library for:
+    - C
+    - C++
+    - Java
+- SDTK
+
+- Callhome/storage architecture
+- Cloud storage
+- JSON parsing
+- Finish implementing/testing RedHash
+- Websocket handling
+- Makefiles
