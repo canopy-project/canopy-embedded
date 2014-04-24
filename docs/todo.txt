@@ -13,3 +13,9 @@
 - Finish implementing/testing RedHash
 - Websocket handling
 - Makefiles
+
+- unit tests for red_hash
+- finish implementing red_json
+- unit tests for red_json
+- unit tests for red_string
+
