@@ -9,9 +9,11 @@ LIB_FLAGS := -L../.. -lhaive
 SOURCE_FILES = test_haive.c
 
 debug:
+	make -C ../.. debug
 	gcc $(SOURCE_FILES) $(LIB_FLAGS) $(INCLUDE_FLAGS) $(DEBUG_FLAGS) -o test_haive
 
 release:
+	make -C ../.. release
 	gcc $(SOURCE_FILES) $(LIB_FLAGS) $(INCLUDE_FLAGS) $(RELEASE_FLAGS) -o test_haive
 
 run: debug

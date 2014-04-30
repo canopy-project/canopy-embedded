@@ -19,8 +19,8 @@ int main(int argc, const char *argv[])
 
     /* Test sddl file loading */
     {
-        /* HaiveContext haive = haive_init(); */
-        /* bool haive_load_device_description(HaiveContext haive, const char *filename); */
+         HaiveContext haive = haive_init();
+        haive_load_device_description(haive, "mydevice.sddl");
     }
     return RedTest_End(suite);
 }

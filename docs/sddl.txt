@@ -17,6 +17,7 @@ smart object.  It is a subset of JSON.
 TOASTER OVEN
 
 {
+    "#include" : ["common.sddl"],
     "sunbeam.toaster" : {
         "master" : "std.common:master-on-off"
         "lat" : "std.gps:lat",

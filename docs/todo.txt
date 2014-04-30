@@ -19,3 +19,17 @@
 - unit tests for red_json
 - unit tests for red_string
 
+
+
+ALPHA DEADLINE - July 30
+- embedded
+    - libhaive
+        - Parsing of SDDL files
+        - Websocket connection
+        - 
+- app
+    - account/login screens
+    - device listings
+    - controls
+    - sensor graphs
+

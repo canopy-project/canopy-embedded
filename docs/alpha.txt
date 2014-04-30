@@ -1,0 +1,24 @@
+ALPHA
+-----------------------------------------
+Device:
+- libhaive running on Raspberry Pi.
+- SDDL file for my device
+- SDDL parsing & code hooks implemented
+- WS + JSON communications implemented
+
+Cloud:
+- Implement Device<-->Cloud API
+- Implement Cloud<--->Frontend API
+- Store data in cassandra
+
+Frontend
+- List devices & Controls
+- Select sensor data to show on graph
+- Adjust controls & they affect the device
+- Account login
+
+
+3 months development
+Target Date -- July 1, 2014
+
+

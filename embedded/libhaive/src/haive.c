@@ -2,43 +2,10 @@
  * Copyright 2014 - Greg Prisament
  */
 #include "haive.h"
+#include "haive_internal.h"
 #include "red_hash.h"
+#include "red_json.h"
 #include <unistd.h>
-
-typedef struct _HaiveProperty
-{
-    const char *name;
-    HaiveDatatypeEnum datatype;
-    bool hasMinRange;
-    bool hasMaxRange;
-    int64_t rangeMin;
-    uint64_t rangeMax;
-} _HaiveProperty;
-
-typedef struct _HaivePropertyValue
-{
-    union
-    {
-        int8_t val_int8;
-        int32_t val_int32;
-    } val;
-} _HaivePropertyValue;
-
-typedef struct HaiveReportStruct
-{
-    HaiveContext ctx;
-    RedHash values;
-    bool finished;
-} HaiveReportStruct;
-
-typedef struct HaiveContextStruct
-{
-    bool initialized;
-    RedHash properties;
-    HaiveEventCallbackRoutine cb;
-    void * cbExtra;
-    bool quitRequested;
-} HaiveContextStruct;
 
 HaiveContext haive_init()
 {
@@ -181,8 +148,9 @@ bool haive_load_device_description_file(HaiveContext haive, FILE *file)
     char *buffer;
     fseek(file, 0, SEEK_END);
     filesize = ftell(file); 
-    buffer = malloc(filesize);
-    fread(&buffer, 1, filesize, file);
+    fseek(file, 0, SEEK_SET);
+    buffer = calloc(1, filesize+1);
+    fread(buffer, 1, filesize, file);
     haive_load_device_description_string(haive, buffer);
     free(buffer);
     return true;
@@ -190,14 +158,23 @@ bool haive_load_device_description_file(HaiveContext haive, FILE *file)
 
 bool haive_load_device_description_string(HaiveContext haive, const char *szDesc)
 {
-    /*RedJsonObject jsonObj;
+    char **keysArray;
+    unsigned numKeys;
+    unsigned i;
+
+    RedJsonObject jsonObj;
 
     jsonObj = RedJson_Parse(szDesc);
+
+    numKeys = RedJsonObject_NumItems(jsonObj);
+    keysArray = RedJsonObject_NewKeysArray(jsonObj);
     
-    for (int i = 0; i < RedJsonObject_NumItems(jsonObj); i++)
+    for (i = 0; i < numKeys; i++)
     {
-        RedJsonObject_GetKeyByIndex(jsonObj, i)
-    }*/
+        RedJsonValue val = RedJsonObject_Get(jsonObj, keysArray[i]);
+
+        printf("key: %s   value: %s\n", keysArray[i], RedJsonValue_GetString(val));
+    }
     return true;
 }
 

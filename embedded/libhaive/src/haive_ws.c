@@ -1,3 +1,4 @@
+#if 0
 #include "libwebsockets.h"
 #include <stdio.h>
 
@@ -87,3 +88,4 @@ int ws_main()
     libwebsocket_context_destroy(context);
     return 0;
 }
+#endif
