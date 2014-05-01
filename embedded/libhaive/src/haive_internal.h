@@ -29,6 +29,7 @@ typedef struct _HaiveProperty
 
 typedef struct _HaivePropertyValue
 {
+    HaiveDatatypeEnum datatype;
     union
     {
         int8_t val_int8;

@@ -4,6 +4,11 @@
             "category" : "sensor",
             "datatype" : "float32",
             "description" : "Temp in degrees celsius",
+        },
+        "humidity" : {
+            "category" : "sensor",
+            "datatype" : "float32",
+            "description" : "Humidity from 0.00-1.00",
         }
     }
 }

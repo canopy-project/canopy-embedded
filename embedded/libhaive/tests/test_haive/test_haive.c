@@ -25,6 +25,7 @@ int main(int argc, const char *argv[])
 
         report = haive_begin_report(haive);
         haive_report_float32(report, "temperature", 24.38f);
+        haive_report_float32(report, "humidity", 0.01f);
         haive_send_report(report);
 
         haive_shutdown(haive);

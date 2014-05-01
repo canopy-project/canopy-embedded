@@ -14,6 +14,9 @@
 - Websocket handling
 - Makefiles
 
+- Implement GenerateReport
+- haive.h documentation
+
 - unit tests for red_hash
 - finish implementing red_json
 - unit tests for red_json

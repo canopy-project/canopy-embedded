@@ -6,6 +6,7 @@
 #include "red_hash.h"
 #include "red_json.h"
 #include <unistd.h>
+#include <assert.h>
 
 HaiveContext haive_init()
 {
@@ -140,7 +141,7 @@ bool haive_report_float32(HaiveReport report, const char *parameter, float value
         fprintf(stderr, "property not found!");
         return false;
     }
-    else if (prop->datatype != HAIVE_DATATYPE_INT8)
+    else if (prop->datatype != HAIVE_DATATYPE_FLOAT32)
     {
         fprintf(stderr, "incorrect datatype");
         return false;
@@ -164,6 +165,7 @@ bool haive_report_float32(HaiveReport report, const char *parameter, float value
         return false;
     }
 
+    propval->datatype = HAIVE_DATATYPE_FLOAT32;
     propval->val.val_float32 = value;
     
     /* Add it to report's hash table */
@@ -181,10 +183,24 @@ bool haive_send_report(HaiveReport report)
     const void *key;
     size_t keySize;
     const void * value;
+
+    RedJsonObject jsonObj = RedJsonObject_New();
     RED_HASH_FOREACH(iter, report->values, &key, &keySize, &value)
     {
+        _HaivePropertyValue * propVal = (_HaivePropertyValue *)value;
         printf("Property `%s` has value: %f\n", (char *)key, ((_HaivePropertyValue *)value)->val.val_float32);
+        switch (propVal->datatype)
+        {
+            case HAIVE_DATATYPE_FLOAT32:
+            {
+                RedJsonObject_SetNumber(jsonObj, key, propVal->val.val_float32);
+                break;
+            }
+            default:
+                assert(!"unimplemented datatype");
+        }
     }
+    printf("%s\n", RedJsonObject_ToJsonString(jsonObj));
     return false;
 }
 

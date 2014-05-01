@@ -14,6 +14,7 @@ typedef struct HaiveReportStruct * HaiveReport;
 
 typedef enum
 {
+    HAIVE_DATATYPE_INVALID,
     HAIVE_DATATYPE_INT8,
     HAIVE_DATATYPE_UINT8,
     HAIVE_DATATYPE_INT32,
