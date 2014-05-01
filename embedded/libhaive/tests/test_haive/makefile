@@ -19,6 +19,8 @@ release:
 run: debug
 	LD_LIBRARY_PATH=../.. ./test_haive
 
+dbg: debug
+	LD_LIBRARY_PATH=../.. gdb ./test_haive
 clean:
 	rm test_haive
 

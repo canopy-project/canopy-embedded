@@ -46,6 +46,8 @@ bool haive_report_i8(HaiveReport report, const char *parameter, int8_t value);
 bool haive_report_u8(HaiveReport report, const char *parameter, uint8_t value);
 bool haive_report_i32(HaiveReport report, const char *parameter, int32_t value);
 bool haive_report_u32(HaiveReport report, const char *parameter, uint32_t value);
+bool haive_report_float32(HaiveReport report, const char *parameter, float value);
+bool haive_report_float64(HaiveReport report, const char *parameter, double value);
 bool haive_report_string(HaiveReport report, const char *parameter, const char *value);
 
 bool haive_send_report(HaiveReport report);

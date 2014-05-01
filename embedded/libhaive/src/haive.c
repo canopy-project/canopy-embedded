@@ -121,9 +121,70 @@ bool haive_report_i8(HaiveReport report, const char *parameter, int8_t value)
     return true;
 }
 
+bool haive_report_float32(HaiveReport report, const char *parameter, float value)
+{
+    /* First verify that value is acceptable */
+    HaiveContext ctx = report->ctx;
+    _HaiveProperty *prop;
+    _HaivePropertyValue *propval;
+    _HaivePropertyValue *oldValue;
+
+    if (report->finished)
+    {
+        fprintf(stderr, "haive_end_report already called, cannot make further changes.");
+        return false;
+    }
+    prop = RedHash_GetWithDefaultS(ctx->properties, parameter, NULL);
+    if (!prop)
+    {
+        fprintf(stderr, "property not found!");
+        return false;
+    }
+    else if (prop->datatype != HAIVE_DATATYPE_INT8)
+    {
+        fprintf(stderr, "incorrect datatype");
+        return false;
+    }
+    else if (prop->hasMinRange && value < prop->rangeMin)
+    {
+        fprintf(stderr, "value too low");
+        return false;
+    }
+    else if (prop->hasMaxRange && value > prop->rangeMax)
+    {
+        fprintf(stderr, "value too large");
+        return false;
+    }
+
+    /* create property value object */
+    propval = calloc(1, sizeof(_HaivePropertyValue));
+    if (!propval)
+    {
+        /* allocation failed */
+        return false;
+    }
+
+    propval->val.val_float32 = value;
+    
+    /* Add it to report's hash table */
+    if (RedHash_UpdateOrInsertS(report->values, (void **)&oldValue, parameter, propval))
+    {
+        free(oldValue);
+    }
+    return true;
+}
+
 bool haive_send_report(HaiveReport report)
 {
     /* construct websocket message */
+    RedHashIterator_t iter;
+    const void *key;
+    size_t keySize;
+    const void * value;
+    RED_HASH_FOREACH(iter, report->values, &key, &keySize, &value)
+    {
+        printf("Property `%s` has value: %f\n", (char *)key, ((_HaivePropertyValue *)value)->val.val_float32);
+    }
     return false;
 }
 
@@ -153,28 +214,6 @@ bool haive_load_device_description_file(HaiveContext haive, FILE *file)
     fread(buffer, 1, filesize, file);
     haive_load_device_description_string(haive, buffer);
     free(buffer);
-    return true;
-}
-
-bool haive_load_device_description_string(HaiveContext haive, const char *szDesc)
-{
-    char **keysArray;
-    unsigned numKeys;
-    unsigned i;
-
-    RedJsonObject jsonObj;
-
-    jsonObj = RedJson_Parse(szDesc);
-
-    numKeys = RedJsonObject_NumItems(jsonObj);
-    keysArray = RedJsonObject_NewKeysArray(jsonObj);
-    
-    for (i = 0; i < numKeys; i++)
-    {
-        RedJsonValue val = RedJsonObject_Get(jsonObj, keysArray[i]);
-
-        printf("key: %s   value: %s\n", keysArray[i], RedJsonValue_GetString(val));
-    }
     return true;
 }
 

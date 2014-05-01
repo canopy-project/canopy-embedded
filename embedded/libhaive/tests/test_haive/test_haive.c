@@ -19,8 +19,15 @@ int main(int argc, const char *argv[])
 
     /* Test sddl file loading */
     {
-         HaiveContext haive = haive_init();
+        HaiveReport report;
+        HaiveContext haive = haive_init();
         haive_load_device_description(haive, "mydevice.sddl");
+
+        report = haive_begin_report(haive);
+        haive_report_float32(report, "temperature", 24.38f);
+        haive_send_report(report);
+
+        haive_shutdown(haive);
     }
     return RedTest_End(suite);
 }

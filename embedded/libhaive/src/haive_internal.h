@@ -19,7 +19,7 @@ typedef struct HaiveContextStruct
 
 typedef struct _HaiveProperty
 {
-    const char *name;
+    char *name;
     HaiveDatatypeEnum datatype;
     bool hasMinRange;
     bool hasMaxRange;
@@ -33,6 +33,7 @@ typedef struct _HaivePropertyValue
     {
         int8_t val_int8;
         int32_t val_int32;
+        float val_float32;
     } val;
 } _HaivePropertyValue;
 

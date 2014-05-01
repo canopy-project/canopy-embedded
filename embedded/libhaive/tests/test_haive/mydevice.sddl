@@ -1,6 +1,10 @@
 {
-    "cat" : "Meow",
-    "dog" : "woof",
-    "elephant" : "trumphh"
+    "test.temp_sensor" : {
+        "temperature" : {
+            "category" : "sensor",
+            "datatype" : "float32",
+            "description" : "Temp in degrees celsius",
+        }
+    }
 }
 
