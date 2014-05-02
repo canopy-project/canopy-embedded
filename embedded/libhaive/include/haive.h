@@ -34,7 +34,7 @@ typedef bool (*HaiveEventCallbackRoutine)(HaiveContext, HaiveEventEnum, void *);
 
 HaiveContext haive_init();
 
-bool haive_connect(const char *websocket_url);
+bool haive_connect(HaiveContext haive, const char *websocket_url);
 
 bool haive_register_event_callback(HaiveContext haive, HaiveEventCallbackRoutine fn, void *extra);
 

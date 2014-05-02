@@ -59,11 +59,9 @@ static struct _HaiveProperty * _create_property(const char *propName, RedJsonObj
         }
         else if (!strcmp(keysArray[i], "category"))
         {
-            printf("category: %s\n", RedJsonObject_GetString(jsonObj, "category"));
         }
         else if (!strcmp(keysArray[i], "description"))
         {
-            printf("description: %s\n", RedJsonObject_GetString(jsonObj, "description"));
         }
         else
         {

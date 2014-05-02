@@ -188,7 +188,6 @@ bool haive_send_report(HaiveReport report)
     RED_HASH_FOREACH(iter, report->values, &key, &keySize, &value)
     {
         _HaivePropertyValue * propVal = (_HaivePropertyValue *)value;
-        printf("Property `%s` has value: %f\n", (char *)key, ((_HaivePropertyValue *)value)->val.val_float32);
         switch (propVal->datatype)
         {
             case HAIVE_DATATYPE_FLOAT32:
