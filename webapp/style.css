@@ -1,0 +1,58 @@
+body {
+    margin: 0px;
+    padding: 0px;
+    font-family: "Titillium Web", sans-serif;
+    font-weight: 300;
+    font-size: 14pt;
+}
+
+.logo {
+    font-family: "ABeeZee";
+    font-size: 35px;
+}
+
+#main--top {
+    width: 100%;
+    background: #d0d0d0;
+}
+
+#main--topleft {
+    display: inline-block;
+    width: 150px;
+    padding: 8px;
+    background: #4080a0;
+}
+
+#main--topright {
+    display: inline-block;
+    padding: 8px;
+}
+
+#main--left {
+    position: absolute;
+    padding: 8px;
+    background: #d0e0f0;
+    width: 150px;
+    height: 100%;
+}
+
+#main--right {
+    margin-left: 172px;
+    padding: 8px;
+}
+
+.device--outer {
+    padding: 8px;
+    border-radius: 4px;
+    background: #f0f0f0;
+}
+
+.green-border {
+    font-size: 10pt;
+    border: 1px solid #00ff00;
+    display: inline-block;
+}
+
+.device--settings {
+    font-size: 10pt;
+}
