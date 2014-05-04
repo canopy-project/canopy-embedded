@@ -1,17 +1,17 @@
 /*
  * Copyright 2014 - Greg Prisament
  */
-#include "haive.h"
-#include "haive_internal.h"
+#include "canopy.h"
+#include "canopy_internal.h"
 #include "red_hash.h"
 #include "red_json.h"
 #include <unistd.h>
 #include <assert.h>
 
-HaiveContext haive_init()
+CanopyContext canopy_init()
 {
-    HaiveContext ctx = NULL;
-    ctx = calloc(1, sizeof(HaiveContext));
+    CanopyContext ctx = NULL;
+    ctx = calloc(1, sizeof(CanopyContext));
     if (!ctx)
     {
         /* TODO: set error */
@@ -34,18 +34,18 @@ fail:
     return NULL;
 }
 
-bool haive_register_event_callback(HaiveContext haive, HaiveEventCallbackRoutine fn, void *extra)
+bool canopy_register_event_callback(CanopyContext canopy, CanopyEventCallbackRoutine fn, void *extra)
 {
-    haive->cb = fn;
-    haive->cbExtra = extra;
+    canopy->cb = fn;
+    canopy->cbExtra = extra;
     return true;
 }
 
 
-HaiveReport haive_begin_report(HaiveContext haive)
+CanopyReport canopy_begin_report(CanopyContext canopy)
 {
-    HaiveReport report = NULL;
-    report = calloc(1, sizeof(HaiveReport));
+    CanopyReport report = NULL;
+    report = calloc(1, sizeof(CanopyReport));
     if (!report)
     {
         goto fail;
@@ -57,7 +57,7 @@ HaiveReport haive_begin_report(HaiveContext haive)
         goto fail;
     }
 
-    report->ctx = haive; /* TODO: refcnt? */
+    report->ctx = canopy; /* TODO: refcnt? */
 
     return report;
 fail:
@@ -69,17 +69,17 @@ fail:
     return NULL;
 }
 
-bool haive_report_i8(HaiveReport report, const char *parameter, int8_t value)
+bool canopy_report_i8(CanopyReport report, const char *parameter, int8_t value)
 {
     /* First verify that value is acceptable */
-    HaiveContext ctx = report->ctx;
-    _HaiveProperty *prop;
-    _HaivePropertyValue *propval;
-    _HaivePropertyValue *oldValue;
+    CanopyContext ctx = report->ctx;
+    _CanopyProperty *prop;
+    _CanopyPropertyValue *propval;
+    _CanopyPropertyValue *oldValue;
 
     if (report->finished)
     {
-        /* haive_end_report already called, cannot make further changes. */
+        /* canopy_end_report already called, cannot make further changes. */
         return false;
     }
     prop = RedHash_GetWithDefaultS(ctx->properties, parameter, NULL);
@@ -88,7 +88,7 @@ bool haive_report_i8(HaiveReport report, const char *parameter, int8_t value)
         /* property not found! */
         return false;
     }
-    else if (prop->datatype != HAIVE_DATATYPE_INT8)
+    else if (prop->datatype != CANOPY_DATATYPE_INT8)
     {
         /* incorrect datatype */
         return false;
@@ -105,7 +105,7 @@ bool haive_report_i8(HaiveReport report, const char *parameter, int8_t value)
     }
 
     /* create property value object */
-    propval = calloc(1, sizeof(_HaivePropertyValue));
+    propval = calloc(1, sizeof(_CanopyPropertyValue));
     if (!propval)
     {
         /* allocation failed */
@@ -122,17 +122,17 @@ bool haive_report_i8(HaiveReport report, const char *parameter, int8_t value)
     return true;
 }
 
-bool haive_report_float32(HaiveReport report, const char *parameter, float value)
+bool canopy_report_float32(CanopyReport report, const char *parameter, float value)
 {
     /* First verify that value is acceptable */
-    HaiveContext ctx = report->ctx;
-    _HaiveProperty *prop;
-    _HaivePropertyValue *propval;
-    _HaivePropertyValue *oldValue;
+    CanopyContext ctx = report->ctx;
+    _CanopyProperty *prop;
+    _CanopyPropertyValue *propval;
+    _CanopyPropertyValue *oldValue;
 
     if (report->finished)
     {
-        fprintf(stderr, "haive_end_report already called, cannot make further changes.");
+        fprintf(stderr, "canopy_end_report already called, cannot make further changes.");
         return false;
     }
     prop = RedHash_GetWithDefaultS(ctx->properties, parameter, NULL);
@@ -141,7 +141,7 @@ bool haive_report_float32(HaiveReport report, const char *parameter, float value
         fprintf(stderr, "property not found!");
         return false;
     }
-    else if (prop->datatype != HAIVE_DATATYPE_FLOAT32)
+    else if (prop->datatype != CANOPY_DATATYPE_FLOAT32)
     {
         fprintf(stderr, "incorrect datatype");
         return false;
@@ -158,14 +158,14 @@ bool haive_report_float32(HaiveReport report, const char *parameter, float value
     }
 
     /* create property value object */
-    propval = calloc(1, sizeof(_HaivePropertyValue));
+    propval = calloc(1, sizeof(_CanopyPropertyValue));
     if (!propval)
     {
         /* allocation failed */
         return false;
     }
 
-    propval->datatype = HAIVE_DATATYPE_FLOAT32;
+    propval->datatype = CANOPY_DATATYPE_FLOAT32;
     propval->val.val_float32 = value;
     
     /* Add it to report's hash table */
@@ -176,7 +176,7 @@ bool haive_report_float32(HaiveReport report, const char *parameter, float value
     return true;
 }
 
-bool haive_send_report(HaiveReport report)
+bool canopy_send_report(CanopyReport report)
 {
     /* construct websocket message */
     RedHashIterator_t iter;
@@ -187,10 +187,10 @@ bool haive_send_report(HaiveReport report)
     RedJsonObject jsonObj = RedJsonObject_New();
     RED_HASH_FOREACH(iter, report->values, &key, &keySize, &value)
     {
-        _HaivePropertyValue * propVal = (_HaivePropertyValue *)value;
+        _CanopyPropertyValue * propVal = (_CanopyPropertyValue *)value;
         switch (propVal->datatype)
         {
-            case HAIVE_DATATYPE_FLOAT32:
+            case CANOPY_DATATYPE_FLOAT32:
             {
                 RedJsonObject_SetNumber(jsonObj, key, propVal->val.val_float32);
                 break;
@@ -203,7 +203,7 @@ bool haive_send_report(HaiveReport report)
     return false;
 }
 
-bool haive_load_device_description(HaiveContext haive, const char *filename)
+bool canopy_load_device_description(CanopyContext canopy, const char *filename)
 {
     FILE *fp;
     bool result;
@@ -212,12 +212,12 @@ bool haive_load_device_description(HaiveContext haive, const char *filename)
     {
         return false;
     }
-    result = haive_load_device_description_file(haive, fp);
+    result = canopy_load_device_description_file(canopy, fp);
     fclose(fp);
     return result;
 }
 
-bool haive_load_device_description_file(HaiveContext haive, FILE *file)
+bool canopy_load_device_description_file(CanopyContext canopy, FILE *file)
 {
     /* Read entire file into memory */
     long filesize;
@@ -227,30 +227,30 @@ bool haive_load_device_description_file(HaiveContext haive, FILE *file)
     fseek(file, 0, SEEK_SET);
     buffer = calloc(1, filesize+1);
     fread(buffer, 1, filesize, file);
-    haive_load_device_description_string(haive, buffer);
+    canopy_load_device_description_string(canopy, buffer);
     free(buffer);
     return true;
 }
 
-bool haive_event_loop(HaiveContext haive)
+bool canopy_event_loop(CanopyContext canopy)
 {
-    while (!haive->quitRequested)
+    while (!canopy->quitRequested)
     {
-        if (haive->cb)
+        if (canopy->cb)
         {
-            haive->cb(haive, HAIVE_EVENT_REPORT_REQUESTED, haive->cbExtra);
+            canopy->cb(canopy, CANOPY_EVENT_REPORT_REQUESTED, canopy->cbExtra);
         }
         sleep(10);
     }
     return true;
 }
 
-void haive_quit(HaiveContext haive)
+void canopy_quit(CanopyContext canopy)
 {
-    haive->quitRequested = true;
+    canopy->quitRequested = true;
 }
 
-void haive_shutdown(HaiveContext haive)
+void canopy_shutdown(CanopyContext canopy)
 {
-    free(haive);
+    free(canopy);
 }
