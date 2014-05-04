@@ -1,18 +1,18 @@
 /*
  * Copyright 2014 - Greg Prisament
  */
-#include "haive_internal.h"
+#include "canopy_internal.h"
 #include "red_json.h"
 #include <assert.h>
 
-static struct _HaiveProperty * _create_property(const char *propName, RedJsonObject jsonObj)
+static struct _CanopyProperty * _create_property(const char *propName, RedJsonObject jsonObj)
 {
-    struct _HaiveProperty * prop;
+    struct _CanopyProperty * prop;
     unsigned numKeys = RedJsonObject_NumItems(jsonObj);
     char **keysArray = RedJsonObject_NewKeysArray(jsonObj);
     unsigned i;
 
-    prop = calloc(1, sizeof(struct _HaiveProperty));
+    prop = calloc(1, sizeof(struct _CanopyProperty));
     assert(prop);
 
     prop->name = calloc(1, strlen(propName) + 1);
@@ -26,35 +26,35 @@ static struct _HaiveProperty * _create_property(const char *propName, RedJsonObj
             char *datatypeString = RedJsonObject_GetString(jsonObj, keysArray[i]);
             if (!strcmp(datatypeString, "int8"))
             {
-                prop->datatype = HAIVE_DATATYPE_INT8;
+                prop->datatype = CANOPY_DATATYPE_INT8;
             }
             else if (!strcmp(datatypeString, "uint8"))
             {
-                prop->datatype = HAIVE_DATATYPE_UINT8;
+                prop->datatype = CANOPY_DATATYPE_UINT8;
             }
             else if (!strcmp(datatypeString, "int32"))
             {
-                prop->datatype = HAIVE_DATATYPE_INT32;
+                prop->datatype = CANOPY_DATATYPE_INT32;
             }
             else if (!strcmp(datatypeString, "uint32"))
             {
-                prop->datatype = HAIVE_DATATYPE_UINT32;
+                prop->datatype = CANOPY_DATATYPE_UINT32;
             }
             else if (!strcmp(datatypeString, "float32"))
             {
-                prop->datatype = HAIVE_DATATYPE_FLOAT32;
+                prop->datatype = CANOPY_DATATYPE_FLOAT32;
             }
             else if (!strcmp(datatypeString, "float64"))
             {
-                prop->datatype = HAIVE_DATATYPE_FLOAT64;
+                prop->datatype = CANOPY_DATATYPE_FLOAT64;
             }
             else if (!strcmp(datatypeString, "string"))
             {
-                prop->datatype = HAIVE_DATATYPE_STRING;
+                prop->datatype = CANOPY_DATATYPE_STRING;
             }
             else if (!strcmp(datatypeString, "datatime"))
             {
-                prop->datatype = HAIVE_DATATYPE_DATETIME;
+                prop->datatype = CANOPY_DATATYPE_DATETIME;
             }
         }
         else if (!strcmp(keysArray[i], "category"))
@@ -71,13 +71,13 @@ static struct _HaiveProperty * _create_property(const char *propName, RedJsonObj
     return prop;
 }
 
-static struct _HaiveInterface * _create_interface(RedJsonValue val)
+static struct _CanopyInterface * _create_interface(RedJsonValue val)
 {
-    struct _HaiveInterface *itf;
-    itf = calloc(1, sizeof(struct _HaiveInterface));
+    struct _CanopyInterface *itf;
+    itf = calloc(1, sizeof(struct _CanopyInterface));
     if (!itf)
     {
-        fprintf(stderr, "Falled to alloc _HaiveInterface\n");
+        fprintf(stderr, "Falled to alloc _CanopyInterface\n");
         return NULL;
     }
 
@@ -110,7 +110,7 @@ static struct _HaiveInterface * _create_interface(RedJsonValue val)
             else if (RedJsonObject_IsValueObject(jsonObj, keysArray[i]))
             {
                 /* Create property */
-                struct _HaiveProperty * prop;
+                struct _CanopyProperty * prop;
 
                 prop = _create_property(keysArray[i], RedJsonObject_GetObject(jsonObj, keysArray[i]));
 
@@ -123,16 +123,16 @@ static struct _HaiveInterface * _create_interface(RedJsonValue val)
     return itf;
 }
 
-bool haive_load_device_description_string(HaiveContext haive, const char *szDesc)
+bool canopy_load_device_description_string(CanopyContext canopy, const char *szDesc)
 {
     char **keysArray;
     unsigned numKeys;
     unsigned i;
-    struct _HaiveDevice *device;
+    struct _CanopyDevice *device;
 
     RedJsonObject jsonObj;
 
-    device = calloc(1, sizeof(_HaiveDevice));
+    device = calloc(1, sizeof(_CanopyDevice));
     /* TODO: error checking */
     device->interfaces = RedHash_New(0);
 
@@ -145,9 +145,9 @@ bool haive_load_device_description_string(HaiveContext haive, const char *szDesc
     {
         RedJsonValue val = RedJsonObject_Get(jsonObj, keysArray[i]);
         char *itfName = keysArray[i];
-        struct _HaiveInterface *itf = _create_interface(val);
+        struct _CanopyInterface *itf = _create_interface(val);
         RedHash_InsertS(device->interfaces, itfName, itf);
-        haive->properties = itf->properties; /* This is the main interface */
+        canopy->properties = itf->properties; /* This is the main interface */
     }
     return true;
 }

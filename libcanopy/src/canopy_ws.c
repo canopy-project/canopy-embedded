@@ -32,12 +32,12 @@ static int ws_callback(
     return 0;
 }
 
-#define HAIVE_WS_PORT 1235
-#define HAIVE_WS_USE_SSL 1
-#define HAIVE_WS_ADDRESS "123-fake-st"
-static struct libwebsocket_protocols sHaiveWsProtocols[] = {
+#define CANOPY_WS_PORT 1235
+#define CANOPY_WS_USE_SSL 1
+#define CANOPY_WS_ADDRESS "123-fake-st"
+static struct libwebsocket_protocols sCanopyWsProtocols[] = {
     {
-        "haive-ws-protocol",
+        "canopy-ws-protocol",
         ws_callback,
         0,
         128
@@ -50,8 +50,8 @@ int ws_main()
     struct lws_context_creation_info info;
     struct libwebsocket *wsi;
     struct libwebsocket_context *context;
-    info.port = HAIVE_WS_PORT;
-    info.protocols = sHaiveWsProtocols;
+    info.port = CANOPY_WS_PORT;
+    info.protocols = sCanopyWsProtocols;
     info.gid = -1;
     info.uid = -1;
 
@@ -64,13 +64,13 @@ int ws_main()
 
     wsi = libwebsocket_client_connect(
             context, 
-            HAIVE_WS_ADDRESS, 
-            HAIVE_WS_PORT, 
-            HAIVE_WS_USE_SSL, 
+            CANOPY_WS_ADDRESS, 
+            CANOPY_WS_PORT, 
+            CANOPY_WS_USE_SSL, 
             "/",
             0, /*?*/
             0, /*?*/
-            "haive-ws-protocol",
+            "canopy-ws-protocol",
             -1 /* latest ietf version */
         );
     if (!wsi)
