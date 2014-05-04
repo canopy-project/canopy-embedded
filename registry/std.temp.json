@@ -1,9 +1,0 @@
-{
-    "std.temp" : {
-        "temp" : {
-            "type" : "sensor",
-            "datetype" : "float",
-            "description" : "Temperature in degrees celsius"
-        },
-    }
-}
