@@ -28,6 +28,8 @@ int main(int argc, const char *argv[])
         canopy_report_float32(report, "humidity", 0.01f);
         canopy_send_report(report);
 
+        canopy_connect(canopy, "");
+
         canopy_shutdown(canopy);
     }
     return RedTest_End(suite);
