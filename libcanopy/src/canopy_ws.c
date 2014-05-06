@@ -47,7 +47,7 @@ static int ws_callback(
 //#define CANOPY_WS_PORT 1235
 #define CANOPY_WS_PORT CONTEXT_PORT_NO_LISTEN
 #define CANOPY_WS_USE_SSL 0
-#define CANOPY_WS_ADDRESS "echo.websocket.org"
+#define CANOPY_WS_ADDRESS "canopy.link"
 static struct libwebsocket_protocols sCanopyWsProtocols[] = {
     {
         "echo",
@@ -94,10 +94,10 @@ int ws_main()
     wsi = libwebsocket_client_connect(
             context, 
             CANOPY_WS_ADDRESS, 
-            80, 
+            8080, 
             CANOPY_WS_USE_SSL, 
-            "/",
-            "echo.websocket.org", /*host?*/
+            "/echo",
+            "canopy.link", /*host?*/
             "http://gregprisament.com", /*origin?*/
             "echo",
             -1 /* latest ietf version */
