@@ -1,6 +1,7 @@
-#if 0
+#include "canopy.h"
 #include "libwebsockets.h"
 #include <stdio.h>
+#include <string.h>
 
 static int ws_callback(
         struct libwebsocket_context *this,
@@ -14,6 +15,7 @@ static int ws_callback(
     {
         case LWS_CALLBACK_CLIENT_ESTABLISHED:
             fprintf(stderr, "ws_callback: LWS_CALLBACK_CLIENT_ESTABLISHED\n");
+            libwebsocket_callback_on_writable(this, wsi);
             break;
         case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
             fprintf(stderr, "ws_callback: LWS_CALLBACK_CLIENT_CONNECTION_ERROR\n");
@@ -21,6 +23,16 @@ static int ws_callback(
         case LWS_CALLBACK_CLOSED:
             fprintf(stderr, "ws_callback: LWS_CALLBACK_CLOSED\n");
             break;
+
+        case LWS_CALLBACK_CLIENT_WRITEABLE:
+        {
+            char buf[LWS_SEND_BUFFER_PRE_PADDING + 6 + LWS_SEND_BUFFER_POST_PADDING];
+            strcpy(&buf[LWS_SEND_BUFFER_PRE_PADDING], "hello");
+            printf("Saying hi:\n");
+            libwebsocket_write(wsi, (unsigned char *)&buf[LWS_SEND_BUFFER_PRE_PADDING], 6, LWS_WRITE_TEXT);
+            libwebsocket_callback_on_writable(this, wsi);
+            break;
+        }
         case LWS_CALLBACK_CLIENT_RECEIVE:
             ((char *)in)[len] = '\0';
             fprintf(stderr, "rx %d '%s'\n", (int)len, (char *)in);
@@ -32,28 +44,45 @@ static int ws_callback(
     return 0;
 }
 
-#define CANOPY_WS_PORT 1235
-#define CANOPY_WS_USE_SSL 1
-#define CANOPY_WS_ADDRESS "123-fake-st"
+//#define CANOPY_WS_PORT 1235
+#define CANOPY_WS_PORT CONTEXT_PORT_NO_LISTEN
+#define CANOPY_WS_USE_SSL 0
+#define CANOPY_WS_ADDRESS "echo.websocket.org"
 static struct libwebsocket_protocols sCanopyWsProtocols[] = {
     {
-        "canopy-ws-protocol",
+        "echo",
         ws_callback,
+        1024,
+        1024,
         0,
-        128
+        NULL,
+        0
     },
-    { NULL, NULL, 0, 0 } /* end */
+    { NULL, NULL, 0, 0, 0, NULL, 0} /* end */
 };
 
 int ws_main()
 {
-    struct lws_context_creation_info info;
+    struct lws_context_creation_info info={0};
     struct libwebsocket *wsi;
     struct libwebsocket_context *context;
-    info.port = CANOPY_WS_PORT;
+    info.port = CONTEXT_PORT_NO_LISTEN;
+    info.iface = NULL;
     info.protocols = sCanopyWsProtocols;
+    info.extensions = NULL;
+    info.ssl_cert_filepath = NULL;
+    info.ssl_private_key_filepath = NULL;
+    info.ssl_ca_filepath = NULL;
+    info.ssl_cipher_list = NULL;
     info.gid = -1;
     info.uid = -1;
+    info.options = 0;
+    info.user = NULL;
+    info.ka_time = 0;
+    info.ka_probes = 0;
+    info.ka_interval = 0;
+
+    //lws_set_log_level(511, NULL);
 
     context = libwebsocket_create_context(&info);
     if (!context)
@@ -65,12 +94,12 @@ int ws_main()
     wsi = libwebsocket_client_connect(
             context, 
             CANOPY_WS_ADDRESS, 
-            CANOPY_WS_PORT, 
+            80, 
             CANOPY_WS_USE_SSL, 
             "/",
-            0, /*?*/
-            0, /*?*/
-            "canopy-ws-protocol",
+            "echo.websocket.org", /*host?*/
+            "http://gregprisament.com", /*origin?*/
+            "echo",
             -1 /* latest ietf version */
         );
     if (!wsi)
@@ -80,12 +109,28 @@ int ws_main()
     }
 
     int result;
-    while (result != 0)
-    {
-        result = libwebsocket_service(context, 0);
-    }
+   // do
+    //{
+        result = libwebsocket_service(context, 800);
+        result = libwebsocket_service(context, 800);
+        result = libwebsocket_service(context, 800);
+        result = libwebsocket_service(context, 800);
+        result = libwebsocket_service(context, 800);
+        result = libwebsocket_service(context, 800);
+        result = libwebsocket_service(context, 800);
+        result = libwebsocket_service(context, 800);
+        result = libwebsocket_service(context, 800);
+        result = libwebsocket_service(context, 800);
+        result = libwebsocket_service(context, 800);
+    //} while (result == 0);
 
+        printf("Goodbye:\n");
     libwebsocket_context_destroy(context);
-    return 0;
+    return result;
 }
-#endif
+
+bool canopy_connect(CanopyContext canopy, const char *websocket_url)
+{
+    ws_main();
+    return true;
+}
