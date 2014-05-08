@@ -1,0 +1,17 @@
+{
+    "canopy.tutorial.sample_device_1" : {
+        "cpu" : {
+            "category" : "sensor",
+            "datatype" : "float",
+            "min-value" : 0.0,
+            "max-value" : 1.0,
+            "description" : "CPU usage percentage"
+        },
+        "reboot" : {
+            "category" : "control",
+            "control-type" : "trigger",
+            "datatype" : "boolean",
+            "description" : "Reboots the device"
+        }
+    }
+}
