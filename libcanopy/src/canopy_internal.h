@@ -6,6 +6,7 @@
 
 #include "canopy.h"
 #include "red_hash.h"
+#include "libwebsockets.h"
 
 typedef struct CanopyContextStruct
 {
@@ -19,6 +20,8 @@ typedef struct CanopyContextStruct
     char *cloudUsername;
     char *cloudPassword;
     bool autoReconnect;
+    struct libwebsocket *ws;
+    struct libwebsocket_context *ws_ctx;
 } CanopyContextStruct;
 
 typedef struct CanopyEventDetailsStruct

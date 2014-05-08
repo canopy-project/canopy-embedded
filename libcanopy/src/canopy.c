@@ -234,9 +234,10 @@ bool canopy_load_device_description_file(CanopyContext canopy, FILE *file, const
 
 bool canopy_event_loop(CanopyContext canopy)
 {
+    int cnt = 0;
     while (!canopy->quitRequested)
     {
-        if (canopy->cb)
+        if (canopy->cb && (cnt % 10 == 0))
         {
             CanopyEventDetails event;
             event = calloc(1, sizeof(CanopyEventDetailsStruct));
@@ -245,8 +246,11 @@ bool canopy_event_loop(CanopyContext canopy)
             canopy->cb(canopy, event);
             free(event);
         }
-        sleep(10);
+        libwebsocket_service(canopy->ws_ctx, 800);
+        sleep(1);
+        cnt++;
     }
+    libwebsocket_context_destroy(canopy->ws_ctx);
     return true;
 }
 

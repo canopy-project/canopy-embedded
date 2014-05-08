@@ -1,6 +1,5 @@
 #include "canopy.h"
 #include "canopy_internal.h"
-#include "libwebsockets.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -62,75 +61,6 @@ static struct libwebsocket_protocols sCanopyWsProtocols[] = {
     { NULL, NULL, 0, 0, 0, NULL, 0} /* end */
 };
 
-int ws_main()
-{
-    struct lws_context_creation_info info={0};
-    struct libwebsocket *wsi;
-    struct libwebsocket_context *context;
-    info.port = CONTEXT_PORT_NO_LISTEN;
-    info.iface = NULL;
-    info.protocols = sCanopyWsProtocols;
-    info.extensions = NULL;
-    info.ssl_cert_filepath = NULL;
-    info.ssl_private_key_filepath = NULL;
-    info.ssl_ca_filepath = NULL;
-    info.ssl_cipher_list = NULL;
-    info.gid = -1;
-    info.uid = -1;
-    info.options = 0;
-    info.user = NULL;
-    info.ka_time = 0;
-    info.ka_probes = 0;
-    info.ka_interval = 0;
-
-    //lws_set_log_level(511, NULL);
-
-    context = libwebsocket_create_context(&info);
-    if (!context)
-    {
-        fprintf(stderr, "Failed to create libwebsocket context\n");
-        return 1;
-    }
-
-    wsi = libwebsocket_client_connect(
-            context, 
-            CANOPY_WS_ADDRESS, 
-            8080, 
-            CANOPY_WS_USE_SSL, 
-            "/echo",
-            "canopy.link", /*host?*/
-            "http://gregprisament.com", /*origin?*/
-            "echo",
-            -1 /* latest ietf version */
-        );
-    if (!wsi)
-    {
-        fprintf(stderr, "Failed to create libwebsocket connection\n");
-        return 1;
-    }
-
-    int result;
-   // do
-    //{
-        result = libwebsocket_service(context, 800);
-        result = libwebsocket_service(context, 800);
-        result = libwebsocket_service(context, 800);
-        result = libwebsocket_service(context, 800);
-        result = libwebsocket_service(context, 800);
-        result = libwebsocket_service(context, 800);
-        result = libwebsocket_service(context, 800);
-        result = libwebsocket_service(context, 800);
-        result = libwebsocket_service(context, 800);
-        result = libwebsocket_service(context, 800);
-        result = libwebsocket_service(context, 800);
-    //} while (result == 0);
-
-        printf("Goodbye:\n");
-    libwebsocket_context_destroy(context);
-    return result;
-}
-
-
 bool canopy_set_cloud_host(CanopyContext canopy, const char *hostname)
 {
     canopy->cloudHost = strdup(hostname);
@@ -166,6 +96,48 @@ bool canopy_set_auto_reconnect(CanopyContext canopy, bool enabled)
 
 bool canopy_connect(CanopyContext canopy)
 {
-    ws_main();
+    struct lws_context_creation_info info={0};
+    info.port = CONTEXT_PORT_NO_LISTEN;
+    info.iface = NULL;
+    info.protocols = sCanopyWsProtocols;
+    info.extensions = NULL;
+    info.ssl_cert_filepath = NULL;
+    info.ssl_private_key_filepath = NULL;
+    info.ssl_ca_filepath = NULL;
+    info.ssl_cipher_list = NULL;
+    info.gid = -1;
+    info.uid = -1;
+    info.options = 0;
+    info.user = NULL;
+    info.ka_time = 0;
+    info.ka_probes = 0;
+    info.ka_interval = 0;
+
+    //lws_set_log_level(511, NULL);
+
+    canopy->ws_ctx = libwebsocket_create_context(&info);
+    if (!canopy->ws_ctx)
+    {
+        fprintf(stderr, "Failed to create libwebsocket context\n");
+        return 1;
+    }
+
+    canopy->ws = libwebsocket_client_connect(
+            canopy->ws_ctx, 
+            CANOPY_WS_ADDRESS, 
+            8080, 
+            CANOPY_WS_USE_SSL, 
+            "/echo",
+            "canopy.link", /*host?*/
+            "http://gregprisament.com", /*origin?*/
+            "echo",
+            -1 /* latest ietf version */
+        );
+    if (!canopy->ws)
+    {
+        fprintf(stderr, "Failed to create libwebsocket connection\n");
+        return 1;
+    }
+
     return true;
 }
