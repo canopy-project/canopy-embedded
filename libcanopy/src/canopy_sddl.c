@@ -123,7 +123,7 @@ static struct _CanopyInterface * _create_interface(RedJsonValue val)
     return itf;
 }
 
-bool canopy_load_device_description_string(CanopyContext canopy, const char *szDesc)
+bool canopy_load_device_description_string(CanopyContext canopy, const char *szDesc, const char *descriptionName)
 {
     char **keysArray;
     unsigned numKeys;

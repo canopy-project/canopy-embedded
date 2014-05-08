@@ -14,8 +14,18 @@ typedef struct CanopyContextStruct
     CanopyEventCallbackRoutine cb;
     void * cbExtra;
     bool quitRequested;
+    char *cloudHost;
+    uint16_t cloudPort;
+    char *cloudUsername;
+    char *cloudPassword;
 } CanopyContextStruct;
 
+typedef struct CanopyEventDetailsStruct
+{
+    CanopyEventEnum eventType;
+    void *userData;
+    char *eventControlName;
+} CanopyEventDetailsStruct;
 
 typedef struct _CanopyProperty
 {

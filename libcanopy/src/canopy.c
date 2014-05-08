@@ -203,7 +203,7 @@ bool canopy_send_report(CanopyReport report)
     return false;
 }
 
-bool canopy_load_device_description(CanopyContext canopy, const char *filename)
+bool canopy_load_device_description(CanopyContext canopy, const char *filename, const char *descriptionName)
 {
     FILE *fp;
     bool result;
@@ -212,12 +212,12 @@ bool canopy_load_device_description(CanopyContext canopy, const char *filename)
     {
         return false;
     }
-    result = canopy_load_device_description_file(canopy, fp);
+    result = canopy_load_device_description_file(canopy, fp, descriptionName);
     fclose(fp);
     return result;
 }
 
-bool canopy_load_device_description_file(CanopyContext canopy, FILE *file)
+bool canopy_load_device_description_file(CanopyContext canopy, FILE *file, const char *descriptionName)
 {
     /* Read entire file into memory */
     long filesize;
@@ -227,7 +227,7 @@ bool canopy_load_device_description_file(CanopyContext canopy, FILE *file)
     fseek(file, 0, SEEK_SET);
     buffer = calloc(1, filesize+1);
     fread(buffer, 1, filesize, file);
-    canopy_load_device_description_string(canopy, buffer);
+    canopy_load_device_description_string(canopy, buffer, descriptionName);
     free(buffer);
     return true;
 }
@@ -238,7 +238,12 @@ bool canopy_event_loop(CanopyContext canopy)
     {
         if (canopy->cb)
         {
-            canopy->cb(canopy, CANOPY_EVENT_REPORT_REQUESTED, canopy->cbExtra);
+            CanopyEventDetails event;
+            event = calloc(1, sizeof(CanopyEventDetailsStruct));
+            event->eventType = CANOPY_EVENT_REPORT_REQUESTED;
+            event->userData = canopy->cbExtra;
+            canopy->cb(canopy, event);
+            free(event);
         }
         sleep(10);
     }

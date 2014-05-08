@@ -1,4 +1,5 @@
 #include "canopy.h"
+#include "canopy_internal.h"
 #include "libwebsockets.h"
 #include <stdio.h>
 #include <string.h>
@@ -129,7 +130,35 @@ int ws_main()
     return result;
 }
 
-bool canopy_connect(CanopyContext canopy, const char *websocket_url)
+
+bool canopy_set_cloud_host(CanopyContext canopy, const char *hostname)
+{
+    canopy->cloudHost = strdup(hostname);
+    assert(canopy->cloudHost);
+    return true;
+}
+
+bool canopy_set_cloud_port(CanopyContext canopy, uint16_t port)
+{
+    canopy->cloudPort = port;
+    return true;
+}
+
+bool canopy_set_cloud_username(CanopyContext canopy, const char *username)
+{
+    canopy->cloudUsername = strdup(username);
+    assert(canopy->cloudUsername);
+    return true;
+}
+
+bool canopy_set_cloud_password(CanopyContext canopy, const char *password)
+{
+    canopy->cloudPassword = strdup(password);
+    assert(canopy->cloudPassword);
+    return true;
+}
+
+bool canopy_connect(CanopyContext canopy)
 {
     ws_main();
     return true;
