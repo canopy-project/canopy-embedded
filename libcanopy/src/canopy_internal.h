@@ -18,6 +18,7 @@ typedef struct CanopyContextStruct
     uint16_t cloudPort;
     char *cloudUsername;
     char *cloudPassword;
+    bool autoReconnect;
 } CanopyContextStruct;
 
 typedef struct CanopyEventDetailsStruct

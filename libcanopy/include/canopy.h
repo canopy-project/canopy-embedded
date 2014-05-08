@@ -29,6 +29,8 @@ typedef enum
 typedef enum
 {
     CANOPY_EVENT_INVALID,
+    CANOPY_EVENT_CONNECTION_ESTABLISHED,
+    CANOPY_EVENT_CONNECTION_LOST,
     CANOPY_EVENT_REPORT_REQUESTED,
     CANOPY_EVENT_CONTROL_TRIGGER
 } CanopyEventEnum;
@@ -41,6 +43,7 @@ bool canopy_set_cloud_host(CanopyContext canopy, const char *hostname);
 bool canopy_set_cloud_port(CanopyContext canopy, uint16_t port);
 bool canopy_set_cloud_username(CanopyContext canopy, const char *username);
 bool canopy_set_cloud_password(CanopyContext canopy, const char *password);
+bool canopy_set_auto_reconnect(CanopyContext canopy, bool enabled);
 
 bool canopy_connect(CanopyContext canopy);
 

@@ -20,6 +20,16 @@ static bool handle_canopy_event(CanopyContext ctx, CanopyEventDetails event)
 {
     switch (canopy_get_event_type(event))
     {
+        case CANOPY_EVENT_CONNECTION_ESTABLISHED:
+        {
+            printf("Connection established!");
+            break;
+        }
+        case CANOPY_EVENT_CONNECTION_LOST:
+        {
+            printf("Connection lost!");
+            break;
+        }
         case CANOPY_EVENT_REPORT_REQUESTED:
         {
             CanopyReport report;
@@ -58,6 +68,7 @@ int main()
     canopy_set_cloud_port(ctx, CANOPY_CLOUD_PORT);
     canopy_set_cloud_username(ctx, CANOPY_CLOUD_USERNAME);
     canopy_set_cloud_password(ctx, CANOPY_CLOUD_PASSWORD);
+    canopy_set_auto_reconnect(ctx, true);
     canopy_connect(ctx);
 
     canopy_event_loop(ctx);

@@ -158,6 +158,12 @@ bool canopy_set_cloud_password(CanopyContext canopy, const char *password)
     return true;
 }
 
+bool canopy_set_auto_reconnect(CanopyContext canopy, bool enabled)
+{
+    canopy->autoReconnect = enabled;
+    return true;
+}
+
 bool canopy_connect(CanopyContext canopy)
 {
     ws_main();
