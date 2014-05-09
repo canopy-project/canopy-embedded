@@ -18,6 +18,7 @@ void _canopy_ws_write(CanopyContext canopy, const char *msg)
     libwebsocket_write(canopy->ws, (unsigned char *)&buf[LWS_SEND_BUFFER_PRE_PADDING], len, LWS_WRITE_TEXT);
     canopy->ws_write_ready = false;
     libwebsocket_callback_on_writable(canopy->ws_ctx, canopy->ws);
+    free(buf);
 }
 
 static int ws_callback(
