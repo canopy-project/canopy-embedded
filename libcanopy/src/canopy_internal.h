@@ -22,6 +22,7 @@ typedef struct CanopyContextStruct
     bool autoReconnect;
     struct libwebsocket *ws;
     struct libwebsocket_context *ws_ctx;
+    bool ws_write_ready;
 } CanopyContextStruct;
 
 typedef struct CanopyEventDetailsStruct
@@ -69,5 +70,6 @@ typedef struct _CanopyDevice
     RedHash interfaces; /* (char *)itfName -> (_CanopyInterface *)itf */
 } _CanopyDevice;
 
+void _canopy_ws_write(CanopyContext canopy, const char *msg);
 
 #endif

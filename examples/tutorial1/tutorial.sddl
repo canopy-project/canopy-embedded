@@ -2,7 +2,7 @@
     "canopy.tutorial.sample_device_1" : {
         "cpu" : {
             "category" : "sensor",
-            "datatype" : "float",
+            "datatype" : "float32",
             "min-value" : 0.0,
             "max-value" : 1.0,
             "description" : "CPU usage percentage"

@@ -1,7 +1,24 @@
 #include "canopy.h"
 #include "canopy_internal.h"
+#include "red_log.h"
 #include <stdio.h>
 #include <string.h>
+
+void _canopy_ws_write(CanopyContext canopy, const char *msg)
+{
+    char *buf;
+    if (!canopy->ws_write_ready)
+    {
+        RedLog_DebugLog("canopy", "WS not ready for write!  Skipping.");
+        return;
+    }
+    size_t len = strlen(msg);
+    buf = calloc(1, LWS_SEND_BUFFER_PRE_PADDING + len + LWS_SEND_BUFFER_POST_PADDING);
+    strcpy(&buf[LWS_SEND_BUFFER_PRE_PADDING], msg);
+    libwebsocket_write(canopy->ws, (unsigned char *)&buf[LWS_SEND_BUFFER_PRE_PADDING], len, LWS_WRITE_TEXT);
+    canopy->ws_write_ready = false;
+    libwebsocket_callback_on_writable(canopy->ws_ctx, canopy->ws);
+}
 
 static int ws_callback(
         struct libwebsocket_context *this,
@@ -11,6 +28,7 @@ static int ws_callback(
         void *in,
         size_t len)
 {
+    CanopyContext canopy = (CanopyContext)libwebsocket_context_user(this);
     switch (reason)
     {
         case LWS_CALLBACK_CLIENT_ESTABLISHED:
@@ -26,11 +44,7 @@ static int ws_callback(
 
         case LWS_CALLBACK_CLIENT_WRITEABLE:
         {
-            char buf[LWS_SEND_BUFFER_PRE_PADDING + 6 + LWS_SEND_BUFFER_POST_PADDING];
-            strcpy(&buf[LWS_SEND_BUFFER_PRE_PADDING], "hello");
-            printf("Saying hi:\n");
-            libwebsocket_write(wsi, (unsigned char *)&buf[LWS_SEND_BUFFER_PRE_PADDING], 6, LWS_WRITE_TEXT);
-            libwebsocket_callback_on_writable(this, wsi);
+            canopy->ws_write_ready = true;
             break;
         }
         case LWS_CALLBACK_CLIENT_RECEIVE:
@@ -108,7 +122,7 @@ bool canopy_connect(CanopyContext canopy)
     info.gid = -1;
     info.uid = -1;
     info.options = 0;
-    info.user = NULL;
+    info.user = canopy;
     info.ka_time = 0;
     info.ka_probes = 0;
     info.ka_interval = 0;

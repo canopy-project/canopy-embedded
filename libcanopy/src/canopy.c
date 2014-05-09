@@ -5,6 +5,7 @@
 #include "canopy_internal.h"
 #include "red_hash.h"
 #include "red_json.h"
+#include "red_log.h"
 #include <unistd.h>
 #include <assert.h>
 
@@ -199,7 +200,11 @@ bool canopy_send_report(CanopyReport report)
                 assert(!"unimplemented datatype");
         }
     }
-    printf("%s\n", RedJsonObject_ToJsonString(jsonObj));
+
+    RedJsonObject_SetString(jsonObj, "device_uid", "o8Z_2jM5p0f");
+
+    RedLog_DebugLog("canopy", "Sending Message: %s\n", RedJsonObject_ToJsonString(jsonObj));
+    _canopy_ws_write(report->ctx, RedJsonObject_ToJsonString(jsonObj));
     return false;
 }
 
