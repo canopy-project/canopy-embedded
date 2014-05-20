@@ -11,6 +11,7 @@
 typedef struct CanopyContextStruct
 {
     bool initialized;
+    char *uuid;
     RedHash properties;
     CanopyEventCallbackRoutine cb;
     void * cbExtra;

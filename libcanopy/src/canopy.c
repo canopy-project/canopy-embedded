@@ -35,6 +35,42 @@ fail:
     return NULL;
 }
 
+bool canopy_set_device_id(CanopyContext canopy, const char *uuid)
+{
+    canopy->uuid = calloc(1, strlen(uuid)+1);
+    if (!canopy->uuid)
+    {
+        return false;
+    }
+    strcpy(canopy->uuid, uuid);
+    return true;
+}
+
+bool canopy_set_device_id_filename(CanopyContext canopy, const char *filename)
+{
+    FILE *fp;
+    bool result;
+    long filesize;
+    char *buffer;
+
+    fp = fopen(filename, "r");
+    if (!fp)
+    {
+        return false;
+    }
+
+    fseek(fp, 0, SEEK_END);
+    filesize = ftell(fp); 
+    fseek(fp, 0, SEEK_SET);
+    buffer = calloc(1, filesize+1);
+    fread(buffer, 1, filesize, fp);
+    result = canopy_set_device_id(canopy, buffer);
+    free(buffer);
+    fclose(fp);
+
+    return result;
+}
+
 bool canopy_register_event_callback(CanopyContext canopy, CanopyEventCallbackRoutine fn, void *extra)
 {
     canopy->cb = fn;
@@ -201,7 +237,7 @@ bool canopy_send_report(CanopyReport report)
         }
     }
 
-    RedJsonObject_SetString(jsonObj, "device_uid", "o8Z_2jM5p0f");
+    RedJsonObject_SetString(jsonObj, "device_id", report->ctx->uuid);
 
     RedLog_DebugLog("canopy", "Sending Message: %s\n", RedJsonObject_ToJsonString(jsonObj));
     _canopy_ws_write(report->ctx, RedJsonObject_ToJsonString(jsonObj));
