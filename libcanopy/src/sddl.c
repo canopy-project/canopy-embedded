@@ -255,6 +255,165 @@ static SDDLControl _sddl_parse_control(RedString decl, RedJsonObj def)
         }
         RedString_Free(key);
     }
+
+    return out;
+}
+
+static SDDLSensor _sddl_parse_control(RedString decl, RedJsonObj def)
+{
+    SDDLControl out;
+
+    out = calloc(1, sizeof(struct SDDLSensor_t));
+    if (!out)
+    {
+        return NULL;
+    }
+
+    out->prop.type = SDDL_PROPERTY_TYPE_SENSOR;
+    /* TODO: set defaults */
+
+    numKeys = RedJsonObject_NumItems(jsonObj);
+    keysArray = RedJsonObject_NewKeysArray(jsonObj);
+
+    for (i = 0; i < numKeys; i++)
+    {
+        RedJsonValue val = RedJsonObject_Get(jsonObj, keysArray[i]);
+        RedString key = RedString_New(keysArray[i]);
+
+        if (RedString_Equals(key, "datatype"))
+        {
+            char *datatypeString;
+            if (!RedJsonValue_IsString(val))
+            {
+                printf("datatype must be string");
+                return NULL;
+            }
+            datatypeString = RedJsonValue_GetString(val);
+            out->datatype = _datatype_from_string(datatypeString);
+            if (out->datatype == SDDL_DATATYPE_INVALID)
+            {
+                printf("invalid datatype %s", controlTypeString);
+                return NULL;
+            }
+        }
+        else if (RedString_Equals(key, "description"))
+        {
+            char *description;
+            if (!RedJsonValue_IsString(val))
+            {
+                printf("description must be string");
+                return NULL;
+            }
+            description = RedJsonValue_GetString(val);
+            out->prop.description = RedString_strdup(description);
+            if (!out->prop.description)
+            {
+                printf("OOM duplicating description string");
+                return NULL;
+            }
+        }
+        else if (RedString_Equals(key, "max-value"))
+        {
+            if (RedJsonValue_IsNull(val))
+            {
+                out->prop.maxValue = NULL;
+            }
+            else
+            {
+                double * pMaxValue;
+                if (!RedJsonValue_IsNumber(val))
+                {
+                    printf("max-value must be number or null");
+                    return NULL;
+                }
+                pMaxValue = malloc(sizeof(double));
+                if (!pMaxValue)
+                {
+                    printf("OOM allocating max-value");
+                    return NULL;
+                }
+                *pMaxValue = RedJsonValue_GetNumber(val);
+                out->maxValue = &pMaxValue;
+            }
+        }
+        else if (RedString_Equals(key, "min-value"))
+        {
+            if (RedJsonValue_IsNull(val))
+            {
+                out->prop.minValue = NULL;
+            }
+            else
+            {
+                double * pMaxValue;
+                if (!RedJsonValue_IsNumber(val))
+                {
+                    printf("min-value must be number or null");
+                    return NULL;
+                }
+                pMinValue = malloc(sizeof(double));
+                if (!pMinValue)
+                {
+                    printf("OOM allocating min-value");
+                    return NULL;
+                }
+                *pMinValue = RedJsonValue_GetNumber(val);
+                out->minValue = &pMinValue;
+            }
+        }
+        else if (RedString_Equals(key, "numeric-display-hint"))
+        {
+            char *displayHintString;
+            if (!RedJsonValue_IsString(val))
+            {
+                printf("datatype must be string");
+                return NULL;
+            }
+            displayHintString = RedJsonValue_GetString(val);
+            out->numericDisplayHint = _display_hint_from_string(displayHintString);
+            if (out->numericDisplayHint == SDDL_DISPLAY_HINT_INVALID)
+            {
+                printf("invalid numeric-display-hint %s", displayHintString);
+                return NULL;
+            }
+        }
+        else if (RedString_Equals(key, "regex"))
+        {
+            char *regex;
+            if (!RedJsonValue_IsString(val))
+            {
+                printf("regex must be string");
+                return NULL;
+            }
+            regex = RedJsonValue_GetString(val);
+            out->prop.regex = RedString_strdup(regex);
+            if (!out->prop.regex)
+            {
+                printf("OOM duplicating regex string");
+                return NULL;
+            }
+        }
+        else if (RedString_Equals(key, "units"))
+        {
+            char *units;
+            if (!RedJsonValue_IsString(val))
+            {
+                printf("units must be string");
+                return NULL;
+            }
+            units = RedJsonValue_GetString(val);
+            out->prop.units = RedString_strdup(units);
+            if (!out->prop.units)
+            {
+                printf("OOM duplicating units string");
+                return NULL;
+            }
+        }
+        else
+        {
+            printf("Unexpected field: %s", key);
+        }
+        RedString_Free(key);
+    }
 }
 
 SDDLDocument sddl_parse(CanopyContext canopy, const char *sddl)
