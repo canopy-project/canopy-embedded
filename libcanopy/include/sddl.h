@@ -38,6 +38,14 @@ typedef enum
     SDDL_CONTROL_TYPE_TRIGGER,
 } SDDLControlTypeEnum;
 
+typedef enum
+{
+    SDDL_NUMERIC_DISPLAY_HINT_INVALID,
+    SDDL_NUMERIC_DISPLAY_HINT_NORMAL,
+    SDDL_NUMERIC_DISPLAY_HINT_PERCENTAGE,
+    SDDL_NUMERIC_DISPLAY_HINT_SCIENTIFIC,
+    SDDL_NUMERIC_DISPLAY_HINT_HEX,
+} SDDLNumericDisplayHintEnum;
 typedef struct SDDLDocument_t * SDDLDocument;
 
 typedef struct SDDLProperty_t * SDDLProperty;
@@ -48,10 +56,7 @@ typedef struct SDDLSensor_t * SDDLSensor;
 
 typedef struct SDDLClass_t * SDDLClass;
 
-SDDLDocument sddl_parse(
-        CanopyContext canopy, 
-        const char *szDesc, 
-        const char *descriptionName);
+SDDLDocument sddl_parse(CanopyContext canopy, const char *sddl);
 
 unsigned sddl_document_num_authors(SDDLDocument doc);
 const char * sddl_document_author(SDDLDocument doc, unsigned index);

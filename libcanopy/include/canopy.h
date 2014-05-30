@@ -32,6 +32,7 @@ typedef enum
     CANOPY_EVENT_CONNECTION_ESTABLISHED,
     CANOPY_EVENT_CONNECTION_LOST,
     CANOPY_EVENT_REPORT_REQUESTED,
+    CANOPY_EVENT_CONTROL_CHANGE
     CANOPY_EVENT_CONTROL_TRIGGER
 } CanopyEventEnum;
 
@@ -57,6 +58,10 @@ bool canopy_load_device_description_string(CanopyContext canopy, const char *szD
 
 CanopyEventEnum canopy_get_event_type(CanopyEventDetails event);
 bool canopy_event_control_name_matches(CanopyEventDetails event, const char *name);
+bool canopy_event_get_control_value_i8(CanopyEventDetails event, int8_t *outValue);
+bool canopy_event_get_control_value_u8(CanopyEventDetails event, uint8_t *outValue);
+bool canopy_event_get_control_value_i32(CanopyEventDetails event, int32_t *outValue);
+bool canopy_event_get_control_value_u32(CanopyEventDetails event, uint32_t *outValue);
 
 CanopyReport canopy_begin_report(CanopyContext canopy);
 bool canopy_report_i8(CanopyReport report, const char *parameter, int8_t value);
