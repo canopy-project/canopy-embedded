@@ -259,15 +259,19 @@ static SDDLControl _sddl_parse_control(RedString decl, RedJsonObj def)
     return out;
 }
 
-static SDDLSensor _sddl_parse_control(RedString decl, RedJsonObj def)
+static SDDLSensor _sddl_parse_sensor(RedString decl, RedJsonObj def)
 {
-    SDDLControl out;
+    SDDLSensor out;
 
     out = calloc(1, sizeof(struct SDDLSensor_t));
     if (!out)
     {
         return NULL;
     }
+
+    RedStringList split = RedString_Split(key, ' ');
+    RedString name = RedStringList_GetString(split, 1);
+    RedStringList_Free(split);
 
     out->prop.type = SDDL_PROPERTY_TYPE_SENSOR;
     /* TODO: set defaults */
@@ -414,6 +418,12 @@ static SDDLSensor _sddl_parse_control(RedString decl, RedJsonObj def)
         }
         RedString_Free(key);
     }
+    
+    return out;
+}
+
+static SDDLClass _sddl_parse_class(RedString decl, RedJsonObj def)
+{
 }
 
 SDDLDocument sddl_parse(CanopyContext canopy, const char *sddl)
@@ -431,21 +441,116 @@ SDDLDocument sddl_parse(CanopyContext canopy, const char *sddl)
         RedString key = RedString_New(keysArray[i]);
         if (RedString_BeginsWith(key, "control "))
         {
+            if (!RedJsonValue_IsObject())
+            {
+                printf("Expected object for control definition");
+                return NULL;
+            }
+            RedJsonObject obj = RedJsonValue_GetObject(obj);
+            SDDLControl control = _sddl_parse_control(key, obj);
+            if (!control)
+            {
+                return NULL;
+            }
+            doc->numProperties++;
+            doc->properties = realloc(doc->numProperties, sizeof(SDDLProperty));
+            if (!doc->properties)
+            {
+                printf("OOM expanding doc->properties");
+                return NULL;
+            }
+            doc->properties[doc->numProperties - 1] = SDDL_PROPERTY(control);
         }
         else if  (RedString_BeginsWith(key, "sensor "))
         {
+            if (!RedJsonValue_IsObject())
+            {
+                printf("Expected object for sensor definition");
+                return NULL;
+            }
+            RedJsonObject obj = RedJsonValue_GetObject(obj);
+            SDDLSensor sensor = _sddl_parse_sensor(key, obj);
+            if (!sensor)
+            {
+                return NULL;
+            }
+            doc->numProperties++;
+            doc->properties = realloc(doc->numProperties, sizeof(SDDLProperty));
+            if (!doc->properties)
+            {
+                printf("OOM expanding doc->properties");
+                return NULL;
+            }
+            doc->properties[doc->numProperties - 1] = SDDL_PROPERTY(sensor);
         }
         else if  (RedString_BeginsWith(key, "class "))
         {
+            if (!RedJsonValue_IsObject())
+            {
+                printf("Expected object for class definition");
+                return NULL;
+            }
+            RedJsonObject obj = RedJsonValue_GetObject(obj);
+            SDDLClass class = _sddl_parse_class(key, obj);
+            if (!class)
+            {
+                return NULL;
+            }
+            doc->numProperties++;
+            doc->properties = realloc(doc->numProperties, sizeof(SDDLProperty));
+            if (!doc->properties)
+            {
+                printf("OOM expanding doc->properties");
+                return NULL;
+            }
+            doc->properties[doc->numProperties - 1] = SDDL_PROPERTY(class);
         }
         else if (RedString_Equals(key, "authors"))
         {
+            if (!RedJsonValue_IsArray(val))
+            {
+                printf("Expected list for authors");
+                return NULL;
+            }
+            
+            RedJsonArray authorList = RedJsonValue_GetArray(val);
+            doc->numAuthors = RedJsonArray_NumItems(authorList);
+            doc->authors = calloc(doc->numAuthors, sizeof(char *));
+            if (!doc->authors)
+            {
+                printf("OOM - Failed to allocate author list");
+                return NULL;
+            }
+            for (i = 0; i < doc->numAuthors; i++)
+            {
+                if (!RedJsonArray_IsEntryString(authorList, i))
+                {
+                    printf("Expected string for authors list entry");
+                    return NULL;
+                }
+            }
         }
         else if (RedString_Equals(key, "description"))
         {
+            char *description;
+            if (!RedJsonValue_IsString(val))
+            {
+                printf("description must be string");
+                return NULL;
+            }
+            description = RedJsonValue_GetString(val);
+            doc->description = RedString_strdup(description);
+            if (!doc->description)
+            {
+                printf("OOM duplicating description string");
+                return NULL;
+            }
         }
+
         RedString_Free(key);
     }
+
+    return doc;
 }
 
 unsigned sddl_document_num_authors(SDDLDocument doc)
