@@ -424,17 +424,168 @@ static SDDLSensor _sddl_parse_sensor(RedString decl, RedJsonObj def)
 
 static SDDLClass _sddl_parse_class(RedString decl, RedJsonObj def)
 {
+    RedJsonObject jsonObj;
+
+    SDDLClass cls;
+
+    cls = calloc(1, sizeof(struct SDDLClass_t));
+    if (!cls)
+    {
+        return NULL;
+    }
+
+    RedStringList split = RedString_Split(key, ' ');
+    RedString name = RedStringList_GetString(split, 1);
+    RedStringList_Free(split);
+
+    cls->prop.type = SDDL_PROPERTY_TYPE_CLASS;
+    /* TODO: set defaults */
+
+    jsonObj = RedJson_Parse(sddl);
+    numKeys = RedJsonObject_NumItems(jsonObj);
+    keysArray = RedJsonObject_NewKeysArray(jsonObj);
+    
+    for (i = 0; i < numKeys; i++)
+    {
+        RedJsonValue val = RedJsonObject_Get(jsonObj, keysArray[i]);
+        RedString key = RedString_New(keysArray[i]);
+        if (RedString_BeginsWith(key, "control "))
+        {
+            if (!RedJsonValue_IsObject())
+            {
+                printf("Expected object for control definition");
+                return NULL;
+            }
+            RedJsonObject obj = RedJsonValue_GetObject(obj);
+            SDDLControl control = _sddl_parse_control(key, obj);
+            if (!control)
+            {
+                return NULL;
+            }
+            cls->numProperties++;
+            cls->properties = realloc(cls->numProperties, sizeof(SDDLProperty));
+            if (!cls->properties)
+            {
+                printf("OOM expanding cls->properties");
+                return NULL;
+            }
+            cls->properties[cls->numProperties - 1] = SDDL_PROPERTY(control);
+        }
+        else if  (RedString_BeginsWith(key, "sensor "))
+        {
+            if (!RedJsonValue_IsObject())
+            {
+                printf("Expected object for sensor definition");
+                return NULL;
+            }
+            RedJsonObject obj = RedJsonValue_GetObject(obj);
+            SDDLSensor sensor = _sddl_parse_sensor(key, obj);
+            if (!sensor)
+            {
+                return NULL;
+            }
+            cls->numProperties++;
+            cls->properties = realloc(cls->numProperties, sizeof(SDDLProperty));
+            if (!cls->properties)
+            {
+                printf("OOM expanding cls->properties");
+                return NULL;
+            }
+            cls->properties[cls->numProperties - 1] = SDDL_PROPERTY(sensor);
+        }
+        else if  (RedString_BeginsWith(key, "class "))
+        {
+            if (!RedJsonValue_IsObject())
+            {
+                printf("Expected object for class definition");
+                return NULL;
+            }
+            RedJsonObject obj = RedJsonValue_GetObject(obj);
+            SDDLClass class = _sddl_parse_class(key, obj);
+            if (!class)
+            {
+                return NULL;
+            }
+            cls->numProperties++;
+            cls->properties = realloc(cls->numProperties, sizeof(SDDLProperty));
+            if (!cls->properties)
+            {
+                printf("OOM expanding cls->properties");
+                return NULL;
+            }
+            cls->properties[cls->numProperties - 1] = SDDL_PROPERTY(class);
+        }
+        else if (RedString_Equals(key, "authors"))
+        {
+            if (!RedJsonValue_IsArray(val))
+            {
+                printf("Expected list for authors");
+                return NULL;
+            }
+            
+            RedJsonArray authorList = RedJsonValue_GetArray(val);
+            cls->numAuthors = RedJsonArray_NumItems(authorList);
+            cls->authors = calloc(cls->numAuthors, sizeof(char *));
+            if (!cls->authors)
+            {
+                printf("OOM - Failed to allocate author list");
+                return NULL;
+            }
+            for (i = 0; i < cls->numAuthors; i++)
+            {
+                if (!RedJsonArray_IsEntryString(authorList, i))
+                {
+                    printf("Expected string for authors list entry");
+                    return NULL;
+                }
+                author = RedJsonArray_GetString(authorList, i);
+                cls->authors[i] = RedString_strdup(author);
+                if (!cls->authors)
+                {
+                    printf("OOM - Failed to duplicate author");
+                    return NULL;
+                }
+            }
+        }
+        else if (RedString_Equals(key, "description"))
+        {
+            char *description;
+            if (!RedJsonValue_IsString(val))
+            {
+                printf("description must be string");
+                return NULL;
+            }
+            description = RedJsonValue_GetString(val);
+            cls->description = RedString_strdup(description);
+            if (!cls->description)
+            {
+                printf("OOM duplicating description string");
+                return NULL;
+            }
+        }
+
+        RedString_Free(key);
+    }
+
+    return cls;
 }
 
 SDDLDocument sddl_parse(CanopyContext canopy, const char *sddl)
 {
     RedJsonObject jsonObj;
 
-    jsonObj = RedJson_Parse(sddl);
+    SDDLDocument doc;
 
+    doc = calloc(1, sizeof(struct SDDLDocument_t));
+    if (!doc)
+    {
+        return NULL;
+    }
+
+    jsonObj = RedJson_Parse(sddl);
     numKeys = RedJsonObject_NumItems(jsonObj);
     keysArray = RedJsonObject_NewKeysArray(jsonObj);
-    
+
     for (i = 0; i < numKeys; i++)
     {
         RedJsonValue val = RedJsonObject_Get(jsonObj, keysArray[i]);
@@ -526,6 +677,13 @@ SDDLDocument sddl_parse(CanopyContext canopy, const char *sddl)
                 if (!RedJsonArray_IsEntryString(authorList, i))
                 {
                     printf("Expected string for authors list entry");
+                    return NULL;
+                }
+                author = RedJsonArray_GetString(authorList, i);
+                doc->authors[i] = RedString_strdup(author);
+                if (!doc->authors)
+                {
+                    printf("OOM - Failed to duplicate author");
                     return NULL;
                 }
             }
