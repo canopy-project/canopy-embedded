@@ -24,6 +24,8 @@ typedef enum
     SDDL_DATATYPE_BOOL,
     SDDL_DATATYPE_INT8,
     SDDL_DATATYPE_UINT8,
+    SDDL_DATATYPE_INT16,
+    SDDL_DATATYPE_UINT16,
     SDDL_DATATYPE_INT32,
     SDDL_DATATYPE_UINT32,
     SDDL_DATATYPE_FLOAT32,
@@ -56,7 +58,7 @@ typedef struct SDDLSensor_t * SDDLSensor;
 
 typedef struct SDDLClass_t * SDDLClass;
 
-SDDLDocument sddl_parse(CanopyContext canopy, const char *sddl);
+SDDLDocument sddl_parse(const char *sddl);
 
 unsigned sddl_document_num_authors(SDDLDocument doc);
 const char * sddl_document_author(SDDLDocument doc, unsigned index);
@@ -68,9 +70,10 @@ bool sddl_is_control(SDDLProperty prop);
 bool sddl_is_sensor(SDDLProperty prop);
 bool sddl_is_class(SDDLProperty prop);
 
-SDDLControl SDDL_CONTROL(SDDProperty prop);
-SDDLSensor SDDL_SENSOR(SDDProperty prop);
-SDDLClass SDDL_CLASS(SDDProperty prop);
+SDDLControl SDDL_CONTROL(SDDLProperty prop);
+SDDLSensor SDDL_SENSOR(SDDLProperty prop);
+SDDLClass SDDL_CLASS(SDDLProperty prop);
+#define SDDL_PROPERTY(v) ((SDDLProperty)(v))
 
 const char * sddl_control_name(SDDLControl control);
 SDDLControlTypeEnum sddl_control_type(SDDLControl control);
@@ -85,8 +88,8 @@ const char * sddl_control_units(SDDLControl control);
 const char * sddl_sensor_name(SDDLSensor sensor);
 SDDLDatatypeEnum sddl_sensor_datatype(SDDLSensor sensor);
 const char * sddl_sensor_description(SDDLSensor sensor);
-double sddl_sensor_max_value(SDDLSensor sensor);
-double sddl_sensor_min_value(SDDLSensor sensor);
+const double * sddl_sensor_max_value(SDDLSensor sensor);
+const double * sddl_sensor_min_value(SDDLSensor sensor);
 SDDLNumericDisplayHintEnum sddl_sensor_numeric_display_hint(SDDLSensor sensor);
 const char * sddl_sensor_regex(SDDLSensor sensor);
 const char * sddl_sensor_units(SDDLSensor sensor);
