@@ -1,8 +1,8 @@
 {
-    "authors" : ["Greg Prisament (greg@canopy.link)"]
+    "authors" : ["Greg Prisament (greg@canopy.link)"],
     "description" : "SDDL class for controlling a modded Honeywell fan.",
 
-    "class canopy.example.fan" {
+    "class canopy.example.fan" : {
         "control speed" : {
             "datatype" : "int8",
             "min-value" : 0,

@@ -152,9 +152,9 @@ static SDDLControl _sddl_parse_control(RedString decl, RedJsonObject def)
 
     RedStringList split = RedString_Split(decl, ' ');
     RedString name = RedStringList_GetString(split, 1);
+    out->base.name = RedString_strdup(RedString_GetChars(name));
     RedStringList_Free(split);
 
-    out->base.name = RedString_strdup(RedString_GetChars(name));
     out->base.type = SDDL_PROPERTY_TYPE_CONTROL;
     /* TODO: set defaults */
 
@@ -335,9 +335,9 @@ static SDDLSensor _sddl_parse_sensor(RedString decl, RedJsonObject def)
 
     RedStringList split = RedString_Split(decl, ' ');
     RedString name = RedStringList_GetString(split, 1);
+    out->base.name = RedString_strdup(RedString_GetChars(name));
     RedStringList_Free(split);
 
-    out->base.name = RedString_strdup(RedString_GetChars(name));
     out->base.type = SDDL_PROPERTY_TYPE_SENSOR;
     /* TODO: set defaults */
 
@@ -502,9 +502,9 @@ static SDDLClass _sddl_parse_class(RedString decl, RedJsonObject def)
 
     RedStringList split = RedString_Split(decl, ' ');
     RedString name = RedStringList_GetString(split, 1);
+    cls->base.name = RedString_strdup(RedString_GetChars(name));
     RedStringList_Free(split);
 
-    cls->base.name = RedString_strdup(RedString_GetChars(name));
     cls->base.type = SDDL_PROPERTY_TYPE_CLASS;
     /* TODO: set defaults */
 
