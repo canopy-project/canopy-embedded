@@ -646,6 +646,36 @@ static SDDLClass _sddl_parse_class(RedString decl, RedJsonObject def)
     return cls;
 }
 
+SDDLDocument sddl_load_and_parse(const char *filename)
+{
+    FILE *fp;
+    SDDLDocument out;
+    fp = fopen(filename, "r");
+    if (!fp)
+    {
+        return false;
+    }
+    out = sddl_load_and_parse_file(fp);
+    fclose(fp);
+    return out;
+}
+
+SDDLDocument sddl_load_and_parse_file(FILE *file)
+{
+    /* Read entire file into memory */
+    long filesize;
+    char *buffer;
+    SDDLDocument out;
+    fseek(file, 0, SEEK_END);
+    filesize = ftell(file); 
+    fseek(file, 0, SEEK_SET);
+    buffer = calloc(1, filesize+1);
+    fread(buffer, 1, filesize, file);
+    out = sddl_parse(buffer);
+    free(buffer);
+    return out;
+}
+
 SDDLDocument sddl_parse(const char *sddl)
 {
     RedJsonObject jsonObj;
@@ -918,6 +948,10 @@ const char * sddl_sensor_units(SDDLSensor sensor)
     return sensor->units;
 }
 
+const char * sddl_class_name(SDDLClass cls)
+{
+    return cls->base.name;
+}
 unsigned sddl_class_num_authors(SDDLClass cls)
 {
     return cls->numAuthors;

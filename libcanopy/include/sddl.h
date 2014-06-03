@@ -14,7 +14,7 @@ typedef enum
     SDDL_PROPERTY_TYPE_INVALID,
     SDDL_PROPERTY_TYPE_CONTROL,
     SDDL_PROPERTY_TYPE_SENSOR,
-    SDDL_PROPERTY_TYPE_CLASS,
+    SDDL_PROPERTY_TYPE_CLASS
 } SDDLPropertyTypeEnum;
 
 typedef enum
@@ -37,7 +37,7 @@ typedef enum
 {
     SDDL_CONTROL_TYPE_INVALID,
     SDDL_CONTROL_TYPE_PARAMETER,
-    SDDL_CONTROL_TYPE_TRIGGER,
+    SDDL_CONTROL_TYPE_TRIGGER
 } SDDLControlTypeEnum;
 
 typedef enum
@@ -46,7 +46,7 @@ typedef enum
     SDDL_NUMERIC_DISPLAY_HINT_NORMAL,
     SDDL_NUMERIC_DISPLAY_HINT_PERCENTAGE,
     SDDL_NUMERIC_DISPLAY_HINT_SCIENTIFIC,
-    SDDL_NUMERIC_DISPLAY_HINT_HEX,
+    SDDL_NUMERIC_DISPLAY_HINT_HEX
 } SDDLNumericDisplayHintEnum;
 typedef struct SDDLDocument_t * SDDLDocument;
 
@@ -58,6 +58,8 @@ typedef struct SDDLSensor_t * SDDLSensor;
 
 typedef struct SDDLClass_t * SDDLClass;
 
+SDDLDocument sddl_load_and_parse(const char *filename);
+SDDLDocument sddl_load_and_parse_file(FILE *file);
 SDDLDocument sddl_parse(const char *sddl);
 
 unsigned sddl_document_num_authors(SDDLDocument doc);
@@ -94,6 +96,7 @@ SDDLNumericDisplayHintEnum sddl_sensor_numeric_display_hint(SDDLSensor sensor);
 const char * sddl_sensor_regex(SDDLSensor sensor);
 const char * sddl_sensor_units(SDDLSensor sensor);
 
+const char * sddl_class_name(SDDLClass cls);
 unsigned sddl_class_num_authors(SDDLClass cls);
 const char * sddl_class_author(SDDLClass cls, unsigned index);
 const char * sddl_class_description(SDDLClass cls);
