@@ -6,7 +6,7 @@ INCLUDE_FLAGS := -I../../libcanopy/include -I$(LIBRED_DIR)/include
 
 LIB_FLAGS := -L../../libcanopy -L$(LIBWEBSOCKETS_DIR)/lib -lcanopy -lwebsockets
 
-SOURCE_FILES = my_canopy_client.c
+SOURCE_FILES = canopy.example.fan.c
 
 CANOGEN = ../../canogen/canogen
 

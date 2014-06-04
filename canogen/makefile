@@ -1,4 +1,4 @@
-CFLAGS := --std=c89 --pedantic -Wall -Werror
+CFLAGS := --std=c99 --pedantic -Wall -Werror
 DEBUG_FLAGS := $(CFLAGS) -g
 RELEASE_FLAGS := $(CFLAGS) -O3
 
@@ -10,7 +10,7 @@ SOURCE_FILES = src/canogen.c
 
 HEADERIFY := tools/headerify/headerify
 
-HEADER_TEMPLATES := resources/canopy_boilerplate_head.h
+HEADER_TEMPLATES := resources/canopy_boilerplate_tail.h resources/canopy_boilerplate_head.h
 
 HEADER_TEMPLATES_OUT := $(HEADER_TEMPLATES:resources/%.h=build/%.out.h)
 
@@ -30,6 +30,8 @@ dbg: debug
 clean:
 	rm canogen build/*.h
 
-build/%.out.h : resources/%.h
-	$(HEADERIFY) _CANOPY_BOILERPLATE_HEAD < $< > $@
+build/canopy_boilerplate_tail.out.h: resources/canopy_boilerplate_tail.h
+	$(HEADERIFY) _CANOPY_BOILERPLATE_TAIL < $< > $@
 
+build/canopy_boilerplate_head.out.h: resources/canopy_boilerplate_head.h
+	$(HEADERIFY) _CANOPY_BOILERPLATE_HEAD < $< > $@
