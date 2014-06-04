@@ -26,11 +26,29 @@ typedef struct CanopyContextStruct
     bool ws_write_ready;
 } CanopyContextStruct;
 
+typedef struct _CanopyPropertyValue
+{
+    CanopyDatatypeEnum datatype;
+    union
+    {
+        bool val_bool;
+        int8_t val_int8;
+        uint8_t val_uint8;
+        int16_t val_int16;
+        uint16_t val_uint16;
+        int32_t val_int32;
+        uint32_t val_uint32;
+        float val_float32;
+        double val_float64;
+    } val;
+} _CanopyPropertyValue;
+
 typedef struct CanopyEventDetailsStruct
 {
     CanopyEventEnum eventType;
     void *userData;
     char *eventControlName;
+    _CanopyPropertyValue value;
 } CanopyEventDetailsStruct;
 
 typedef struct _CanopyProperty
@@ -42,17 +60,6 @@ typedef struct _CanopyProperty
     int64_t rangeMin;
     uint64_t rangeMax;
 } _CanopyProperty;
-
-typedef struct _CanopyPropertyValue
-{
-    CanopyDatatypeEnum datatype;
-    union
-    {
-        int8_t val_int8;
-        int32_t val_int32;
-        float val_float32;
-    } val;
-} _CanopyPropertyValue;
 
 typedef struct CanopyReportStruct
 {
