@@ -77,5 +77,5 @@ int main(int argc, const char *argv[])
             }
         }
     }
-    return true;
+    return 0;
 }
