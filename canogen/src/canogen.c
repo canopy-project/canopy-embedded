@@ -5,7 +5,7 @@
 #include <string.h>
 
 
-static bool _dump_boilerplate(SDDLClass cls)
+static bool _dump_boilerplate(SDDLClass cls, const char *sddlFilename, const char *className)
 {
     FILE *fp;
     int i;
@@ -20,6 +20,9 @@ static bool _dump_boilerplate(SDDLClass cls)
     {
         fprintf(fp, "%s\n", _CANOPY_BOILERPLATE_HEAD[i]);
     }
+
+    fprintf(fp, "#define SDDL_FILENAME \"%s\"\n", sddlFilename);
+    fprintf(fp, "#define SDDL_CLASSNAME \"%s\"\n", className);
 
     /* Control callback prototypes */
     numProperties = sddl_class_num_properties(cls);
@@ -133,9 +136,9 @@ int main(int argc, const char *argv[])
         {
             const char *name;
             name = sddl_class_name(SDDL_CLASS(prop));
-            if ((argc > 2 && !strcmp(name, argv[2]) )|| argc <= 2)
+            if (argc > 2 && !strcmp(name, argv[2]) )
             {
-                _dump_boilerplate(SDDL_CLASS(prop));
+                _dump_boilerplate(SDDL_CLASS(prop), argv[1], argv[2]);
                 _dump_class_control_callbacks(SDDL_CLASS(prop));
             }
         }

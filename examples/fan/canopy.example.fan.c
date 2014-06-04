@@ -3,10 +3,8 @@
 
 static bool on_change__speed(int8_t value)
 {
-   /* Your code here.
-    * Return true on success.
-    */
-   return false;
+    printf("fan speed changed:%d\n", value);
+    return false;
 }
 
 static bool on_canopy_init()

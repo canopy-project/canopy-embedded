@@ -40,7 +40,7 @@ int main(int argc, const char *argv[])
     }
     ctx = canopy_init();
     on_canopy_init();
-    canopy_load_device_description(ctx, "tutorial.sddl", "canopy.tutorial.sample_device_1");
+    canopy_load_device_description(ctx, SDDL_FILENAME, SDDL_CLASSNAME);
 
     canopy_register_event_callback(ctx, handle_canopy_event, NULL);
 

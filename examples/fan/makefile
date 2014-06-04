@@ -29,4 +29,4 @@ clean:
 .PHONY: canogen
 canogen:
 	make -C ../../canogen
-	$(CANOGEN) fan.sddl
+	$(CANOGEN) fan.sddl canopy.example.fan
