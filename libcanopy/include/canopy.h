@@ -49,6 +49,7 @@ bool canopy_event_get_control_value_i8(CanopyEventDetails event, int8_t *outValu
 bool canopy_event_get_control_value_u8(CanopyEventDetails event, uint8_t *outValue);
 bool canopy_event_get_control_value_i32(CanopyEventDetails event, int32_t *outValue);
 bool canopy_event_get_control_value_u32(CanopyEventDetails event, uint32_t *outValue);
+CanopyContext canopy_event_context(CanopyEventDetails event);
 
 CanopyReport canopy_begin_report(CanopyContext canopy);
 bool canopy_report_i8(CanopyReport report, const char *parameter, int8_t value);

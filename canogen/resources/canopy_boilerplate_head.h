@@ -13,10 +13,10 @@
 #define CANOPY_CLOUD_USERNAME "myusername"
 #define CANOPY_CLOUD_PASSWORD "mypassword"
 
-static bool on_canopy_init();
-static bool on_canopy_shutdown();
-static bool on_connected();
-static bool on_disconnected();
-static bool on_report_requested();
+static bool on_canopy_init(CanopyContext canopy);
+static bool on_canopy_shutdown(CanopyContext canopy);
+static bool on_connected(CanopyContext canopy);
+static bool on_disconnected(CanopyContext canopy);
+static bool on_report_requested(CanopyContext canopy);
 static void dispatch(CanopyEventDetails event);
 

@@ -13,24 +13,24 @@
 #define CANOPY_CLOUD_USERNAME "myusername"
 #define CANOPY_CLOUD_PASSWORD "mypassword"
 
-static bool on_canopy_init();
-static bool on_canopy_shutdown();
-static bool on_connected();
-static bool on_disconnected();
-static bool on_report_requested();
+static bool on_canopy_init(CanopyContext canopy);
+static bool on_canopy_shutdown(CanopyContext canopy);
+static bool on_connected(CanopyContext canopy);
+static bool on_disconnected(CanopyContext canopy);
+static bool on_report_requested(CanopyContext canopy);
 static void dispatch(CanopyEventDetails event);
 
 
 #define SDDL_FILENAME "fan.sddl"
 #define SDDL_CLASSNAME "canopy.example.fan"
-static bool on_change__speed(int8_t value);
+static bool on_change__speed(CanopyContext canopy, int8_t value);
 static void dispatch(CanopyEventDetails event)
 {
-    if (canopy_event_control_name_matches(event, "speed"))
+    CanopyContext ctx = canopy_event_context(event);    if (canopy_event_control_name_matches(event, "speed"))
     {
         int8_t val;
         canopy_event_get_control_value_i8(event, &val);
-        on_change__speed(val);
+        on_change__speed(ctx, val);
     }
 }
 
@@ -41,17 +41,17 @@ static bool handle_canopy_event(CanopyContext ctx, CanopyEventDetails event)
     {
         case CANOPY_EVENT_CONNECTION_ESTABLISHED:
         {
-            on_connected();
+            on_connected(ctx);
             break;
         }
         case CANOPY_EVENT_CONNECTION_LOST:
         {
-            on_disconnected();
+            on_disconnected(ctx);
             break;
         }
         case CANOPY_EVENT_REPORT_REQUESTED:
         {
-            on_report_requested();
+            on_report_requested(ctx);
             break;
         }
         case CANOPY_EVENT_CONTROL_TRIGGER:
@@ -75,7 +75,7 @@ int main(int argc, const char *argv[])
         return -1;
     }
     ctx = canopy_init();
-    on_canopy_init();
+    on_canopy_init(ctx);
     canopy_load_device_description(ctx, SDDL_FILENAME, SDDL_CLASSNAME);
 
     canopy_register_event_callback(ctx, handle_canopy_event, NULL);
@@ -89,8 +89,8 @@ int main(int argc, const char *argv[])
     canopy_connect(ctx);
 
     canopy_event_loop(ctx);
+    on_canopy_shutdown(ctx);
     canopy_shutdown(ctx);
-    on_canopy_shutdown();
     return 0;
 }
 

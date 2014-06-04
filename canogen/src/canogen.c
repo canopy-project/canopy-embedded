@@ -35,7 +35,7 @@ static bool _dump_boilerplate(SDDLClass cls, const char *sddlFilename, const cha
             const char *controlName = sddl_control_name(SDDL_CONTROL(prop));
             const char *controlCType = "int8_t";
 
-            fprintf(fp, "static bool on_change__%s(%s value);\n",
+            fprintf(fp, "static bool on_change__%s(CanopyContext canopy, %s value);\n",
                     controlName,
                     controlCType);
         }
@@ -43,6 +43,7 @@ static bool _dump_boilerplate(SDDLClass cls, const char *sddlFilename, const cha
 
     /* Implement dispatch reoutine */
     fprintf(fp, "static void dispatch(CanopyEventDetails event)\n{\n");
+    fprintf(fp, "    CanopyContext ctx = canopy_event_context(event);");
 
     numProperties = sddl_class_num_properties(cls);
     for (i = 0; i < numProperties; i++)
@@ -60,7 +61,7 @@ static bool _dump_boilerplate(SDDLClass cls, const char *sddlFilename, const cha
                 "    {\n"
                 "        %s val;\n"
                 "        canopy_event_get_control_value_%s(event, &val);\n"
-                "        on_change__%s(val);\n"
+                "        on_change__%s(ctx, val);\n"
                 "    }\n",
                 controlName,
                 controlCType,
@@ -104,7 +105,7 @@ static bool _dump_class_control_callbacks(SDDLClass cls)
         else if (sddl_is_control(prop))
         {
             const char *propName = sddl_control_name(SDDL_CONTROL(prop));
-            fprintf(fp, "static bool on_change__%s(int8_t value)\n"
+            fprintf(fp, "static bool on_change__%s(CanopyContext canopy, int8_t value)\n"
                 "{\n"
                 "   /* Your code here.\n"
                 "    * Return true on success.\n"
@@ -112,11 +113,11 @@ static bool _dump_class_control_callbacks(SDDLClass cls)
                 "   return false;\n}\n\n", propName);
         }
     }
-    fprintf(fp, "static bool on_canopy_init()\n{\n    return false;\n}\n\n");
-    fprintf(fp, "static bool on_canopy_shutdown()\n{\n    return false;\n}\n\n");
-    fprintf(fp, "static bool on_connected()\n{\n    return false;\n}\n\n");
-    fprintf(fp, "static bool on_disconnected()\n{\n    return false;\n}\n\n");
-    fprintf(fp, "static bool on_report_requested()\n{\n    return false;\n}\n\n");
+    fprintf(fp, "static bool on_canopy_init(CanopyContext canopy)\n{\n    return false;\n}\n\n");
+    fprintf(fp, "static bool on_canopy_shutdown(CanopyContext canopy)\n{\n    return false;\n}\n\n");
+    fprintf(fp, "static bool on_connected(CanopyContext canopy)\n{\n    return false;\n}\n\n");
+    fprintf(fp, "static bool on_disconnected(CanopyContext canopy)\n{\n    return false;\n}\n\n");
+    fprintf(fp, "static bool on_report_requested(CanopyContext canopy)\n{\n    return false;\n}\n\n");
     fclose(fp);
     return true;
 }

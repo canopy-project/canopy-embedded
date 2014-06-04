@@ -49,3 +49,8 @@ bool canopy_event_get_control_value_u32(CanopyEventDetails event, uint32_t *outV
     *outValue = event->value.val.val_uint32;
     return true;
 }
+
+CanopyContext canopy_event_context(CanopyEventDetails event)
+{
+    return event->ctx;
+}

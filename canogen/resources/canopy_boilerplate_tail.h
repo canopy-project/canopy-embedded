@@ -5,17 +5,17 @@ static bool handle_canopy_event(CanopyContext ctx, CanopyEventDetails event)
     {
         case CANOPY_EVENT_CONNECTION_ESTABLISHED:
         {
-            on_connected();
+            on_connected(ctx);
             break;
         }
         case CANOPY_EVENT_CONNECTION_LOST:
         {
-            on_disconnected();
+            on_disconnected(ctx);
             break;
         }
         case CANOPY_EVENT_REPORT_REQUESTED:
         {
-            on_report_requested();
+            on_report_requested(ctx);
             break;
         }
         case CANOPY_EVENT_CONTROL_TRIGGER:
@@ -39,7 +39,7 @@ int main(int argc, const char *argv[])
         return -1;
     }
     ctx = canopy_init();
-    on_canopy_init();
+    on_canopy_init(ctx);
     canopy_load_device_description(ctx, SDDL_FILENAME, SDDL_CLASSNAME);
 
     canopy_register_event_callback(ctx, handle_canopy_event, NULL);
@@ -53,8 +53,8 @@ int main(int argc, const char *argv[])
     canopy_connect(ctx);
 
     canopy_event_loop(ctx);
+    on_canopy_shutdown(ctx);
     canopy_shutdown(ctx);
-    on_canopy_shutdown();
     return 0;
 }
 

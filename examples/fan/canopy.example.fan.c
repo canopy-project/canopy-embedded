@@ -1,33 +1,35 @@
 #include "canopy_boilerplate.h"
 #include <canopy.h>
 
-static bool on_change__speed(int8_t value)
+static bool on_change__speed(CanopyContext canopy, int8_t value)
 {
-    printf("fan speed changed:%d\n", value);
-    return false;
+   /* Your code here.
+    * Return true on success.
+    */
+   return false;
 }
 
-static bool on_canopy_init()
-{
-    return false;
-}
-
-static bool on_canopy_shutdown()
+static bool on_canopy_init(CanopyContext canopy)
 {
     return false;
 }
 
-static bool on_connected()
+static bool on_canopy_shutdown(CanopyContext canopy)
 {
     return false;
 }
 
-static bool on_disconnected()
+static bool on_connected(CanopyContext canopy)
 {
     return false;
 }
 
-static bool on_report_requested()
+static bool on_disconnected(CanopyContext canopy)
+{
+    return false;
+}
+
+static bool on_report_requested(CanopyContext canopy)
 {
     return false;
 }
