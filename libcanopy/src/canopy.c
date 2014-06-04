@@ -110,37 +110,38 @@ bool canopy_report_i8(CanopyReport report, const char *parameter, int8_t value)
 {
     /* First verify that value is acceptable */
     CanopyContext ctx = report->ctx;
-    _CanopyProperty *prop;
     _CanopyPropertyValue *propval;
     _CanopyPropertyValue *oldValue;
 
+    SDDLSensor sensor = sddl_class_lookup_sensor(ctx->sddl, parameter);
+    if (!sensor)
+    {
+        RedLog_WarnLog("Device does not have sensor %s", parameter);
+        return false;
+    }
     if (report->finished)
     {
         /* canopy_end_report already called, cannot make further changes. */
         return false;
     }
-    prop = RedHash_GetWithDefaultS(ctx->properties, parameter, NULL);
-    if (!prop)
-    {
-        /* property not found! */
-        return false;
-    }
-    else if (prop->datatype != CANOPY_DATATYPE_INT8)
+    if (sddl_sensor_datatype(sensor) != SDDL_DATATYPE_INT8)
     {
         /* incorrect datatype */
         return false;
     }
-    else if (prop->hasMinRange && value < prop->rangeMin)
+    else if (sddl_sensor_min_value(sensor) && value < (int8_t)*sddl_sensor_min_value(sensor))
     {
         /* value too low */
         return false;
     }
-    else if (prop->hasMaxRange && value > prop->rangeMax)
+    else if (sddl_sensor_max_value(sensor) && value > (int8_t)*sddl_sensor_max_value(sensor))
     {
         /* value too large */
         return false;
     }
 
+    oldValue = sddl_sensor_extra(sensor);
+    free(oldValue);
     /* create property value object */
     propval = calloc(1, sizeof(_CanopyPropertyValue));
     if (!propval)
@@ -148,14 +149,10 @@ bool canopy_report_i8(CanopyReport report, const char *parameter, int8_t value)
         /* allocation failed */
         return false;
     }
-
+    propval->datatype = SDDL_DATATYPE_INT8;
     propval->val.val_int8 = value;
-    
-    /* Add it to report's hash table */
-    if (RedHash_UpdateOrInsertS(report->values, (void **)&oldValue, parameter, propval))
-    {
-        free(oldValue);
-    }
+
+    sddl_sensor_set_extra(sensor, propval);
     return true;
 }
 
@@ -163,37 +160,38 @@ bool canopy_report_float32(CanopyReport report, const char *parameter, float val
 {
     /* First verify that value is acceptable */
     CanopyContext ctx = report->ctx;
-    _CanopyProperty *prop;
     _CanopyPropertyValue *propval;
     _CanopyPropertyValue *oldValue;
 
+    SDDLSensor sensor = sddl_class_lookup_sensor(ctx->sddl, parameter);
+    if (!sensor)
+    {
+        RedLog_WarnLog("Device does not have sensor %s", parameter);
+        return false;
+    }
     if (report->finished)
     {
-        fprintf(stderr, "canopy_end_report already called, cannot make further changes.");
+        /* canopy_end_report already called, cannot make further changes. */
         return false;
     }
-    prop = RedHash_GetWithDefaultS(ctx->properties, parameter, NULL);
-    if (!prop)
+    if (sddl_sensor_datatype(sensor) != SDDL_DATATYPE_FLOAT32)
     {
-        fprintf(stderr, "property not found!");
+        /* incorrect datatype */
         return false;
     }
-    else if (prop->datatype != CANOPY_DATATYPE_FLOAT32)
+    else if (sddl_sensor_min_value(sensor) && value < (int8_t)*sddl_sensor_min_value(sensor))
     {
-        fprintf(stderr, "incorrect datatype");
+        /* value too low */
         return false;
     }
-    else if (prop->hasMinRange && value < prop->rangeMin)
+    else if (sddl_sensor_max_value(sensor) && value > (int8_t)*sddl_sensor_max_value(sensor))
     {
-        fprintf(stderr, "value too low");
-        return false;
-    }
-    else if (prop->hasMaxRange && value > prop->rangeMax)
-    {
-        fprintf(stderr, "value too large");
+        /* value too large */
         return false;
     }
 
+    oldValue = sddl_sensor_extra(sensor);
+    free(oldValue);
     /* create property value object */
     propval = calloc(1, sizeof(_CanopyPropertyValue));
     if (!propval)
@@ -201,15 +199,10 @@ bool canopy_report_float32(CanopyReport report, const char *parameter, float val
         /* allocation failed */
         return false;
     }
-
-    propval->datatype = CANOPY_DATATYPE_FLOAT32;
+    propval->datatype = SDDL_DATATYPE_INT8;
     propval->val.val_float32 = value;
-    
-    /* Add it to report's hash table */
-    if (RedHash_UpdateOrInsertS(report->values, (void **)&oldValue, parameter, propval))
-    {
-        free(oldValue);
-    }
+
+    sddl_sensor_set_extra(sensor, propval);
     return true;
 }
 
@@ -227,7 +220,7 @@ bool canopy_send_report(CanopyReport report)
         _CanopyPropertyValue * propVal = (_CanopyPropertyValue *)value;
         switch (propVal->datatype)
         {
-            case CANOPY_DATATYPE_FLOAT32:
+            case SDDL_DATATYPE_FLOAT32:
             {
                 RedJsonObject_SetNumber(jsonObj, key, propVal->val.val_float32);
                 break;
@@ -244,32 +237,49 @@ bool canopy_send_report(CanopyReport report)
     return false;
 }
 
-bool canopy_load_device_description(CanopyContext canopy, const char *filename, const char *descriptionName)
+bool canopy_load_device_description(CanopyContext canopy, const char *filename, const char *className)
 {
-    FILE *fp;
-    bool result;
-    fp = fopen(filename, "r");
-    if (!fp)
+    SDDLDocument doc;
+    SDDLClass cls;
+
+    doc = sddl_load_and_parse(filename);
+    if (!doc)
     {
+        RedLog_ErrorLog("canopy", "Failed to read SDDL file");
         return false;
     }
-    result = canopy_load_device_description_file(canopy, fp, descriptionName);
-    fclose(fp);
-    return result;
+
+    cls = sddl_document_lookup_class(doc, className);
+    if (!cls)
+    {
+        RedLog_ErrorLog("canopy", "Class not found in SDDL: %s", className);
+        return false;
+    }
+
+    canopy->sddl = cls;
+    return true;
 }
 
-bool canopy_load_device_description_file(CanopyContext canopy, FILE *file, const char *descriptionName)
+bool canopy_load_device_description_file(CanopyContext canopy, FILE *file, const char *className)
 {
-    /* Read entire file into memory */
-    long filesize;
-    char *buffer;
-    fseek(file, 0, SEEK_END);
-    filesize = ftell(file); 
-    fseek(file, 0, SEEK_SET);
-    buffer = calloc(1, filesize+1);
-    fread(buffer, 1, filesize, file);
-    canopy_load_device_description_string(canopy, buffer, descriptionName);
-    free(buffer);
+    SDDLDocument doc;
+    SDDLClass cls;
+
+    doc = sddl_load_and_parse_file(file);
+    if (!doc)
+    {
+        RedLog_ErrorLog("canopy", "Failed to read SDDL file");
+        return false;
+    }
+
+    cls = sddl_document_lookup_class(doc, className);
+    if (!cls)
+    {
+        RedLog_ErrorLog("canopy", "Class not found in SDDL: %s", className);
+        return false;
+    }
+
+    canopy->sddl = cls;
     return true;
 }
 

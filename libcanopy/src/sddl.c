@@ -853,6 +853,28 @@ SDDLProperty sddl_document_property(SDDLDocument doc, unsigned index)
     return doc->properties[index];
 }
 
+SDDLProperty sddl_document_lookup_property(SDDLDocument doc, const char*propName) 
+{
+    unsigned i;
+    for (i = 0; i < sddl_document_num_properties(doc); i++)
+    {
+        if (!strcmp(doc->properties[i]->name, propName))
+        {
+            return doc->properties[i];
+        }
+    }
+    return NULL;
+}
+SDDLClass sddl_document_lookup_class(SDDLDocument doc, const char*propName) 
+{
+    SDDLProperty prop = sddl_document_lookup_property(doc, propName);
+    if (!prop)
+        return NULL;
+    if (!sddl_is_class(prop))
+        return NULL;
+    return SDDL_CLASS(prop);
+}
+
 bool sddl_is_control(SDDLProperty prop)
 {
     return (prop->type == SDDL_PROPERTY_TYPE_CONTROL);
@@ -960,6 +982,14 @@ const char * sddl_sensor_units(SDDLSensor sensor)
 {
     return sensor->units;
 }
+void sddl_sensor_set_extra(SDDLSensor sensor, void *extra)
+{
+    sensor->base.extra = extra;
+}
+void * sddl_sensor_extra(SDDLSensor sensor)
+{
+    return sensor->base.extra;
+}
 
 const char * sddl_class_name(SDDLClass cls)
 {
@@ -1007,4 +1037,14 @@ SDDLControl sddl_class_lookup_control(SDDLClass cls, const char*propName)
     if (!sddl_is_control(prop))
         return NULL;
     return SDDL_CONTROL(prop);
+}
+
+SDDLSensor sddl_class_lookup_sensor(SDDLClass cls, const char*propName) 
+{
+    SDDLProperty prop = sddl_class_lookup_property(cls, propName);
+    if (!prop)
+        return NULL;
+    if (!sddl_is_sensor(prop))
+        return NULL;
+    return SDDL_SENSOR(prop);
 }

@@ -53,32 +53,12 @@ typedef struct CanopyEventDetailsStruct
     _CanopyPropertyValue value;
 } CanopyEventDetailsStruct;
 
-typedef struct _CanopyProperty
-{
-    char *name;
-    CanopyDatatypeEnum datatype;
-    bool hasMinRange;
-    bool hasMaxRange;
-    int64_t rangeMin;
-    uint64_t rangeMax;
-} _CanopyProperty;
-
 typedef struct CanopyReportStruct
 {
     CanopyContext ctx;
     RedHash values; /* (char *)propName -> (_CanopyPropertyValue *)propVal */
     bool finished;
 } CanopyReportStruct;
-
-typedef struct _CanopyInterface
-{
-    RedHash properties; /* (char *)propName -> (_CanopyProperty *)prop */
-} _CanopyInterface;
-
-typedef struct _CanopyDevice
-{
-    RedHash interfaces; /* (char *)itfName -> (_CanopyInterface *)itf */
-} _CanopyDevice;
 
 void _canopy_ws_write(CanopyContext canopy, const char *msg);
 

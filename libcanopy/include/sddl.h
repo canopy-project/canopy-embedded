@@ -64,6 +64,8 @@ SDDLDocument sddl_parse(const char *sddl);
 
 unsigned sddl_document_num_authors(SDDLDocument doc);
 const char * sddl_document_author(SDDLDocument doc, unsigned index);
+SDDLProperty sddl_document_lookup_property(SDDLDocument doc, const char*propName);
+SDDLClass sddl_document_lookup_class(SDDLDocument doc, const char*propName);
 
 unsigned sddl_document_num_properties(SDDLDocument doc);
 SDDLProperty sddl_document_property(SDDLDocument doc, unsigned index);
@@ -98,6 +100,8 @@ const double * sddl_sensor_min_value(SDDLSensor sensor);
 SDDLNumericDisplayHintEnum sddl_sensor_numeric_display_hint(SDDLSensor sensor);
 const char * sddl_sensor_regex(SDDLSensor sensor);
 const char * sddl_sensor_units(SDDLSensor sensor);
+void sddl_sensor_set_extra(SDDLSensor sensor, void *extra);
+void * sddl_sensor_extra(SDDLSensor sensor);
 
 const char * sddl_class_name(SDDLClass cls);
 unsigned sddl_class_num_authors(SDDLClass cls);
@@ -107,5 +111,6 @@ unsigned sddl_class_num_properties(SDDLClass cls);
 SDDLProperty sddl_class_property(SDDLClass cls, unsigned index);
 SDDLProperty sddl_class_lookup_property(SDDLClass cls, const char *name);
 SDDLControl sddl_class_lookup_control(SDDLClass cls, const char *name);
+SDDLSensor sddl_class_lookup_sensor(SDDLClass cls, const char *name);
 
 #endif
