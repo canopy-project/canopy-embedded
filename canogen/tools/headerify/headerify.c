@@ -4,7 +4,7 @@
 int main(int argc, char *argv[])
 {
     int c;
-    printf("static const char * %s = [\n\"", argv[1]);
+    printf("static const char * %s[] = {\n\"", argv[1]);
     while ((c = getchar()) != EOF) 
     {
         switch ((char)c) {
@@ -22,6 +22,6 @@ int main(int argc, char *argv[])
                 break;
         }
     }
-    printf("\"];\n");
+    printf("\"};\n");
     return 0;
 }
