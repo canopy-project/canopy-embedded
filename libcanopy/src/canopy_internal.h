@@ -5,6 +5,7 @@
 #define CANOPY_INTERNAL_INCLUDED
 
 #include "canopy.h"
+#include "sddl.h"
 #include "red_hash.h"
 #include "libwebsockets.h"
 
@@ -13,6 +14,7 @@ typedef struct CanopyContextStruct
     bool initialized;
     char *uuid;
     RedHash properties;
+    SDDLClass sddl;
     CanopyEventCallbackRoutine cb;
     void * cbExtra;
     bool quitRequested;
@@ -28,7 +30,7 @@ typedef struct CanopyContextStruct
 
 typedef struct _CanopyPropertyValue
 {
-    CanopyDatatypeEnum datatype;
+    SDDLDatatypeEnum datatype;
     union
     {
         bool val_bool;

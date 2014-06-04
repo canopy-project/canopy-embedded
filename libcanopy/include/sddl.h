@@ -87,6 +87,9 @@ SDDLNumericDisplayHintEnum sddl_control_numeric_display_hint(SDDLControl control
 const char * sddl_control_regex(SDDLControl control);
 const char * sddl_control_units(SDDLControl control);
 
+void sddl_control_set_extra(SDDLControl control, void *extra);
+void * sddl_control_extra(SDDLControl control);
+
 const char * sddl_sensor_name(SDDLSensor sensor);
 SDDLDatatypeEnum sddl_sensor_datatype(SDDLSensor sensor);
 const char * sddl_sensor_description(SDDLSensor sensor);
@@ -102,5 +105,7 @@ const char * sddl_class_author(SDDLClass cls, unsigned index);
 const char * sddl_class_description(SDDLClass cls);
 unsigned sddl_class_num_properties(SDDLClass cls);
 SDDLProperty sddl_class_property(SDDLClass cls, unsigned index);
+SDDLProperty sddl_class_lookup_property(SDDLClass cls, const char *name);
+SDDLControl sddl_class_lookup_control(SDDLClass cls, const char *name);
 
 #endif

@@ -1,6 +1,8 @@
 #include "canopy.h"
 #include "canopy_internal.h"
 #include "red_log.h"
+#include "red_json.h"
+#include "sddl.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -19,6 +21,57 @@ void _canopy_ws_write(CanopyContext canopy, const char *msg)
     canopy->ws_write_ready = false;
     libwebsocket_callback_on_writable(canopy->ws_ctx, canopy->ws);
     free(buf);
+}
+
+static void _process_ws_payload(CanopyContext canopy, const char *payload)
+{
+    /* Payload: 
+     * {
+     *    "control" : {
+     *      "speed" : 2
+     *    }
+     * }
+     */
+    RedJsonObject jsonObj = RedJson_Parse(payload);
+    if (!jsonObj)
+    {
+        RedLog_WarnLog("canopy", "JSON parsing of WS payload failed!");
+        return;
+    }
+
+    if (RedJsonObject_HasKey(jsonObj, "control"))
+    {
+        if (RedJsonObject_IsValueObject(jsonObj, "control"))
+        {
+            RedJsonObject controlObj = RedJsonObject_GetObject(jsonObj, "control");
+            unsigned numKeys = RedJsonObject_NumItems(controlObj);
+            unsigned i;
+            char ** keysArray = RedJsonObject_NewKeysArray(controlObj);
+            for (i = 0; i < numKeys; i++)
+            {
+                SDDLControl control = sddl_class_lookup_control(
+                        canopy->sddl,
+                        keysArray[i]);
+                if (!control)
+                {
+                    RedLog_WarnLog("canopy", "Control not found:", keysArray[i]);
+                    continue;
+                }
+                void * oldVal = sddl_control_extra(control);
+                free(oldVal);
+
+                _CanopyPropertyValue *pVal = malloc(sizeof(_CanopyPropertyValue));
+                pVal->datatype = sddl_control_datatype(control);
+
+                if (RedJsonObject_IsValueNumber(controlObj, keysArray[i]))
+                {
+                    pVal->val.val_int8 = (int8_t)RedJsonObject_GetNumber(controlObj, keysArray[i]);
+                }
+                /* TODO: handle other datatypes */
+                sddl_control_set_extra(control, pVal);
+            }
+        }
+    }
 }
 
 static int ws_callback(
@@ -49,8 +102,10 @@ static int ws_callback(
             break;
         }
         case LWS_CALLBACK_CLIENT_RECEIVE:
+            /* TODO: this next line seems dangerous! */
             ((char *)in)[len] = '\0';
             fprintf(stderr, "rx %d '%s'\n", (int)len, (char *)in);
+            _process_ws_payload(canopy, in);
             break;
         /*case LWS_CALLBACK_CLIENT_CONFIRM_EXTENSION_SUPPORTED:*/
         default:

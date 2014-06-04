@@ -23,28 +23,28 @@ bool canopy_event_control_name_matches(CanopyEventDetails event, const char *nam
 
 bool canopy_event_get_control_value_i8(CanopyEventDetails event, int8_t *outValue)
 {
-    if (event->value.datatype != CANOPY_DATATYPE_INT8)
+    if (event->value.datatype != SDDL_DATATYPE_INT8)
         return false; /* TODO: generate warning */
     *outValue = event->value.val.val_int8;
     return true;
 }
 bool canopy_event_get_control_value_u8(CanopyEventDetails event, uint8_t *outValue)
 {
-    if (event->value.datatype != CANOPY_DATATYPE_UINT8)
+    if (event->value.datatype != SDDL_DATATYPE_UINT8)
         return false; /* TODO: generate warning */
     *outValue = event->value.val.val_uint8;
     return true;
 }
 bool canopy_event_get_control_value_i32(CanopyEventDetails event, int32_t *outValue)
 {
-    if (event->value.datatype != CANOPY_DATATYPE_INT32)
+    if (event->value.datatype != SDDL_DATATYPE_INT32)
         return false; /* TODO: generate warning */
     *outValue = event->value.val.val_int32;
     return true;
 }
 bool canopy_event_get_control_value_u32(CanopyEventDetails event, uint32_t *outValue)
 {
-    if (event->value.datatype != CANOPY_DATATYPE_UINT32)
+    if (event->value.datatype != SDDL_DATATYPE_UINT32)
         return false; /* TODO: generate warning */
     *outValue = event->value.val.val_uint32;
     return true;

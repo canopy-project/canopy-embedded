@@ -23,6 +23,7 @@ struct SDDLProperty_t
     char *name;
     SDDLPropertyTypeEnum type;
     char *description;
+    void *extra;
 };
 
 struct SDDLControl_t
@@ -156,6 +157,7 @@ static SDDLControl _sddl_parse_control(RedString decl, RedJsonObject def)
     RedStringList_Free(split);
 
     out->base.type = SDDL_PROPERTY_TYPE_CONTROL;
+    out->base.extra = NULL;
     /* TODO: set defaults */
 
     numKeys = RedJsonObject_NumItems(def);
@@ -339,6 +341,7 @@ static SDDLSensor _sddl_parse_sensor(RedString decl, RedJsonObject def)
     RedStringList_Free(split);
 
     out->base.type = SDDL_PROPERTY_TYPE_SENSOR;
+    out->base.extra = NULL;
     /* TODO: set defaults */
 
     numKeys = RedJsonObject_NumItems(def);
@@ -506,6 +509,7 @@ static SDDLClass _sddl_parse_class(RedString decl, RedJsonObject def)
     RedStringList_Free(split);
 
     cls->base.type = SDDL_PROPERTY_TYPE_CLASS;
+    cls->base.extra = NULL;
     /* TODO: set defaults */
 
     numKeys = RedJsonObject_NumItems(def);
@@ -915,6 +919,15 @@ const char * sddl_control_units(SDDLControl control)
     return control->units;
 }
 
+void sddl_control_set_extra(SDDLControl control, void *extra)
+{
+    control->base.extra = extra;
+}
+void * sddl_control_extra(SDDLControl control)
+{
+    return control->base.extra;
+}
+
 const char * sddl_sensor_name(SDDLSensor sensor)
 {
     return sensor->base.name;
@@ -973,3 +986,25 @@ SDDLProperty sddl_class_property(SDDLClass cls, unsigned index)
     return cls->properties[index];
 }
 
+SDDLProperty sddl_class_lookup_property(SDDLClass cls, const char*propName) 
+{
+    unsigned i;
+    for (i = 0; i < sddl_class_num_properties(cls); i++)
+    {
+        if (!strcmp(cls->properties[i]->name, propName))
+        {
+            return cls->properties[i];
+        }
+    }
+    return NULL;
+}
+
+SDDLControl sddl_class_lookup_control(SDDLClass cls, const char*propName) 
+{
+    SDDLProperty prop = sddl_class_lookup_property(cls, propName);
+    if (!prop)
+        return NULL;
+    if (!sddl_is_control(prop))
+        return NULL;
+    return SDDL_CONTROL(prop);
+}
