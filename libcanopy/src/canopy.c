@@ -140,8 +140,6 @@ bool canopy_report_i8(CanopyReport report, const char *parameter, int8_t value)
         return false;
     }
 
-    oldValue = sddl_sensor_extra(sensor);
-    free(oldValue);
     /* create property value object */
     propval = calloc(1, sizeof(_CanopyPropertyValue));
     if (!propval)
@@ -149,10 +147,15 @@ bool canopy_report_i8(CanopyReport report, const char *parameter, int8_t value)
         /* allocation failed */
         return false;
     }
+
     propval->datatype = SDDL_DATATYPE_INT8;
     propval->val.val_int8 = value;
 
-    sddl_sensor_set_extra(sensor, propval);
+    /* Add it to report's hash table */
+    if (RedHash_UpdateOrInsertS(report->values, (void **)&oldValue, parameter, propval))
+    {
+        free(oldValue);
+    }
     return true;
 }
 
@@ -190,8 +193,6 @@ bool canopy_report_float32(CanopyReport report, const char *parameter, float val
         return false;
     }
 
-    oldValue = sddl_sensor_extra(sensor);
-    free(oldValue);
     /* create property value object */
     propval = calloc(1, sizeof(_CanopyPropertyValue));
     if (!propval)
@@ -199,10 +200,15 @@ bool canopy_report_float32(CanopyReport report, const char *parameter, float val
         /* allocation failed */
         return false;
     }
-    propval->datatype = SDDL_DATATYPE_INT8;
+
+    propval->datatype = SDDL_DATATYPE_FLOAT32;
     propval->val.val_float32 = value;
 
-    sddl_sensor_set_extra(sensor, propval);
+    /* Add it to report's hash table */
+    if (RedHash_UpdateOrInsertS(report->values, (void **)&oldValue, parameter, propval))
+    {
+        free(oldValue);
+    }
     return true;
 }
 
