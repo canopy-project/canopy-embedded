@@ -5,9 +5,12 @@
 #ifndef SDDL_INCLUDED
 #define SDDL_INCLUDED
 
+#include "red_json.h"
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
+
 
 typedef enum
 {
@@ -104,6 +107,7 @@ void sddl_sensor_set_extra(SDDLSensor sensor, void *extra);
 void * sddl_sensor_extra(SDDLSensor sensor);
 
 const char * sddl_class_name(SDDLClass cls);
+RedJsonObject sddl_class_json(SDDLClass cls);
 unsigned sddl_class_num_authors(SDDLClass cls);
 const char * sddl_class_author(SDDLClass cls, unsigned index);
 const char * sddl_class_description(SDDLClass cls);

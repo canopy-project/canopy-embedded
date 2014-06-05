@@ -39,9 +39,9 @@ bool canopy_connect(CanopyContext canopy);
 
 bool canopy_register_event_callback(CanopyContext canopy, CanopyEventCallbackRoutine fn, void *extra);
 
-bool canopy_load_device_description(CanopyContext canopy, const char *filename, const char *descriptionName);
-bool canopy_load_device_description_file(CanopyContext canopy, FILE *file, const char *descriptionName);
-bool canopy_load_device_description_string(CanopyContext canopy, const char *szDesc, const char *descriptionName);
+bool canopy_load_sddl(CanopyContext canopy, const char *filename, const char *className);
+bool canopy_load_sddl_file(CanopyContext canopy, FILE *file, const char *className);
+bool canopy_load_sddl_string(CanopyContext canopy, const char *sddl, const char *className);
 
 CanopyEventEnum canopy_get_event_type(CanopyEventDetails event);
 bool canopy_event_control_name_matches(CanopyEventDetails event, const char *name);

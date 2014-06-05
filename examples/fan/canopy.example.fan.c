@@ -31,6 +31,8 @@ static bool on_disconnected(CanopyContext canopy)
 
 static bool on_report_requested(CanopyContext canopy)
 {
-    return false;
+    CanopyReport report = canopy_begin_report(canopy);
+    canopy_send_report(report);
+    return true;
 }
 

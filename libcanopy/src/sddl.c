@@ -57,6 +57,7 @@ struct SDDLClass_t
     char *description;
     unsigned numProperties;
     SDDLProperty *properties;
+    RedJsonObject json;
 };
 
 static SDDLNumericDisplayHintEnum _display_hint_from_string(const char *sz)
@@ -510,6 +511,7 @@ static SDDLClass _sddl_parse_class(RedString decl, RedJsonObject def)
 
     cls->base.type = SDDL_PROPERTY_TYPE_CLASS;
     cls->base.extra = NULL;
+    cls->json = def;
     /* TODO: set defaults */
 
     numKeys = RedJsonObject_NumItems(def);
@@ -994,6 +996,10 @@ void * sddl_sensor_extra(SDDLSensor sensor)
 const char * sddl_class_name(SDDLClass cls)
 {
     return cls->base.name;
+}
+RedJsonObject sddl_class_json(SDDLClass cls)
+{
+    return cls->json;
 }
 unsigned sddl_class_num_authors(SDDLClass cls)
 {

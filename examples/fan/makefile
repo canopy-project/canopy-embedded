@@ -12,19 +12,19 @@ CANOGEN = ../../canogen/canogen
 
 debug:
 	make -C ../../libcanopy debug
-	gcc $(SOURCE_FILES) $(LIB_FLAGS) $(INCLUDE_FLAGS) $(DEBUG_FLAGS) -o my_canopy_client
+	gcc $(SOURCE_FILES) $(LIB_FLAGS) $(INCLUDE_FLAGS) $(DEBUG_FLAGS) -o fan
 
 release:
 	make -C ../../libcanopy release
-	gcc $(SOURCE_FILES) $(LIB_FLAGS) $(INCLUDE_FLAGS) $(RELEASE_FLAGS) -o my_canopy_client
+	gcc $(SOURCE_FILES) $(LIB_FLAGS) $(INCLUDE_FLAGS) $(RELEASE_FLAGS) -o fan
 
 run: debug
-	./my_canopy_client
+	./fan
 
 dbg: debug
-	gdb ./my_canopy_client
+	gdb ./fan
 clean:
-	rm my_canopy_client
+	rm fan
 
 .PHONY: canogen
 canogen:

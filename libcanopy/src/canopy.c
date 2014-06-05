@@ -6,6 +6,7 @@
 #include "red_hash.h"
 #include "red_json.h"
 #include "red_log.h"
+#include "red_string.h"
 #include <unistd.h>
 #include <assert.h>
 
@@ -215,10 +216,12 @@ bool canopy_report_float32(CanopyReport report, const char *parameter, float val
 bool canopy_send_report(CanopyReport report)
 {
     /* construct websocket message */
+    CanopyContext canopy = report->ctx;
     RedHashIterator_t iter;
     const void *key;
     size_t keySize;
     const void * value;
+    RedJsonObject sddlJson;
 
     RedJsonObject jsonObj = RedJsonObject_New();
     RED_HASH_FOREACH(iter, report->values, &key, &keySize, &value)
@@ -238,20 +241,53 @@ bool canopy_send_report(CanopyReport report)
 
     RedJsonObject_SetString(jsonObj, "device_id", report->ctx->uuid);
 
+    sddlJson = sddl_class_json(canopy->sddl);
+    RedJsonObject_SetObject(jsonObj, "sddl", sddlJson);
+
     RedLog_DebugLog("canopy", "Sending Message: %s\n", RedJsonObject_ToJsonString(jsonObj));
     _canopy_ws_write(report->ctx, RedJsonObject_ToJsonString(jsonObj));
     return false;
 }
 
-bool canopy_load_device_description(CanopyContext canopy, const char *filename, const char *className)
+bool canopy_load_sddl(CanopyContext canopy, const char *filename, const char *className)
+{
+    FILE *fp;
+    bool out;
+    fp = fopen(filename, "r");
+    if (!fp)
+    {
+        return false;
+    }
+    out = canopy_load_sddl_file(canopy, fp, className);
+    fclose(fp);
+    return out;
+}
+
+bool canopy_load_sddl_file(CanopyContext canopy, FILE *file, const char *className)
+{
+    /* Read entire file into memory */
+    long filesize;
+    char *buffer;
+    bool out;
+    fseek(file, 0, SEEK_END);
+    filesize = ftell(file); 
+    fseek(file, 0, SEEK_SET);
+    buffer = calloc(1, filesize+1);
+    fread(buffer, 1, filesize, file);
+    out = canopy_load_sddl_string(canopy, buffer, className);
+    free(buffer);
+    return out;
+}
+
+bool canopy_load_sddl_string(CanopyContext canopy, const char *sddl, const char *className)
 {
     SDDLDocument doc;
     SDDLClass cls;
 
-    doc = sddl_load_and_parse(filename);
+    doc = sddl_parse(sddl);
     if (!doc)
     {
-        RedLog_ErrorLog("canopy", "Failed to read SDDL file");
+        RedLog_ErrorLog("canopy", "Failed to parse SDDL");
         return false;
     }
 
@@ -266,28 +302,6 @@ bool canopy_load_device_description(CanopyContext canopy, const char *filename, 
     return true;
 }
 
-bool canopy_load_device_description_file(CanopyContext canopy, FILE *file, const char *className)
-{
-    SDDLDocument doc;
-    SDDLClass cls;
-
-    doc = sddl_load_and_parse_file(file);
-    if (!doc)
-    {
-        RedLog_ErrorLog("canopy", "Failed to read SDDL file");
-        return false;
-    }
-
-    cls = sddl_document_lookup_class(doc, className);
-    if (!cls)
-    {
-        RedLog_ErrorLog("canopy", "Class not found in SDDL: %s", className);
-        return false;
-    }
-
-    canopy->sddl = cls;
-    return true;
-}
 
 bool canopy_event_loop(CanopyContext canopy)
 {
