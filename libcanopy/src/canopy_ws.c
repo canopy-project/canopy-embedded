@@ -39,16 +39,21 @@ static void _process_ws_payload(CanopyContext canopy, const char *payload)
         return;
     }
 
-    if (RedJsonObject_HasKey(jsonObj, "control"))
+    //if (RedJsonObject_HasKey(jsonObj, "control"))
+    if (RedJsonObject_HasKey(jsonObj, "Data")) // fan demo hack
     {
-        if (RedJsonObject_IsValueObject(jsonObj, "control"))
+        //if (RedJsonObject_IsValueObject(jsonObj, "control"))
+        if (RedJsonObject_IsValueObject(jsonObj, "Data")) // fan demo hack
         {
-            RedJsonObject controlObj = RedJsonObject_GetObject(jsonObj, "control");
+            //RedJsonObject controlObj = RedJsonObject_GetObject(jsonObj, "control");
+            RedJsonObject controlObj = RedJsonObject_GetObject(jsonObj, "Data"); // fan demo hack
             unsigned numKeys = RedJsonObject_NumItems(controlObj);
             unsigned i;
             char ** keysArray = RedJsonObject_NewKeysArray(controlObj);
             for (i = 0; i < numKeys; i++)
             {
+                CanopyEventDetails_t eventDetails;
+
                 SDDLControl control = sddl_class_lookup_control(
                         canopy->sddl,
                         keysArray[i]);
@@ -69,6 +74,15 @@ static void _process_ws_payload(CanopyContext canopy, const char *payload)
                 }
                 /* TODO: handle other datatypes */
                 sddl_control_set_extra(control, pVal);
+
+                /* Call event callback */
+                eventDetails.ctx = canopy;
+                eventDetails.eventType = CANOPY_EVENT_CONTROL_TRIGGER;
+                eventDetails.userData = canopy->cbExtra;
+                eventDetails.eventControlName = keysArray[i];
+                eventDetails.value = *pVal;
+                printf("Calling event callback CANOPY_EVENT_CONTROL_TRIGGER %s\n", keysArray[i]);
+                canopy->cb(canopy, &eventDetails);
             }
         }
     }

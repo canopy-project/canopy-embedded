@@ -311,7 +311,7 @@ bool canopy_event_loop(CanopyContext canopy)
         if (canopy->cb && (cnt % 10 == 0))
         {
             CanopyEventDetails event;
-            event = calloc(1, sizeof(CanopyEventDetailsStruct));
+            event = calloc(1, sizeof(CanopyEventDetails_t));
             event->ctx = canopy;
             event->eventType = CANOPY_EVENT_REPORT_REQUESTED;
             event->userData = canopy->cbExtra;

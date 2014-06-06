@@ -3,10 +3,18 @@
 
 static bool on_change__speed(CanopyContext canopy, int8_t value)
 {
-   /* Your code here.
-    * Return true on success.
-    */
-   return false;
+    FILE *fp;
+    printf("Setting speed to %d\n", value);
+
+    fp = fopen("/sys/class/gpio/gpio14/value", "w");
+    if (!fp)
+    {
+        printf("Failed to open /sys/class/gpio/gpio14/value for write\n"); 
+        return false;
+    }
+    fprintf(fp, "%d", value);
+    fclose(fp);
+    return true;
 }
 
 static bool on_canopy_init(CanopyContext canopy)

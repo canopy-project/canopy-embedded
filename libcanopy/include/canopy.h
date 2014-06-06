@@ -11,7 +11,7 @@
 
 typedef struct CanopyContextStruct * CanopyContext;
 typedef struct CanopyReportStruct * CanopyReport;
-typedef struct CanopyEventDetailsStruct * CanopyEventDetails;
+typedef struct CanopyEventDetails_t * CanopyEventDetails;
 
 typedef enum
 {

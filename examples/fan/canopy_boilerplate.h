@@ -26,7 +26,8 @@ static void dispatch(CanopyEventDetails event);
 static bool on_change__speed(CanopyContext canopy, int8_t value);
 static void dispatch(CanopyEventDetails event)
 {
-    CanopyContext ctx = canopy_event_context(event);    if (canopy_event_control_name_matches(event, "speed"))
+    CanopyContext ctx = canopy_event_context(event);
+    if (canopy_event_control_name_matches(event, "speed"))
     {
         int8_t val;
         canopy_event_get_control_value_i8(event, &val);
@@ -56,6 +57,7 @@ static bool handle_canopy_event(CanopyContext ctx, CanopyEventDetails event)
         }
         case CANOPY_EVENT_CONTROL_TRIGGER:
         {
+            printf("dispatching!\n");
             dispatch(event);
         }
         default:

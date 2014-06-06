@@ -45,14 +45,14 @@ typedef struct _CanopyPropertyValue
     } val;
 } _CanopyPropertyValue;
 
-typedef struct CanopyEventDetailsStruct
+typedef struct CanopyEventDetails_t
 {
     CanopyContext ctx;
     CanopyEventEnum eventType;
     void *userData;
     char *eventControlName;
     _CanopyPropertyValue value;
-} CanopyEventDetailsStruct;
+} CanopyEventDetails_t;
 
 typedef struct CanopyReportStruct
 {
