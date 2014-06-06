@@ -123,7 +123,7 @@ static SDDLDatatypeEnum _datatype_from_string(const char *sz)
     {
         return SDDL_DATATYPE_FLOAT64;
     }
-    return SDDL_CONTROL_TYPE_INVALID;
+    return SDDL_DATATYPE_INVALID;
 }
 
 static SDDLControlTypeEnum _control_type_from_string(const char *sz)
