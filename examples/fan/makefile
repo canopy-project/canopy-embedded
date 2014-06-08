@@ -1,4 +1,4 @@
-CFLAGS := --std=c89 --pedantic -Wall -Werror
+CFLAGS := --std=c99 --pedantic -Wall -Werror
 DEBUG_FLAGS := $(CFLAGS) -g
 RELEASE_FLAGS := $(CFLAGS) -O3
 
@@ -11,11 +11,11 @@ SOURCE_FILES = canopy.example.fan.c
 CANOGEN = ../../canogen/canogen
 
 debug:
-	make -C ../../libcanopy debug
+	#make -C ../../libcanopy debug
 	gcc $(SOURCE_FILES) $(LIB_FLAGS) $(INCLUDE_FLAGS) $(DEBUG_FLAGS) -o fan
 
 release:
-	make -C ../../libcanopy release
+	#make -C ../../libcanopy release
 	gcc $(SOURCE_FILES) $(LIB_FLAGS) $(INCLUDE_FLAGS) $(RELEASE_FLAGS) -o fan
 
 run: debug

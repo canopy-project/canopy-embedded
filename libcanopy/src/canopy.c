@@ -319,7 +319,7 @@ bool canopy_event_loop(CanopyContext canopy)
             free(event);
         }
         libwebsocket_service(canopy->ws_ctx, 800);
-        sleep(1);
+        //sleep(1);
         cnt++;
     }
     libwebsocket_context_destroy(canopy->ws_ctx);
