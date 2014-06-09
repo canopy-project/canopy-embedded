@@ -21,7 +21,7 @@ static bool on_report_requested(CanopyContext canopy);
 static void dispatch(CanopyEventDetails event);
 
 
-#define SDDL_FILENAME "fan.sddl"
+#define SDDL_FILENAME "/home/pi/canopy/canopy-embedded/examples/fan/fan.sddl"
 #define SDDL_CLASSNAME "canopy.example.fan"
 static bool on_change__speed(CanopyContext canopy, int8_t value);
 static void dispatch(CanopyEventDetails event)
