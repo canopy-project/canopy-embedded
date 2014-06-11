@@ -43,6 +43,7 @@ static bool handle_canopy_event(CanopyContext ctx, CanopyEventDetails event)
         case CANOPY_EVENT_CONNECTION_ESTABLISHED:
         {
             on_connected(ctx);
+            on_report_requested(ctx);
             break;
         }
         case CANOPY_EVENT_CONNECTION_LOST:

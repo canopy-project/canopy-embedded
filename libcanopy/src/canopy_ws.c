@@ -100,9 +100,19 @@ static int ws_callback(
     switch (reason)
     {
         case LWS_CALLBACK_CLIENT_ESTABLISHED:
+        {
+            CanopyEventDetails_t eventDetails;
             fprintf(stderr, "ws_callback: LWS_CALLBACK_CLIENT_ESTABLISHED\n");
             libwebsocket_callback_on_writable(this, wsi);
+
+            /* Call event callback */
+            eventDetails.ctx = canopy;
+            eventDetails.eventType = CANOPY_EVENT_CONNECTION_ESTABLISHED;
+            eventDetails.userData = canopy->cbExtra;
+            canopy->cb(canopy, &eventDetails);
+
             break;
+        }
         case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
             fprintf(stderr, "ws_callback: LWS_CALLBACK_CLIENT_CONNECTION_ERROR\n");
             break;

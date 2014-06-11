@@ -123,13 +123,17 @@ static bool on_canopy_init(CanopyContext canopy)
     set_gpio_direction(15, "in");
     init_gpio(18);
     set_gpio_direction(18, "in");
+
     set_gpio_direction(23, "out");
     set_gpio(23, 1);
     set_gpio_direction(15, "out");
     set_gpio(15, 1);
     set_gpio_direction(18, "out");
     set_gpio(18, 1);
-    printf("done init...\n");
+
+    init_gpio(25);
+    set_gpio_direction(25, "out");
+    set_gpio(25, 0);
     return true;
 }
 
@@ -140,7 +144,8 @@ static bool on_canopy_shutdown(CanopyContext canopy)
 
 static bool on_connected(CanopyContext canopy)
 {
-    return false;
+    set_gpio(25, 1);
+    return true;
 }
 
 static bool on_disconnected(CanopyContext canopy)
