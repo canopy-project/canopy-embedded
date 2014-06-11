@@ -1,0 +1,15 @@
+{
+    "authors" : ["Greg Prisament (greg@canopy.link)"],
+    "description" : "SDDL class for Adafruit DHT22 Temp & Humidy Sensor",
+
+    "class canopy.example.temp_humidity_sensor" : {
+        "sensor temperature" : {
+            "datatype" : "float32",
+            "units" : "degrees_f"
+        },
+        "sensor humidity" : {
+            "datatype" : "float32",
+            "numeric-display-hint" : "percentage"
+        }
+    }
+}
