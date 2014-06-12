@@ -2,7 +2,7 @@
 #include <canopy.h>
 #include "pi_dht_read.h"
 
-#define SENSOR_PIN 4
+#define SENSOR_PIN 2
 
 static bool on_canopy_init(CanopyContext canopy)
 {
@@ -42,6 +42,7 @@ static bool on_report_requested(CanopyContext canopy)
     if (result != DHT_SUCCESS)
     {
         // TODO: cancel report
+        printf("Error reading DHT: %d\n", result);
         return false;
     }
 
