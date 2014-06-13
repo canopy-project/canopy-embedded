@@ -1,12 +1,15 @@
-CFLAGS := --std=c99 --pedantic -Wall -Werror
+CFLAGS := --std=gnu99 --pedantic -Wall
 DEBUG_FLAGS := $(CFLAGS) -g
 RELEASE_FLAGS := $(CFLAGS) -O3
 
-INCLUDE_FLAGS := -I../../libcanopy/include -I$(LIBRED_DIR)/include
+INCLUDE_FLAGS := -I../../libcanopy/include -I$(LIBRED_DIR)/include -I../3rdparty/source/Raspberry_Pi
 
-LIB_FLAGS := -L../../libcanopy -L$(LIBWEBSOCKETS_DIR)/lib -lcanopy -lwebsockets
+LIB_FLAGS := -L../../libcanopy -L$(LIBWEBSOCKETS_DIR)/lib -lcanopy -lwebsockets -lrt
 
-SOURCE_FILES = canopy.example.fan.c
+SOURCE_FILES = canopy.example.fan.c \
+    ../3rdparty/source/common_dht_read.c \
+    ../3rdparty/source/Raspberry_Pi/pi_dht_read.c \
+    ../3rdparty/source/Raspberry_Pi/pi_mmio.c
 
 CANOGEN = ../../canogen/canogen
 

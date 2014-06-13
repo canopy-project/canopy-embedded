@@ -7,6 +7,14 @@
             "datatype" : "int8",
             "min-value" : 0,
             "max-value" : 3
+        },
+        "sensor temperature" : {
+            "datatype" : "float32",
+            "units" : "degrees_f"
+        },
+        "sensor humidity" : {
+            "datatype" : "float32",
+            "numeric-display-hint" : "percentage"
         }
     }
 }
