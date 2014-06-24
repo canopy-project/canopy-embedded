@@ -1,13 +1,8 @@
 {
     "authors" : ["Greg Prisament (greg@canopy.link)"],
-    "description" : "SDDL class for controlling a modded Honeywell fan.",
+    "description" : "SDDL class for Adafruit DHT22 Temp & Humidy Sensor",
 
-    "class canopy.example.fan" : {
-        "control speed" : {
-            "datatype" : "int8",
-            "min-value" : 0,
-            "max-value" : 3
-        },
+    "class canopy.example.temp_humidity_sensor" : {
         "sensor temperature" : {
             "datatype" : "float32",
             "units" : "degrees_f"

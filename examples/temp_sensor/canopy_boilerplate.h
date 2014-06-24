@@ -21,18 +21,10 @@ static bool on_report_requested(CanopyContext canopy);
 static void dispatch(CanopyEventDetails event);
 
 
-#define SDDL_FILENAME "/home/pi/canopy/canopy-embedded/examples/fan/fan.sddl"
-#define SDDL_CLASSNAME "canopy.example.fan"
-static bool on_change__speed(CanopyContext canopy, int8_t value);
+#define SDDL_FILENAME "temp_sensor.sddl"
+#define SDDL_CLASSNAME "canopy.example.temp_humidity_sensor"
 static void dispatch(CanopyEventDetails event)
 {
-    CanopyContext ctx = canopy_event_context(event);
-    if (canopy_event_control_name_matches(event, "speed"))
-    {
-        int8_t val;
-        canopy_event_get_control_value_i8(event, &val);
-        on_change__speed(ctx, val);
-    }
 }
 
 
@@ -43,7 +35,6 @@ static bool handle_canopy_event(CanopyContext ctx, CanopyEventDetails event)
         case CANOPY_EVENT_CONNECTION_ESTABLISHED:
         {
             on_connected(ctx);
-            on_report_requested(ctx);
             break;
         }
         case CANOPY_EVENT_CONNECTION_LOST:
@@ -58,7 +49,6 @@ static bool handle_canopy_event(CanopyContext ctx, CanopyEventDetails event)
         }
         case CANOPY_EVENT_CONTROL_TRIGGER:
         {
-            printf("dispatching!\n");
             dispatch(event);
         }
         default:
