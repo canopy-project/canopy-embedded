@@ -12,10 +12,12 @@ static bool _dump_boilerplate(SDDLClass cls, const char *sddlFilename, const cha
     FILE *fp;
     int i;
     int numProperties;
-    fp = fopen("canopy_boilerplate.h", "w+");
+    char filename[512];
+    snprintf(filename, 512, "%s.h", className);
+    fp = fopen(filename, "w+");
     if (!fp)
     {
-        fprintf(stderr, "Could not open canopy_boilerplate.h for write!");
+        fprintf(stderr, "Could not open %s.h for write!", className);
         return false;
     }
     for (i = 0; i < sizeof(_CANOPY_BOILERPLATE_HEAD)/sizeof(_CANOPY_BOILERPLATE_HEAD[0]); i++)
@@ -92,7 +94,8 @@ static bool _dump_class_control_callbacks(SDDLClass cls)
         fprintf(stderr, "Could not open stubz.h for write!");
         return false;
     }
-    fprintf(fp, "#include \"canopy_boilerplate.h\"\n");
+    snprintf(filename, 512, "%s.h", sddl_class_name(cls));
+    fprintf(fp, "#include \"%s.h\"\n", filename);
     fprintf(fp, "#include <canopy.h>\n");
     fprintf(fp, "\n");
     numProperties = sddl_class_num_properties(cls);
@@ -124,11 +127,24 @@ static bool _dump_class_control_callbacks(SDDLClass cls)
     return true;
 }
 
+
 int RunGen(int argc, const char *argv[])
 {
     SDDLDocument doc;
     unsigned numProperties, i;
-    doc = sddl_load_and_parse(argv[1]);
+
+    if (argc == 2)
+    {
+        printf("usage: cano gen <sddl_filename> [<args>]\n");
+        return -1;
+    }
+
+    doc = sddl_load_and_parse(argv[2]);
+    if (!doc)
+    {
+        printf("fatal: error loading SDDL file\n");
+        return -1;
+    }
 
     numProperties = sddl_document_num_properties(doc);
     for (i = 0; i < numProperties; i++)
@@ -139,9 +155,10 @@ int RunGen(int argc, const char *argv[])
         {
             const char *name;
             name = sddl_class_name(SDDL_CLASS(prop));
-            if (argc > 2 && !strcmp(name, argv[2]) )
+            if ((argc > 3 && !strcmp(name, argv[3])) || argc == 3)
             {
-                _dump_boilerplate(SDDL_CLASS(prop), argv[1], argv[2]);
+                const char *className = sddl_class_name(SDDL_CLASS(prop));
+                _dump_boilerplate(SDDL_CLASS(prop), argv[2], className);
                 _dump_class_control_callbacks(SDDL_CLASS(prop));
             }
         }
