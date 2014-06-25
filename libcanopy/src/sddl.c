@@ -83,7 +83,11 @@ static SDDLNumericDisplayHintEnum _display_hint_from_string(const char *sz)
 
 static SDDLDatatypeEnum _datatype_from_string(const char *sz)
 {
-    if (!strcmp(sz, "string"))
+    if (!strcmp(sz, "void"))
+    {
+        return SDDL_DATATYPE_VOID;
+    }
+    else if (!strcmp(sz, "string"))
     {
         return SDDL_DATATYPE_STRING;
     }
