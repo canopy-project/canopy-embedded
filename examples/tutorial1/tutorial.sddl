@@ -8,7 +8,7 @@
         },
         "control reboot" : {
             "control-type" : "trigger",
-            "datatype" : "boolean",
+            "datatype" : "void",
             "description" : "Reboots the device"
         }
     }

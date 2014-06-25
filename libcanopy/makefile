@@ -5,7 +5,7 @@ RELEASE_FLAGS := $(CFLAGS) -O3
 
 LIBRED_DIR := 3rdparty/libred
 
-INCLUDE_FLAGS := -Isrc -Iinclude -I$(LIBWEBSOCKETS_DIR)/../lib -I$(LIBRED_DIR)/include -I$(LIBRED_DIR)/under_construction
+INCLUDE_FLAGS := -Isrc -Iinclude -I$(LIBRED_DIR)/include -I$(LIBRED_DIR)/under_construction
 
 SOURCE_FILES = src/canopy.c src/canopy_event.c src/canopy_ws.c src/sddl.c $(LIBRED_DIR)/src/red_hash.c $(LIBRED_DIR)/src/red_test.c $(LIBRED_DIR)/src/red_json.c $(LIBRED_DIR)/src/red_string.c $(LIBRED_DIR)/src/red_log.c
 

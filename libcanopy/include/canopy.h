@@ -67,4 +67,22 @@ bool canopy_event_loop(CanopyContext canopy);
 void canopy_quit(CanopyContext canopy);
 
 void canopy_shutdown(CanopyContext canopy);
+
+/*
+ * On Unix, Linux, and MacOSX, looks for file, in this order:
+ *
+ * $CANOPY_HOME/<filename>
+ * ~/.canopy/<filename>
+ * SYSCONFDIR/<filename>
+ * /etc/canopy/<filename>
+ */
+FILE * canopy_open_config_file(const char* filename);
+
+/*
+ * Uses CANOPY_UUID env var, or, if not set, then config file "uuid".
+ *
+ * Caller must free returned string.
+ */
+char * canopy_read_system_uuid();
+
 #endif

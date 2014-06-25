@@ -334,3 +334,95 @@ void canopy_shutdown(CanopyContext canopy)
 {
     free(canopy);
 }
+
+FILE * canopy_open_config_file(const char* filename)
+{
+    FILE *fp;
+    const char *canopyHome;
+    const char *home;
+
+    /* Try: $CANOPY_HOME/<filename> */
+    canopyHome = getenv("CANOPY_HOME");
+    if (canopyHome)
+    {
+        RedString fns = RedString_NewPrintf("%s/%s", 2048, canopyHome, filename);
+        if (!fns)
+            return NULL;
+        fp = fopen(RedString_GetChars(fns), "r");
+        RedString_Free(fns);
+        if (fp)
+            return fp;
+    }
+
+    /* Try: ~/.canopy/<filename> */
+    home = getenv("HOME");
+    if (home)
+    {
+        RedString fns = RedString_NewPrintf("%s/.canopy/%s", 2048, home, filename);
+        if (!fns)
+            return NULL;
+        fp = fopen(RedString_GetChars(fns), "r");
+        RedString_Free(fns);
+        if (fp)
+            return fp;
+    }
+
+    /* Try: SYSCONFIGDIR/<filename> */
+#ifdef CANOPY_SYSCONFIGDIR
+    {
+        RedString fns = RedString_NewPrintf("%s/%s", 2048, CANOPY_SYSCONFIGDIR, filename);
+        if (!fns)
+            return NULL;
+        fp = fopen(RedString_GetChars(fns), "r");
+        RedString_Free(fns);
+        if (fp)
+            return fp;
+    }
+#endif
+
+    /* Try /etc/canopy/<filename> */
+    {
+        RedString fns = RedString_NewPrintf("/etc/canopy/%s", 2048, filename);
+        if (!fns)
+            return NULL;
+        fp = fopen(RedString_GetChars(fns), "r");
+        RedString_Free(fns);
+        if (fp)
+            return fp;
+    }
+
+    return NULL;
+}
+
+char *canopy_read_system_uuid()
+{
+    char *uuidEnv;
+    FILE *fp;
+    char uuid[37];
+    char *out;
+    uuidEnv = getenv("CANOPY_UUID");
+    if (uuidEnv)
+    {
+        /* TODO: Verify that it is, in fact, a UUID */
+        return RedString_strdup(uuidEnv);
+    }
+
+    fp = canopy_open_config_file("uuid");
+    if (fp)
+    {
+        size_t len;
+        len = fread(uuid, sizeof(char), 36, fp);
+        if (len != 36)
+        {
+            RedLog_WarnLog("Expected 36 characters in UUID file", "");
+            return NULL;
+        }
+        uuid[36] = '\0';
+        /* TODO: Verify that it is, in fact, a UUID */
+        out = RedString_strdup(uuid);
+        fclose(fp);
+        return out;
+    }
+    return NULL;
+}
+
