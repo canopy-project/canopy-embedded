@@ -1,11 +1,88 @@
 /* Copyright 2014 - Greg Prisament
  */
 #include "sddl.h"
+#include "red_string.h"
 #include <stdio.h>
 #include "canopy_boilerplate_head.out.h"
 #include "canopy_boilerplate_tail.out.h"
 #include <string.h>
 
+static const char *_get_op_name(SDDLControlTypeEnum controlType)
+{
+    switch (controlType)
+    {
+        case SDDL_CONTROL_TYPE_PARAMETER:
+            return "change";
+        case SDDL_CONTROL_TYPE_TRIGGER:
+            return "trigger";
+        default:
+            return NULL;
+    }
+}
+static const char *_get_control_c_type(SDDLDatatypeEnum datatype)
+{
+    switch (datatype)
+    {
+        case SDDL_DATATYPE_VOID:
+            return "void";
+        case SDDL_DATATYPE_STRING:
+            return "char *";
+        case SDDL_DATATYPE_BOOL:
+            return "bool";
+        case SDDL_DATATYPE_INT8:
+            return "int8_t";
+        case SDDL_DATATYPE_UINT8:
+            return "uint8_t";
+        case SDDL_DATATYPE_INT16:
+            return "int16_t";
+        case SDDL_DATATYPE_UINT16:
+            return "uint16_t";
+        case SDDL_DATATYPE_INT32:
+            return "int32_t";
+        case SDDL_DATATYPE_UINT32:
+            return "uint32_t";
+        case SDDL_DATATYPE_FLOAT32:
+            return "float";
+        case SDDL_DATATYPE_FLOAT64:
+            return "double";
+        case SDDL_DATATYPE_DATETIME:
+            return "datetime";
+        default:
+            return NULL;
+    }
+}
+static const char *_get_control_abbrev_type(SDDLDatatypeEnum datatype)
+{
+    switch (datatype)
+    {
+        case SDDL_DATATYPE_VOID:
+            return "void";
+        case SDDL_DATATYPE_STRING:
+            return "string";
+        case SDDL_DATATYPE_BOOL:
+            return "bool";
+        case SDDL_DATATYPE_INT8:
+            return "i8";
+        case SDDL_DATATYPE_UINT8:
+            return "u8";
+        case SDDL_DATATYPE_INT16:
+            return "i16";
+        case SDDL_DATATYPE_UINT16:
+            return "u16";
+        case SDDL_DATATYPE_INT32:
+            return "i32";
+        case SDDL_DATATYPE_UINT32:
+            return "u32";
+        case SDDL_DATATYPE_FLOAT32:
+            return "float32";
+        case SDDL_DATATYPE_FLOAT64:
+            return "float64";
+        case SDDL_DATATYPE_DATETIME:
+            return "datetime";
+        default:
+            return NULL;
+    }
+}
 
 static bool _dump_boilerplate(SDDLClass cls, const char *sddlFilename, const char *className)
 {
@@ -17,7 +94,7 @@ static bool _dump_boilerplate(SDDLClass cls, const char *sddlFilename, const cha
     fp = fopen(filename, "w+");
     if (!fp)
     {
-        fprintf(stderr, "Could not open %s.h for write!", className);
+        fprintf(stderr, "Could not open %s.h for write!\n", className);
         return false;
     }
     for (i = 0; i < sizeof(_CANOPY_BOILERPLATE_HEAD)/sizeof(_CANOPY_BOILERPLATE_HEAD[0]); i++)
@@ -36,18 +113,28 @@ static bool _dump_boilerplate(SDDLClass cls, const char *sddlFilename, const cha
         prop = sddl_class_property(cls, i);
         if (sddl_is_control(prop))
         {
-            const char *controlName = sddl_control_name(SDDL_CONTROL(prop));
-            const char *controlCType = "int8_t";
+            SDDLControl control = SDDL_CONTROL(prop);
+            SDDLDatatypeEnum datatype = sddl_control_datatype(control);
+            SDDLControlTypeEnum controlType = sddl_control_type(control);
+            const char *controlName = sddl_control_name(control);
+            const char *controlCType = _get_control_c_type(datatype);
+            const char *opName = _get_op_name(controlType);
+            if (!controlCType)
+            {
+                fprintf(stderr, "Datatype does not have C type\n");
+                return false;
+            }
 
-            fprintf(fp, "static bool on_change__%s(CanopyContext canopy, %s value);\n",
+            fprintf(fp, "static bool on_%s__%s(CanopyContext canopy, %s value);\n",
                     controlName,
+                    opName,
                     controlCType);
         }
     }
 
     /* Implement dispatch reoutine */
     fprintf(fp, "static void dispatch(CanopyEventDetails event)\n{\n");
-    fprintf(fp, "    CanopyContext ctx = canopy_event_context(event);");
+    fprintf(fp, "    CanopyContext ctx = canopy_event_context(event);\n");
 
     numProperties = sddl_class_num_properties(cls);
     for (i = 0; i < numProperties; i++)
@@ -56,20 +143,30 @@ static bool _dump_boilerplate(SDDLClass cls, const char *sddlFilename, const cha
         prop = sddl_class_property(cls, i);
         if (sddl_is_control(prop))
         {
-            const char *controlName = sddl_control_name(SDDL_CONTROL(prop));
-            const char *controlCType = "int8_t";
-            const char *controlAbbrevType = "i8";
+            SDDLControl control = SDDL_CONTROL(prop);
+            SDDLDatatypeEnum datatype = sddl_control_datatype(control);
+            SDDLControlTypeEnum controlType = sddl_control_type(control);
+            const char *controlName = sddl_control_name(control);
+            const char *controlCType = _get_control_c_type(datatype);
+            const char *controlAbbrevType = _get_control_abbrev_type(datatype);
+            const char *opName = _get_op_name(controlType);
+            if (!controlCType || !controlAbbrevType)
+            {
+                fprintf(stderr, "Datatype does not have C type or abbrev type\n");
+                return false;
+            }
 
             fprintf(fp,
                 "    if (canopy_event_control_name_matches(event, \"%s\"))\n"
                 "    {\n"
                 "        %s val;\n"
                 "        canopy_event_get_control_value_%s(event, &val);\n"
-                "        on_change__%s(ctx, val);\n"
+                "        on_%s__%s(ctx, val);\n"
                 "    }\n",
                 controlName,
                 controlCType,
                 controlAbbrevType,
+                opName,
                 controlName);
         }
     }
@@ -95,7 +192,7 @@ static bool _dump_class_control_callbacks(SDDLClass cls)
         return false;
     }
     snprintf(filename, 512, "%s.h", sddl_class_name(cls));
-    fprintf(fp, "#include \"%s.h\"\n", filename);
+    fprintf(fp, "#include \"%s\"\n", filename);
     fprintf(fp, "#include <canopy.h>\n");
     fprintf(fp, "\n");
     numProperties = sddl_class_num_properties(cls);
@@ -127,11 +224,51 @@ static bool _dump_class_control_callbacks(SDDLClass cls)
     return true;
 }
 
+static bool _dump_makefile(RedStringList cFilenames)
+{
+    unsigned i;
+    RedStringList targets = RedStringList_New();
+
+    RedString tmp = RedString_New(NULL);
+    for (i = 0; i < RedStringList_NumStrings(cFilenames); i++)
+    {
+        RedString_SubString(tmp, RedStringList_GetString(cFilenames, i), 0, -3);
+        RedStringList_AppendChars(targets, RedString_GetChars(tmp));
+    }
+    RedString_Free(tmp);
+
+    FILE *fp = fopen("makefile", "w+");
+    if (!fp)
+    {
+        fprintf(stderr, "Could not open makefile for write\n");
+        return false;
+    }
+    
+    fprintf(fp, "TARGETS := ");
+    for (i = 0; i < RedStringList_NumStrings(cFilenames); i++)
+    {
+        fprintf(fp, "%s ", RedString_GetChars(RedStringList_GetString(targets, i)));
+    }
+    fprintf(fp, "\n");
+    fprintf(fp, ".PHONY: default\n");
+    fprintf(fp, "default: $(TARGETS)\n");
+    for (i = 0; i < RedStringList_NumStrings(cFilenames); i++)
+    {
+        fprintf(fp, "%s: %s\n", 
+                RedString_GetChars(RedStringList_GetString(targets, i)), 
+                RedString_GetChars(RedStringList_GetString(cFilenames, i)));
+        fprintf(fp, "\tgcc $< -g -lcanopy -lwebsockets -o $@\n");
+    }
+    fclose(fp);
+    RedStringList_Free(targets);
+    return true;
+}
 
 int RunGen(int argc, const char *argv[])
 {
     SDDLDocument doc;
     unsigned numProperties, i;
+    RedStringList cFilenames = RedStringList_New();
 
     if (argc == 2)
     {
@@ -157,11 +294,13 @@ int RunGen(int argc, const char *argv[])
             name = sddl_class_name(SDDL_CLASS(prop));
             if ((argc > 3 && !strcmp(name, argv[3])) || argc == 3)
             {
-                const char *className = sddl_class_name(SDDL_CLASS(prop));
-                _dump_boilerplate(SDDL_CLASS(prop), argv[2], className);
+                RedStringList_AppendPrintf(cFilenames, "%s.c", name);
+                _dump_boilerplate(SDDL_CLASS(prop), argv[2], name);
                 _dump_class_control_callbacks(SDDL_CLASS(prop));
             }
         }
     }
+    _dump_makefile(cFilenames);
+    RedStringList_Free(cFilenames);
     return 0;
 }
