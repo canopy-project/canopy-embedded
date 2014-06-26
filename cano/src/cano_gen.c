@@ -125,10 +125,19 @@ static bool _dump_boilerplate(SDDLClass cls, const char *sddlFilename, const cha
                 return false;
             }
 
-            fprintf(fp, "static bool on_%s__%s(CanopyContext canopy, %s value);\n",
-                    controlName,
-                    opName,
-                    controlCType);
+            if (datatype == SDDL_DATATYPE_VOID)
+            {
+                fprintf(fp, "static bool on_%s__%s(CanopyContext canopy);\n",
+                        opName,
+                        controlName);
+            }
+            else
+            {
+                fprintf(fp, "static bool on_%s__%s(CanopyContext canopy, %s value);\n",
+                        opName,
+                        controlName,
+                        controlCType);
+            }
         }
     }
 
@@ -156,18 +165,32 @@ static bool _dump_boilerplate(SDDLClass cls, const char *sddlFilename, const cha
                 return false;
             }
 
-            fprintf(fp,
-                "    if (canopy_event_control_name_matches(event, \"%s\"))\n"
-                "    {\n"
-                "        %s val;\n"
-                "        canopy_event_get_control_value_%s(event, &val);\n"
-                "        on_%s__%s(ctx, val);\n"
-                "    }\n",
-                controlName,
-                controlCType,
-                controlAbbrevType,
-                opName,
-                controlName);
+            if (datatype == SDDL_DATATYPE_VOID)
+            {
+                fprintf(fp,
+                    "    if (canopy_event_control_name_matches(event, \"%s\"))\n"
+                    "    {\n"
+                    "        on_%s__%s(ctx);\n"
+                    "    }\n",
+                    controlName,
+                    opName,
+                    controlName);
+            }
+            else
+            {
+                fprintf(fp,
+                    "    if (canopy_event_control_name_matches(event, \"%s\"))\n"
+                    "    {\n"
+                    "        %s val;\n"
+                    "        canopy_event_get_control_value_%s(event, &val);\n"
+                    "        on_%s__%s(ctx, val);\n"
+                    "    }\n",
+                    controlName,
+                    controlCType,
+                    controlAbbrevType,
+                    opName,
+                    controlName);
+            }
         }
     }
     fprintf(fp, "}\n\n");
@@ -206,13 +229,35 @@ static bool _dump_class_control_callbacks(SDDLClass cls)
         }
         else if (sddl_is_control(prop))
         {
-            const char *propName = sddl_control_name(SDDL_CONTROL(prop));
-            fprintf(fp, "static bool on_change__%s(CanopyContext canopy, int8_t value)\n"
-                "{\n"
-                "   /* Your code here.\n"
-                "    * Return true on success.\n"
-                "    */\n"
-                "   return false;\n}\n\n", propName);
+            SDDLControl control = SDDL_CONTROL(prop);
+            SDDLDatatypeEnum datatype = sddl_control_datatype(control);
+            SDDLControlTypeEnum controlType = sddl_control_type(control);
+            const char *controlName = sddl_control_name(control);
+            const char *controlCType = _get_control_c_type(datatype);
+            const char *opName = _get_op_name(controlType);
+            if (datatype == SDDL_DATATYPE_VOID)
+            {
+                fprintf(fp, "static bool on_%s__%s(CanopyContext canopy)\n"
+                    "{\n"
+                    "   /* Your code here.\n"
+                    "    * Return true on success.\n"
+                    "    */\n"
+                    "   return false;\n}\n\n", 
+                    opName,
+                    controlName);
+            }
+            else
+            {
+                fprintf(fp, "static bool on_%s__%s(CanopyContext canopy, %s value)\n"
+                    "{\n"
+                    "   /* Your code here.\n"
+                    "    * Return true on success.\n"
+                    "    */\n"
+                    "   return false;\n}\n\n", 
+                    opName,
+                    controlName,
+                    controlCType);
+            }
         }
     }
     fprintf(fp, "static bool on_canopy_init(CanopyContext canopy)\n{\n    return false;\n}\n\n");
