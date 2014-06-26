@@ -7,5 +7,6 @@
 int RunTest(int argc, const char *argv[]);
 int RunGen(int argc, const char *argv[]);
 int RunProvision(int argc, const char *argv[]);
+int RunUUID(int argc, const char *argv[]);
 
 #endif

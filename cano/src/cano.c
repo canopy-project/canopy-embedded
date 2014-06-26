@@ -22,6 +22,7 @@ static int PrintUsage()
     printf("  help <CMD> -- Get help for a specific command\n");
     printf("  provision  -- Grant cloud account access to this device\n");
     printf("  test       -- Run test suite\n");
+    printf("  uuid       -- Generate and configure device's UUID\n");
     printf("\n");
     return 0;
 }
@@ -49,6 +50,16 @@ int main(int argc, const char *argv[])
     else if (!strcmp(argv[1], "help"))
     {
         return PrintUsage();
+    }
+    else if (!strcmp(argv[1], "uuid"))
+    {
+        return RunUUID(argc, argv);
+    }
+    else
+    {
+        PrintUsage();
+        printf("fatal: Unknown command %s\n", argv[1]);
+        return 0;
     }
     return 0;
 }

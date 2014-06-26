@@ -6,7 +6,7 @@ INCLUDE_FLAGS := -Ibuild -I../libcanopy/3rdparty/libred/include
 
 LIB_FLAGS := -lcanopy -lwebsockets
 
-SOURCE_FILES = src/cano.c src/cano_test.c src/cano_provision.c src/cano_gen.c
+SOURCE_FILES = src/cano.c src/cano_test.c src/cano_provision.c src/cano_gen.c src/cano_uuid.c
 
 HEADERIFY := tools/headerify/headerify
 
