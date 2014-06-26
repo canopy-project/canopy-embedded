@@ -202,19 +202,19 @@ static bool _dump_boilerplate(SDDLClass cls, const char *sddlFilename, const cha
     return true;
 }
 
-static bool _dump_class_control_callbacks(SDDLClass cls)
+static bool _dump_class_control_callbacks(SDDLClass cls, const char *classShortName)
 {
     FILE *fp;
     unsigned numProperties, i;
     char filename[512];
-    snprintf(filename, 512, "%s.c", sddl_class_name(cls));
+    snprintf(filename, 512, "%s.c", classShortName);
     fp = fopen(filename, "w+");
     if (!fp)
     {
         fprintf(stderr, "Could not open stubz.h for write!");
         return false;
     }
-    snprintf(filename, 512, "%s.h", sddl_class_name(cls));
+    snprintf(filename, 512, "%s.h", classShortName);
     fprintf(fp, "#include \"%s\"\n", filename);
     fprintf(fp, "#include <canopy.h>\n");
     fprintf(fp, "\n");
@@ -309,6 +309,20 @@ static bool _dump_makefile(RedStringList cFilenames)
     return true;
 }
 
+static const char *_find_char_from_right(const char*in, char ch)
+{
+    int len = strlen(in);
+    int i;
+    for (i = 0; i < len; i++)
+    {
+        if (in[len-i-1] == ch)
+        {
+            return &in[len-i];
+        }
+    }
+    return in;
+}
+
 int RunGen(int argc, const char *argv[])
 {
     SDDLDocument doc;
@@ -337,11 +351,12 @@ int RunGen(int argc, const char *argv[])
         {
             const char *name;
             name = sddl_class_name(SDDL_CLASS(prop));
+            name = _find_char_from_right(name, '.');
             if ((argc > 3 && !strcmp(name, argv[3])) || argc == 3)
             {
                 RedStringList_AppendPrintf(cFilenames, "%s.c", name);
                 _dump_boilerplate(SDDL_CLASS(prop), argv[2], name);
-                _dump_class_control_callbacks(SDDL_CLASS(prop));
+                _dump_class_control_callbacks(SDDL_CLASS(prop), name);
             }
         }
     }
