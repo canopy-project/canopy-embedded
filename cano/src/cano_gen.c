@@ -19,7 +19,7 @@ static const char *_get_op_name(SDDLControlTypeEnum controlType)
             return NULL;
     }
 }
-static const char *_get_control_c_type(SDDLDatatypeEnum datatype)
+static const char *_get_datatype_c_type(SDDLDatatypeEnum datatype)
 {
     switch (datatype)
     {
@@ -51,7 +51,7 @@ static const char *_get_control_c_type(SDDLDatatypeEnum datatype)
             return NULL;
     }
 }
-static const char *_get_control_abbrev_type(SDDLDatatypeEnum datatype)
+static const char *_get_datatype_abbrev_type(SDDLDatatypeEnum datatype)
 {
     switch (datatype)
     {
@@ -103,7 +103,7 @@ static bool _dump_boilerplate(SDDLClass cls, const char *sddlFilename, const cha
     }
 
     fprintf(fp, "#define SDDL_FILENAME \"%s\"\n", sddlFilename);
-    fprintf(fp, "#define SDDL_CLASSNAME \"%s\"\n", className);
+    fprintf(fp, "#define SDDL_CLASSNAME \"%s\"\n", sddl_class_name(cls));
 
     /* Control callback prototypes */
     numProperties = sddl_class_num_properties(cls);
@@ -117,7 +117,7 @@ static bool _dump_boilerplate(SDDLClass cls, const char *sddlFilename, const cha
             SDDLDatatypeEnum datatype = sddl_control_datatype(control);
             SDDLControlTypeEnum controlType = sddl_control_type(control);
             const char *controlName = sddl_control_name(control);
-            const char *controlCType = _get_control_c_type(datatype);
+            const char *controlCType = _get_datatype_c_type(datatype);
             const char *opName = _get_op_name(controlType);
             if (!controlCType)
             {
@@ -156,8 +156,8 @@ static bool _dump_boilerplate(SDDLClass cls, const char *sddlFilename, const cha
             SDDLDatatypeEnum datatype = sddl_control_datatype(control);
             SDDLControlTypeEnum controlType = sddl_control_type(control);
             const char *controlName = sddl_control_name(control);
-            const char *controlCType = _get_control_c_type(datatype);
-            const char *controlAbbrevType = _get_control_abbrev_type(datatype);
+            const char *controlCType = _get_datatype_c_type(datatype);
+            const char *controlAbbrevType = _get_datatype_abbrev_type(datatype);
             const char *opName = _get_op_name(controlType);
             if (!controlCType || !controlAbbrevType)
             {
@@ -211,7 +211,7 @@ static bool _dump_class_control_callbacks(SDDLClass cls, const char *classShortN
     fp = fopen(filename, "w+");
     if (!fp)
     {
-        fprintf(stderr, "Could not open stubz.h for write!");
+        fprintf(stderr, "Could not open %s for write!\n", filename);
         return false;
     }
     snprintf(filename, 512, "%s.h", classShortName);
@@ -233,7 +233,7 @@ static bool _dump_class_control_callbacks(SDDLClass cls, const char *classShortN
             SDDLDatatypeEnum datatype = sddl_control_datatype(control);
             SDDLControlTypeEnum controlType = sddl_control_type(control);
             const char *controlName = sddl_control_name(control);
-            const char *controlCType = _get_control_c_type(datatype);
+            const char *controlCType = _get_datatype_c_type(datatype);
             const char *opName = _get_op_name(controlType);
             if (datatype == SDDL_DATATYPE_VOID)
             {
@@ -264,7 +264,37 @@ static bool _dump_class_control_callbacks(SDDLClass cls, const char *classShortN
     fprintf(fp, "static bool on_canopy_shutdown(CanopyContext canopy)\n{\n    return false;\n}\n\n");
     fprintf(fp, "static bool on_connected(CanopyContext canopy)\n{\n    return false;\n}\n\n");
     fprintf(fp, "static bool on_disconnected(CanopyContext canopy)\n{\n    return false;\n}\n\n");
-    fprintf(fp, "static bool on_report_requested(CanopyContext canopy)\n{\n    return false;\n}\n\n");
+
+    fprintf(fp, "static bool on_report_requested(CanopyContext canopy)\n");
+    fprintf(fp, "{\n");
+    fprintf(fp, "    CanopyReport report = canopy_begin_report(canopy);\n");
+    fprintf(fp, "\n");
+    fprintf(fp, "    /* Your code here */\n");
+
+    for (i = 0; i < numProperties; i++)
+    {
+        SDDLProperty prop;
+        prop = sddl_class_property(cls, i);
+        if (sddl_is_class(prop))
+        {
+            /*_dump_control_callbacks_recur();*/
+        }
+        else if (sddl_is_sensor(prop))
+        {
+            SDDLSensor sensor = SDDL_SENSOR(prop);
+            SDDLDatatypeEnum datatype = sddl_sensor_datatype(sensor);
+            const char *sensorName = sddl_sensor_name(sensor);
+            const char *abbrevType = _get_datatype_abbrev_type(datatype);
+            fprintf(fp, "    /* canopy_report_%s(report, \"%s\", 0); */\n",
+                abbrevType,
+                sensorName);
+        }
+    }
+
+    fprintf(fp, "\n");
+    fprintf(fp, "    canopy_send_report(report);\n");
+    fprintf(fp, "    return true;\n");
+    fprintf(fp, "}\n");
     fclose(fp);
     return true;
 }

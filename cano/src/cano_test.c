@@ -10,6 +10,7 @@
 int RunTest(int argc, const char *argv[])
 {
     RedTest suite = RedTest_Begin(argv[0], NULL, NULL);
+    int result;
 
     /* Test creation & destruction */
     {
@@ -20,5 +21,10 @@ int RunTest(int argc, const char *argv[])
         RedTest_Verify(suite, "Shutdown canopy (didn't crash)", true);
     }
 
-    return RedTest_End(suite);
+    result = RedTest_End(suite);
+    if (!result)
+    {
+        printf("All tests passed.\n");
+    }
+    return result;
 }
