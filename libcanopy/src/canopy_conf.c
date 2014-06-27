@@ -20,7 +20,7 @@ bool _canopy_load_system_config(CanopyContext ctx)
     RedJsonObject confObj;
     if (!fp)
     {
-        RedLog_ErrorLog("Could not locate canopy.conf", "");
+        RedLog_Error("Could not locate canopy.conf");
         return false;
     }
 
@@ -34,7 +34,7 @@ bool _canopy_load_system_config(CanopyContext ctx)
     confObj = RedJson_Parse(buffer);
     if (!confObj)
     {
-        RedLog_ErrorLog("Error parsing canopy.conf", "");
+        RedLog_Error("Error parsing canopy.conf");
         return false;
     }
 
@@ -45,7 +45,7 @@ bool _canopy_load_system_config(CanopyContext ctx)
         {
             if (!RedJsonObject_IsValueString(confObj, keys[i]))
             {
-                RedLog_WarnLog("canopy.conf -- expected string for \"cloud-host\"", "");
+                RedLog_Warn("canopy.conf -- expected string for \"cloud-host\"");
                 continue;
             }
             if (ctx->cloudHost)
@@ -56,14 +56,14 @@ bool _canopy_load_system_config(CanopyContext ctx)
         {
             if (!RedJsonObject_IsValueNumber(confObj, keys[i]))
             {
-                RedLog_WarnLog("canopy.conf -- expected number for \"cloud-port\"", "");
+                RedLog_Warn("canopy.conf -- expected number for \"cloud-port\"");
                 continue;
             }
             ctx->cloudPort = RedJsonObject_GetNumber(confObj, keys[i]);
         }
         else
         {
-            RedLog_WarnLog("canopy.conf -- unrecognized field: %s", keys[i]);
+            RedLog_Warn("canopy.conf -- unrecognized field: %s", keys[i]);
             continue;
         }
     }
