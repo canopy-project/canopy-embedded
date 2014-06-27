@@ -851,6 +851,26 @@ RedJsonObject RedJson_Parse(const char *text)
                 text++;
                 break;
             }
+            case '/':
+            {
+                if (text[1] == '*')
+                {
+                    text++;
+                    // consume comment
+                    while (text[0] && text[1] && (text[0] != '*' || text[1] != '/'))
+                    {
+                        text++;
+                    }
+
+                    text += 2;
+                }
+                else
+                {
+                    goto fail;
+                }
+                break;
+            }
+
             default:
             {
                 if ((text[0] >= '0' && text[0] <= '9') || text[0] == '-')
