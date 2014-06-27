@@ -9,7 +9,7 @@
 #include "red_hash.h"
 #include "libwebsockets.h"
 
-typedef struct CanopyContextStruct
+typedef struct CanopyContext_t
 {
     bool initialized;
     char *uuid;
@@ -24,7 +24,7 @@ typedef struct CanopyContextStruct
     struct libwebsocket *ws;
     struct libwebsocket_context *ws_ctx;
     bool ws_write_ready;
-} CanopyContextStruct;
+} CanopyContext_t;
 
 typedef struct _CanopyPropertyValue
 {

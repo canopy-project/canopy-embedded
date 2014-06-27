@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-typedef struct CanopyContextStruct * CanopyContext;
+typedef struct CanopyContext_t * CanopyContext;
 typedef struct CanopyReportStruct * CanopyReport;
 typedef struct CanopyEventDetails_t * CanopyEventDetails;
 

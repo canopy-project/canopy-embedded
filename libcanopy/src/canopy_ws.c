@@ -205,11 +205,11 @@ bool canopy_connect(CanopyContext canopy)
     canopy->ws = libwebsocket_client_connect(
             canopy->ws_ctx, 
             CANOPY_WS_ADDRESS, 
-            8080, 
+            canopy->cloudPort, 
             CANOPY_WS_USE_SSL, 
             "/echo",
-            "canopy.link", /*host?*/
-            "http://gregprisament.com", /*origin?*/
+            canopy->cloudHost,
+            "localhost", /*origin?*/
             "echo",
             -1 /* latest ietf version */
         );

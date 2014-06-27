@@ -13,7 +13,9 @@
 CanopyContext canopy_init()
 {
     CanopyContext ctx = NULL;
-    ctx = calloc(1, sizeof(CanopyContext));
+    bool result;
+    char *uuid = NULL;
+    ctx = calloc(1, sizeof(CanopyContext_t));
     if (!ctx)
     {
         /* TODO: set error */
@@ -29,8 +31,27 @@ CanopyContext canopy_init()
 
     _canopy_load_system_config(ctx);
 
+    uuid = canopy_read_system_uuid();
+    if (!uuid)
+    {
+        RedLog_Warn("Could not determine device UUID.");
+        RedLog_Warn("Please run 'sudo cano uuid --install'.");
+        RedLog_Warn("Or call canopy_set_device_id before canopy_connect");
+    }
+    else
+    {
+        result = canopy_set_device_id(ctx, uuid);
+        if (!result)
+        {
+            RedLog_Error("Could not set UUID to %s", uuid);
+            goto fail;
+        }
+    }
+
+    free(uuid);
     return ctx;
 fail:
+    free(uuid);
     if (ctx)
     {
         /*RedHash_Free(ctx->properties);*/
