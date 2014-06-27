@@ -1,4 +1,19 @@
 {
+    /* 
+     *  "cloud-host"
+     *
+     *  Hostname of Canopy cloud service.
+     *  By default, "canopy.link" is used, which is the official cloud service
+     *  hosted by the Canopy team.  If you'd rather the device talk to a
+     *  different server, you can change that here.
+     */
     "cloud-host" : "canopy.link",
+
+    /*
+     *  "cloud-port"
+     *
+     *  Canopy cloud service port.
+     *  By default, 8080 is used (NOTE: this soon be changed to 433)
+     */
     "cloud-port" : 8080,
 }
