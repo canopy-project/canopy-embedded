@@ -26,6 +26,9 @@ CanopyContext canopy_init()
         goto fail;
     }
     ctx->initialized = true;
+
+    _canopy_load_system_config(ctx);
+
     return ctx;
 fail:
     if (ctx)

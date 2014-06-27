@@ -29,8 +29,6 @@ CanopyContext canopy_init();
 
 bool canopy_set_cloud_host(CanopyContext canopy, const char *hostname);
 bool canopy_set_cloud_port(CanopyContext canopy, uint16_t port);
-bool canopy_set_cloud_username(CanopyContext canopy, const char *username);
-bool canopy_set_cloud_password(CanopyContext canopy, const char *password);
 bool canopy_set_auto_reconnect(CanopyContext canopy, bool enabled);
 bool canopy_set_device_id(CanopyContext canopy, const char *uuid);
 bool canopy_set_device_id_filename(CanopyContext canopy, const char *filename);

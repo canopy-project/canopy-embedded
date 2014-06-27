@@ -168,20 +168,6 @@ bool canopy_set_cloud_port(CanopyContext canopy, uint16_t port)
     return true;
 }
 
-bool canopy_set_cloud_username(CanopyContext canopy, const char *username)
-{
-    canopy->cloudUsername = strdup(username);
-    assert(canopy->cloudUsername);
-    return true;
-}
-
-bool canopy_set_cloud_password(CanopyContext canopy, const char *password)
-{
-    canopy->cloudPassword = strdup(password);
-    assert(canopy->cloudPassword);
-    return true;
-}
-
 bool canopy_set_auto_reconnect(CanopyContext canopy, bool enabled)
 {
     canopy->autoReconnect = enabled;

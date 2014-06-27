@@ -20,8 +20,6 @@ typedef struct CanopyContextStruct
     bool quitRequested;
     char *cloudHost;
     uint16_t cloudPort;
-    char *cloudUsername;
-    char *cloudPassword;
     bool autoReconnect;
     struct libwebsocket *ws;
     struct libwebsocket_context *ws_ctx;
@@ -62,5 +60,7 @@ typedef struct CanopyReportStruct
 } CanopyReportStruct;
 
 void _canopy_ws_write(CanopyContext canopy, const char *msg);
+
+bool _canopy_load_system_config(CanopyContext canopy);
 
 #endif

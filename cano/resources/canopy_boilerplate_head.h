@@ -10,8 +10,6 @@
 
 #define CANOPY_CLOUD_HOST "sandbox.canopy.link"
 #define CANOPY_CLOUD_PORT 8080
-#define CANOPY_CLOUD_USERNAME "myusername"
-#define CANOPY_CLOUD_PASSWORD "mypassword"
 
 static bool on_canopy_init(CanopyContext canopy);
 static bool on_canopy_shutdown(CanopyContext canopy);
