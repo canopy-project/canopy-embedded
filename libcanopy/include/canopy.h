@@ -10,7 +10,7 @@
 #include <stdint.h>
 
 typedef struct CanopyContext_t * CanopyContext;
-typedef struct CanopyReportStruct * CanopyReport;
+typedef struct CanopyReport_t * CanopyReport;
 typedef struct CanopyEventDetails_t * CanopyEventDetails;
 
 typedef enum

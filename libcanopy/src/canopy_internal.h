@@ -52,12 +52,12 @@ typedef struct CanopyEventDetails_t
     _CanopyPropertyValue value;
 } CanopyEventDetails_t;
 
-typedef struct CanopyReportStruct
+typedef struct CanopyReport_t
 {
     CanopyContext ctx;
     RedHash values; /* (char *)propName -> (_CanopyPropertyValue *)propVal */
     bool finished;
-} CanopyReportStruct;
+} CanopyReport_t;
 
 void _canopy_ws_write(CanopyContext canopy, const char *msg);
 

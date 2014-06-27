@@ -107,7 +107,7 @@ bool canopy_register_event_callback(CanopyContext canopy, CanopyEventCallbackRou
 CanopyReport canopy_begin_report(CanopyContext canopy)
 {
     CanopyReport report = NULL;
-    report = calloc(1, sizeof(CanopyReport));
+    report = calloc(1, sizeof(CanopyReport_t));
     if (!report)
     {
         goto fail;
