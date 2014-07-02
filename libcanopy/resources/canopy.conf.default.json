@@ -16,4 +16,14 @@
      *  By default, 8080 is used (NOTE: this soon be changed to 433)
      */
     "cloud-port" : 8080,
+
+    /*
+     *  "cloud-use-https"
+     *
+     *  Use HTTPS for web communications with the Canopy cloud service?
+     *  By default, true.
+     *  WARNING: Setting this to false is highly insecure and should only be
+     *  used during testing and development.
+     */
+    "cloud-use-https" : false,
 }

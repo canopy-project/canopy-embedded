@@ -33,6 +33,8 @@ bool canopy_set_auto_reconnect(CanopyContext canopy, bool enabled);
 bool canopy_set_device_id(CanopyContext canopy, const char *uuid);
 bool canopy_set_device_id_filename(CanopyContext canopy, const char *filename);
 
+bool canopy_provision(CanopyContext canopy, const char *cloudUsername, const char *cloudPassword);
+
 bool canopy_connect(CanopyContext canopy);
 
 bool canopy_register_event_callback(CanopyContext canopy, CanopyEventCallbackRoutine fn, void *extra);
@@ -82,5 +84,11 @@ FILE * canopy_open_config_file(const char* filename);
  * Caller must free returned string.
  */
 char * canopy_read_system_uuid();
+
+/* returns "https" or "http" */
+const char * canopy_get_web_protocol(CanopyContext ctx);
+const char * canopy_get_cloud_host(CanopyContext ctx);
+uint16_t canopy_get_cloud_port(CanopyContext ctx);
+
 
 #endif

@@ -29,6 +29,10 @@ CanopyContext canopy_init()
     }
     ctx->initialized = true;
 
+    /* Set defaults */
+    ctx->cloudHost = RedString_strdup("canopy.link");
+    ctx->cloudPort = 433;
+    ctx->cloudWebProtocol = "https";
     _canopy_load_system_config(ctx);
 
     uuid = canopy_read_system_uuid();
@@ -450,3 +454,17 @@ char *canopy_read_system_uuid()
     return NULL;
 }
 
+const char * canopy_get_web_protocol(CanopyContext ctx)
+{
+    return ctx->cloudWebProtocol;
+}
+
+const char * canopy_get_cloud_host(CanopyContext ctx)
+{
+    return ctx->cloudHost;
+}
+
+uint16_t canopy_get_cloud_port(CanopyContext ctx)
+{
+    return ctx->cloudPort;
+}

@@ -71,6 +71,29 @@ RedString RedString_NewPrintf(const char *fmt, unsigned size, ...)
     return hNew;
 }
 
+char *RedString_PrintfToNewChars(const char *fmt, ...)
+{
+    va_list arg;
+    int len;
+    char *out;
+
+    va_start(arg, fmt);
+    len = vsnprintf(NULL, 0, fmt, arg);
+    va_end(arg);
+
+    out = (char *)malloc((len+1)*sizeof(char));
+    if (!out)
+    {
+        return NULL;
+    }
+
+    va_start(arg, fmt);
+    vsnprintf(out, len+1, fmt, arg);
+    va_end(arg);
+
+    return out;
+}
+
 void RedString_Free(RedString s)
 {
     if (s)

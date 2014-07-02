@@ -61,6 +61,15 @@ bool _canopy_load_system_config(CanopyContext ctx)
             }
             ctx->cloudPort = RedJsonObject_GetNumber(confObj, keys[i]);
         }
+        else if (!strcmp(keys[i], "cloud-use-https"))
+        {
+            if (!RedJsonObject_IsValueBoolean(confObj, keys[i]))
+            {
+                RedLog_Warn("canopy.conf.json -- expected boolean for \"cloud-use-https\"");
+                continue;
+            }
+            ctx->cloudWebProtocol = RedJsonObject_GetBoolean(confObj, keys[i]) ? "https" : "http";
+        }
         else
         {
             RedLog_Warn("canopy.conf.json -- unrecognized field: %s", keys[i]);

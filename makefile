@@ -1,8 +1,8 @@
 
 .PHONY: default
 default:
-	$(MAKE) -C cano
 	$(MAKE) -C libcanopy
+	$(MAKE) -C cano
 
 .PHONY: install
 install:
