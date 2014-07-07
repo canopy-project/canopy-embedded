@@ -10,12 +10,22 @@
     "cloud-host" : "canopy.link",
 
     /*
-     *  "cloud-port"
+     *  "cloud-http-port"
      *
-     *  Canopy cloud service port.
-     *  By default, 8080 is used (NOTE: this soon be changed to 433)
+     *  Canopy cloud service HTTP port.
+     *  Used only when "cloud-use-https" is false.
+     *  By default, 80 is used
      */
-    "cloud-port" : 8080,
+    "cloud-http-port" : 80,
+
+    /*
+     *  "cloud-https-port"
+     *
+     *  Canopy cloud service HTTPS port.
+     *  Used only when "cloud-use-https" is true.
+     *  By default, 433 is used
+     */
+    "cloud-http-port" : 433,
 
     /*
      *  "cloud-use-https"
