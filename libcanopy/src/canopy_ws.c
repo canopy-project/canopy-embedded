@@ -162,9 +162,15 @@ bool canopy_set_cloud_host(CanopyContext canopy, const char *hostname)
     return true;
 }
 
-bool canopy_set_cloud_port(CanopyContext canopy, uint16_t port)
+bool canopy_set_cloud_http_port(CanopyContext canopy, uint16_t port)
 {
-    canopy->cloudPort = port;
+    canopy->cloudHttpPort = port;
+    return true;
+}
+
+bool canopy_set_cloud_https_port(CanopyContext canopy, uint16_t port)
+{
+    canopy->cloudHttpsPort = port;
     return true;
 }
 
@@ -205,7 +211,7 @@ bool canopy_connect(CanopyContext canopy)
     canopy->ws = libwebsocket_client_connect(
             canopy->ws_ctx, 
             CANOPY_WS_ADDRESS, 
-            canopy->cloudPort, 
+            canopy_get_cloud_port(canopy), 
             CANOPY_WS_USE_SSL, 
             "/echo",
             canopy->cloudHost,

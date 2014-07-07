@@ -31,7 +31,8 @@ CanopyContext canopy_init()
 
     /* Set defaults */
     ctx->cloudHost = RedString_strdup("canopy.link");
-    ctx->cloudPort = 433;
+    ctx->cloudHttpPort = 80;
+    ctx->cloudHttpsPort = 433;
     ctx->cloudWebProtocol = "https";
     _canopy_load_system_config(ctx);
 
@@ -466,5 +467,15 @@ const char * canopy_get_cloud_host(CanopyContext ctx)
 
 uint16_t canopy_get_cloud_port(CanopyContext ctx)
 {
-    return ctx->cloudPort;
+    return !strcmp(ctx->cloudWebProtocol, "http") ?
+        ctx->cloudHttpPort:
+        ctx->cloudHttpsPort;
+}
+
+const char *canopy_get_sysconfigdir()
+{
+#ifdef CANOPY_SYSCONFIGDIR
+    return CANOPY_SYSCONFIGDIR
+#endif
+    return "(was not configured at compilation)\n";
 }

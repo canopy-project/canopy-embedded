@@ -19,7 +19,8 @@ typedef struct CanopyContext_t
     void * cbExtra;
     bool quitRequested;
     char *cloudHost;
-    uint16_t cloudPort;
+    uint16_t cloudHttpPort;
+    uint16_t cloudHttpsPort;
     char *cloudWebProtocol;
     bool autoReconnect;
     struct libwebsocket *ws;

@@ -12,6 +12,7 @@
 typedef struct CanopyContext_t * CanopyContext;
 typedef struct CanopyReport_t * CanopyReport;
 typedef struct CanopyEventDetails_t * CanopyEventDetails;
+typedef struct CanopyProvisionResults_t * CanopyProvisionResults;
 
 typedef enum
 {
@@ -33,7 +34,10 @@ bool canopy_set_auto_reconnect(CanopyContext canopy, bool enabled);
 bool canopy_set_device_id(CanopyContext canopy, const char *uuid);
 bool canopy_set_device_id_filename(CanopyContext canopy, const char *filename);
 
-bool canopy_provision(CanopyContext canopy, const char *cloudUsername, const char *cloudPassword);
+CanopyProvisionResults canopy_provision(CanopyContext canopy, const char *cloudUsername, const char *cloudPassword);
+/* Returned ptr is only valid until canopy_free_provision_results is called */
+const char * canopy_provision_get_uuid(CanopyProvisionResults results);
+void canopy_free_provision_results(CanopyProvisionResults results);
 
 bool canopy_connect(CanopyContext canopy);
 
@@ -90,5 +94,6 @@ const char * canopy_get_web_protocol(CanopyContext ctx);
 const char * canopy_get_cloud_host(CanopyContext ctx);
 uint16_t canopy_get_cloud_port(CanopyContext ctx);
 
+const char * canopy_get_sysconfigdir();
 
 #endif

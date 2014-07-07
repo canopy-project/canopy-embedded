@@ -52,14 +52,23 @@ bool _canopy_load_system_config(CanopyContext ctx)
                 free(ctx->cloudHost);
             ctx->cloudHost = RedJsonObject_GetString(confObj, keys[i]);
         }
-        else if (!strcmp(keys[i], "cloud-port"))
+        else if (!strcmp(keys[i], "cloud-http-port"))
         {
             if (!RedJsonObject_IsValueNumber(confObj, keys[i]))
             {
-                RedLog_Warn("canopy.conf.json -- expected number for \"cloud-port\"");
+                RedLog_Warn("canopy.conf.json -- expected number for \"cloud-http-port\"");
                 continue;
             }
-            ctx->cloudPort = RedJsonObject_GetNumber(confObj, keys[i]);
+            ctx->cloudHttpPort = RedJsonObject_GetNumber(confObj, keys[i]);
+        }
+        else if (!strcmp(keys[i], "cloud-https-port"))
+        {
+            if (!RedJsonObject_IsValueNumber(confObj, keys[i]))
+            {
+                RedLog_Warn("canopy.conf.json -- expected number for \"cloud-https-port\"");
+                continue;
+            }
+            ctx->cloudHttpsPort = RedJsonObject_GetNumber(confObj, keys[i]);
         }
         else if (!strcmp(keys[i], "cloud-use-https"))
         {
