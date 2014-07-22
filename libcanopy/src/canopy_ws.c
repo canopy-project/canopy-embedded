@@ -140,8 +140,6 @@ static int ws_callback(
 
 //#define CANOPY_WS_PORT 1235
 #define CANOPY_WS_PORT CONTEXT_PORT_NO_LISTEN
-#define CANOPY_WS_USE_SSL 0
-#define CANOPY_WS_ADDRESS "canopy.link"
 static struct libwebsocket_protocols sCanopyWsProtocols[] = {
     {
         "echo",
@@ -180,6 +178,11 @@ bool canopy_set_auto_reconnect(CanopyContext canopy, bool enabled)
     return true;
 }
 
+bool canopy_ws_use_ssl(CanopyContext canopy) 
+{
+    return !(strcmp(canopy->cloudWebProtocol, "https"));
+
+}
 bool canopy_connect(CanopyContext canopy)
 {
     struct lws_context_creation_info info={0};
@@ -210,9 +213,9 @@ bool canopy_connect(CanopyContext canopy)
 
     canopy->ws = libwebsocket_client_connect(
             canopy->ws_ctx, 
-            CANOPY_WS_ADDRESS, 
+            canopy->cloudHost, 
             canopy_get_cloud_port(canopy), 
-            CANOPY_WS_USE_SSL, 
+            canopy_ws_use_ssl(canopy), 
             "/echo",
             canopy->cloudHost,
             "localhost", /*origin?*/
