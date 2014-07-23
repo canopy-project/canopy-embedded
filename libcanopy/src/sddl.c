@@ -163,6 +163,7 @@ static SDDLControl _sddl_parse_control(RedString decl, RedJsonObject def)
 
     out->base.type = SDDL_PROPERTY_TYPE_CONTROL;
     out->base.extra = NULL;
+    out->controlType = SDDL_CONTROL_TYPE_PARAMETER;
     /* TODO: set defaults */
 
     numKeys = RedJsonObject_NumItems(def);
