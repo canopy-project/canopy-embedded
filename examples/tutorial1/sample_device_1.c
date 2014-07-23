@@ -4,7 +4,9 @@
 
 static bool on_trigger__reboot(CanopyContext canopy)
 {
-    return (reboot(RB_AUTOBOOT) == 0);
+    /*return (reboot(RB_AUTOBOOT) == 0);*/
+    printf("Yeah right I'm rebooting");
+    return true;
 }
 
 static bool on_canopy_init(CanopyContext canopy)
