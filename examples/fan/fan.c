@@ -48,7 +48,7 @@ static bool set_gpio_direction(int pin, const char *direction)
         goto cleanup;
     }
     printf("writing %s to %s\n", direction, buf);
-    fprintf(fp, direction);
+    fprintf(fp, "%s", direction);
     fclose(fp);
     return true;
 cleanup:
