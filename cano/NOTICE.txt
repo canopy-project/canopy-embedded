@@ -1,4 +1,4 @@
-libcanopy - Canopy Embedded Software Library
+cano - Canopy Embedded Utility
 Copyright 2014 Gregory Prisament
 
 This product includes files from the "libred" C utility library.
