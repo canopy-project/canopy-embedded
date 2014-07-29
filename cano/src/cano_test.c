@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2014 Gregory Prisament
  *
@@ -13,12 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* TODO: Combine w/ libcanopy/tests?
+ */
+#include "cano.h"
 #include "canopy.h"
 #include "red_test.h"
 
-int main(int argc, const char *argv[])
+int RunTest(int argc, const char *argv[])
 {
     RedTest suite = RedTest_Begin(argv[0], NULL, NULL);
+    int result;
 
     /* Test creation & destruction */
     {
@@ -29,20 +34,10 @@ int main(int argc, const char *argv[])
         RedTest_Verify(suite, "Shutdown canopy (didn't crash)", true);
     }
 
-    /* Test sddl file loading */
+    result = RedTest_End(suite);
+    if (!result)
     {
-        CanopyReport report;
-        CanopyContext canopy = canopy_init();
-        canopy_load_device_description(canopy, "mydevice.sddl");
-
-        report = canopy_begin_report(canopy);
-        canopy_report_float32(report, "temperature", 24.38f);
-        canopy_report_float32(report, "humidity", 0.01f);
-        canopy_send_report(report);
-
-        canopy_connect(canopy, "");
-
-        canopy_shutdown(canopy);
+        printf("All tests passed.\n");
     }
-    return RedTest_End(suite);
+    return result;
 }

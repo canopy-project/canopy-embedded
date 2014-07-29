@@ -1,0 +1,39 @@
+{
+    /* 
+     *  "cloud-host"
+     *
+     *  Hostname of Canopy cloud service.
+     *  By default, "canopy.link" is used, which is the official cloud service
+     *  hosted by the Canopy team.  If you'd rather the device talk to a
+     *  different server, you can change that here.
+     */
+    "cloud-host" : "canopy.link",
+
+    /*
+     *  "cloud-http-port"
+     *
+     *  Canopy cloud service HTTP port.
+     *  Used only when "cloud-use-https" is false.
+     *  By default, 80 is used
+     */
+    "cloud-http-port" : 80,
+
+    /*
+     *  "cloud-https-port"
+     *
+     *  Canopy cloud service HTTPS port.
+     *  Used only when "cloud-use-https" is true.
+     *  By default, 433 is used
+     */
+    "cloud-http-port" : 433,
+
+    /*
+     *  "cloud-use-https"
+     *
+     *  Use HTTPS for web communications with the Canopy cloud service?
+     *  By default, true.
+     *  WARNING: Setting this to false is highly insecure and should only be
+     *  used during testing and development.
+     */
+    "cloud-use-https" : false,
+}

@@ -2,11 +2,18 @@ CFLAGS := --std=c99 --pedantic -Wall -Werror
 DEBUG_FLAGS := $(CFLAGS) -g
 RELEASE_FLAGS := $(CFLAGS) -O3
 
-INCLUDE_FLAGS := -Ibuild -I../libcanopy/include -I$(LIBRED_DIR)/include
+INCLUDE_FLAGS := -Ibuild -I../libcanopy/3rdparty/libred/include
 
-LIB_FLAGS := -L../libcanopy -L$(LIBWEBSOCKETS_DIR)/lib -lcanopy -lwebsockets
+LIB_FLAGS := -lcanopy -lwebsockets -lcurl
 
-SOURCE_FILES = src/canogen.c
+SOURCE_FILES = \
+    src/cano.c \
+    src/cano_test.c \
+    src/cano_info.c \
+    src/cano_provision.c \
+    src/cano_gen.c \
+    src/cano_uuid.c
+
 
 HEADERIFY := tools/headerify/headerify
 
@@ -15,20 +22,18 @@ HEADER_TEMPLATES := resources/canopy_boilerplate_tail.h resources/canopy_boilerp
 HEADER_TEMPLATES_OUT := $(HEADER_TEMPLATES:resources/%.h=build/%.out.h)
 
 debug: $(HEADER_TEMPLATES_OUT)
-	make -C ../libcanopy debug
-	gcc $(SOURCE_FILES) $(LIB_FLAGS) $(INCLUDE_FLAGS) $(DEBUG_FLAGS) -o canogen
+	gcc $(SOURCE_FILES) $(LIB_FLAGS) $(INCLUDE_FLAGS) $(DEBUG_FLAGS) -o cano
 
 release: $(HEADER_TEMPLATES_OUT)
-	make -C ../libcanopy release
-	gcc $(SOURCE_FILES) $(LIB_FLAGS) $(INCLUDE_FLAGS) $(RELEASE_FLAGS) -o canogen
+	gcc $(SOURCE_FILES) $(LIB_FLAGS) $(INCLUDE_FLAGS) $(RELEASE_FLAGS) -o cano
 
 run: debug
-	./canogen
+	./cano
 
 dbg: debug
-	gdb ./canogen
+	gdb ./cano
 clean:
-	rm canogen build/*.h
+	rm cano build/*.h
 
 build/canopy_boilerplate_tail.out.h: resources/canopy_boilerplate_tail.h
 	$(HEADERIFY) _CANOPY_BOILERPLATE_TAIL < $< > $@

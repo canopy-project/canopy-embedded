@@ -3,9 +3,11 @@ CFLAGS := -Wall -Werror
 DEBUG_FLAGS := $(CFLAGS) -g
 RELEASE_FLAGS := $(CFLAGS) -O3
 
-INCLUDE_FLAGS := -Isrc -Iinclude -I$(LIBWEBSOCKETS_DIR)/../lib -I$(LIBRED_DIR)/include -I$(LIBRED_DIR)/under_construction
+LIBRED_DIR := 3rdparty/libred
 
-SOURCE_FILES = src/canopy.c src/canopy_event.c src/canopy_ws.c src/sddl.c $(LIBRED_DIR)/src/red_hash.c $(LIBRED_DIR)/src/red_test.c $(LIBRED_DIR)/src/red_json.c $(LIBRED_DIR)/src/red_string.c $(LIBRED_DIR)/src/red_log.c
+INCLUDE_FLAGS := -Isrc -Iinclude -I$(LIBRED_DIR)/include -I$(LIBRED_DIR)/under_construction
+
+SOURCE_FILES = src/canopy.c src/canopy_provision.c src/canopy_conf.c src/canopy_event.c src/canopy_ws.c src/sddl.c $(LIBRED_DIR)/src/red_hash.c $(LIBRED_DIR)/src/red_test.c $(LIBRED_DIR)/src/red_json.c $(LIBRED_DIR)/src/red_string.c $(LIBRED_DIR)/src/red_log.c $(LIBRED_DIR)/src/red_uuid.c
 
 debug:
 	gcc -fPIC -rdynamic -shared $(INCLUDE_FLAGS) $(SOURCE_FILES) $(DEBUG_FLAGS) -o libcanopy.so

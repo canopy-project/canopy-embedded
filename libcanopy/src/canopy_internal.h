@@ -1,5 +1,17 @@
 /*
- * Copyright 2014 - Greg Prisament
+ * Copyright 2014 Gregory Prisament
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 #ifndef CANOPY_INTERNAL_INCLUDED
 #define CANOPY_INTERNAL_INCLUDED
@@ -9,7 +21,7 @@
 #include "red_hash.h"
 #include "libwebsockets.h"
 
-typedef struct CanopyContextStruct
+typedef struct CanopyContext_t
 {
     bool initialized;
     char *uuid;
@@ -19,14 +31,14 @@ typedef struct CanopyContextStruct
     void * cbExtra;
     bool quitRequested;
     char *cloudHost;
-    uint16_t cloudPort;
-    char *cloudUsername;
-    char *cloudPassword;
+    uint16_t cloudHttpPort;
+    uint16_t cloudHttpsPort;
+    char *cloudWebProtocol;
     bool autoReconnect;
     struct libwebsocket *ws;
     struct libwebsocket_context *ws_ctx;
     bool ws_write_ready;
-} CanopyContextStruct;
+} CanopyContext_t;
 
 typedef struct _CanopyPropertyValue
 {
@@ -54,13 +66,15 @@ typedef struct CanopyEventDetails_t
     _CanopyPropertyValue value;
 } CanopyEventDetails_t;
 
-typedef struct CanopyReportStruct
+typedef struct CanopyReport_t
 {
     CanopyContext ctx;
     RedHash values; /* (char *)propName -> (_CanopyPropertyValue *)propVal */
     bool finished;
-} CanopyReportStruct;
+} CanopyReport_t;
 
 void _canopy_ws_write(CanopyContext canopy, const char *msg);
+
+bool _canopy_load_system_config(CanopyContext canopy);
 
 #endif

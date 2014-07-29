@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Gregory Prisament
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include "canopy.h"
 #include "canopy_internal.h"
 #include "red_log.h"
@@ -140,8 +155,6 @@ static int ws_callback(
 
 //#define CANOPY_WS_PORT 1235
 #define CANOPY_WS_PORT CONTEXT_PORT_NO_LISTEN
-#define CANOPY_WS_USE_SSL 0
-#define CANOPY_WS_ADDRESS "canopy.link"
 static struct libwebsocket_protocols sCanopyWsProtocols[] = {
     {
         "echo",
@@ -162,23 +175,15 @@ bool canopy_set_cloud_host(CanopyContext canopy, const char *hostname)
     return true;
 }
 
-bool canopy_set_cloud_port(CanopyContext canopy, uint16_t port)
+bool canopy_set_cloud_http_port(CanopyContext canopy, uint16_t port)
 {
-    canopy->cloudPort = port;
+    canopy->cloudHttpPort = port;
     return true;
 }
 
-bool canopy_set_cloud_username(CanopyContext canopy, const char *username)
+bool canopy_set_cloud_https_port(CanopyContext canopy, uint16_t port)
 {
-    canopy->cloudUsername = strdup(username);
-    assert(canopy->cloudUsername);
-    return true;
-}
-
-bool canopy_set_cloud_password(CanopyContext canopy, const char *password)
-{
-    canopy->cloudPassword = strdup(password);
-    assert(canopy->cloudPassword);
+    canopy->cloudHttpsPort = port;
     return true;
 }
 
@@ -188,6 +193,11 @@ bool canopy_set_auto_reconnect(CanopyContext canopy, bool enabled)
     return true;
 }
 
+bool canopy_ws_use_ssl(CanopyContext canopy) 
+{
+    return !(strcmp(canopy->cloudWebProtocol, "https"));
+
+}
 bool canopy_connect(CanopyContext canopy)
 {
     struct lws_context_creation_info info={0};
@@ -218,12 +228,12 @@ bool canopy_connect(CanopyContext canopy)
 
     canopy->ws = libwebsocket_client_connect(
             canopy->ws_ctx, 
-            CANOPY_WS_ADDRESS, 
-            8080, 
-            CANOPY_WS_USE_SSL, 
+            canopy->cloudHost, 
+            canopy_get_cloud_port(canopy), 
+            canopy_ws_use_ssl(canopy), 
             "/echo",
-            "canopy.link", /*host?*/
-            "http://gregprisament.com", /*origin?*/
+            canopy->cloudHost,
+            "localhost", /*origin?*/
             "echo",
             -1 /* latest ietf version */
         );

@@ -1,5 +1,17 @@
 /*
- * Copyright 2014 - Greg Prisament
+ * Copyright 2014 Gregory Prisament
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 #include "canopy.h"
 #include "canopy_internal.h"
@@ -13,7 +25,9 @@
 CanopyContext canopy_init()
 {
     CanopyContext ctx = NULL;
-    ctx = calloc(1, sizeof(CanopyContext));
+    bool result;
+    char *uuid = NULL;
+    ctx = calloc(1, sizeof(CanopyContext_t));
     if (!ctx)
     {
         /* TODO: set error */
@@ -26,8 +40,35 @@ CanopyContext canopy_init()
         goto fail;
     }
     ctx->initialized = true;
+
+    /* Set defaults */
+    ctx->cloudHost = RedString_strdup("canopy.link");
+    ctx->cloudHttpPort = 80;
+    ctx->cloudHttpsPort = 433;
+    ctx->cloudWebProtocol = "https";
+    _canopy_load_system_config(ctx);
+
+    uuid = canopy_read_system_uuid();
+    if (!uuid)
+    {
+        RedLog_Warn("Could not determine device UUID.");
+        RedLog_Warn("Please run 'sudo cano uuid --install'.");
+        RedLog_Warn("Or call canopy_set_device_id before canopy_connect");
+    }
+    else
+    {
+        result = canopy_set_device_id(ctx, uuid);
+        if (!result)
+        {
+            RedLog_Error("Could not set UUID to %s", uuid);
+            goto fail;
+        }
+    }
+
+    free(uuid);
     return ctx;
 fail:
+    free(uuid);
     if (ctx)
     {
         /*RedHash_Free(ctx->properties);*/
@@ -83,7 +124,7 @@ bool canopy_register_event_callback(CanopyContext canopy, CanopyEventCallbackRou
 CanopyReport canopy_begin_report(CanopyContext canopy)
 {
     CanopyReport report = NULL;
-    report = calloc(1, sizeof(CanopyReport));
+    report = calloc(1, sizeof(CanopyReport_t));
     if (!report)
     {
         goto fail;
@@ -333,4 +374,120 @@ void canopy_quit(CanopyContext canopy)
 void canopy_shutdown(CanopyContext canopy)
 {
     free(canopy);
+}
+
+FILE * canopy_open_config_file(const char* filename)
+{
+    FILE *fp;
+    const char *canopyHome;
+    const char *home;
+
+    /* Try: $CANOPY_HOME/<filename> */
+    canopyHome = getenv("CANOPY_HOME");
+    if (canopyHome)
+    {
+        RedString fns = RedString_NewPrintf("%s/%s", 2048, canopyHome, filename);
+        if (!fns)
+            return NULL;
+        fp = fopen(RedString_GetChars(fns), "r");
+        RedString_Free(fns);
+        if (fp)
+            return fp;
+    }
+
+    /* Try: ~/.canopy/<filename> */
+    home = getenv("HOME");
+    if (home)
+    {
+        RedString fns = RedString_NewPrintf("%s/.canopy/%s", 2048, home, filename);
+        if (!fns)
+            return NULL;
+        fp = fopen(RedString_GetChars(fns), "r");
+        RedString_Free(fns);
+        if (fp)
+            return fp;
+    }
+
+    /* Try: SYSCONFIGDIR/<filename> */
+#ifdef CANOPY_SYSCONFIGDIR
+    {
+        RedString fns = RedString_NewPrintf("%s/%s", 2048, CANOPY_SYSCONFIGDIR, filename);
+        if (!fns)
+            return NULL;
+        fp = fopen(RedString_GetChars(fns), "r");
+        RedString_Free(fns);
+        if (fp)
+            return fp;
+    }
+#endif
+
+    /* Try /etc/canopy/<filename> */
+    {
+        RedString fns = RedString_NewPrintf("/etc/canopy/%s", 2048, filename);
+        if (!fns)
+            return NULL;
+        fp = fopen(RedString_GetChars(fns), "r");
+        RedString_Free(fns);
+        if (fp)
+            return fp;
+    }
+
+    return NULL;
+}
+
+char *canopy_read_system_uuid()
+{
+    char *uuidEnv;
+    FILE *fp;
+    char uuid[37];
+    char *out;
+    uuidEnv = getenv("CANOPY_UUID");
+    if (uuidEnv)
+    {
+        /* TODO: Verify that it is, in fact, a UUID */
+        return RedString_strdup(uuidEnv);
+    }
+
+    fp = canopy_open_config_file("uuid");
+    if (fp)
+    {
+        size_t len;
+        len = fread(uuid, sizeof(char), 36, fp);
+        if (len != 36)
+        {
+            RedLog_WarnLog("Expected 36 characters in UUID file", "");
+            return NULL;
+        }
+        uuid[36] = '\0';
+        /* TODO: Verify that it is, in fact, a UUID */
+        out = RedString_strdup(uuid);
+        fclose(fp);
+        return out;
+    }
+    return NULL;
+}
+
+const char * canopy_get_web_protocol(CanopyContext ctx)
+{
+    return ctx->cloudWebProtocol;
+}
+
+const char * canopy_get_cloud_host(CanopyContext ctx)
+{
+    return ctx->cloudHost;
+}
+
+uint16_t canopy_get_cloud_port(CanopyContext ctx)
+{
+    return !strcmp(ctx->cloudWebProtocol, "http") ?
+        ctx->cloudHttpPort:
+        ctx->cloudHttpsPort;
+}
+
+const char *canopy_get_sysconfigdir()
+{
+#ifdef CANOPY_SYSCONFIGDIR
+    return CANOPY_SYSCONFIGDIR
+#endif
+    return "(was not configured at compilation)\n";
 }
