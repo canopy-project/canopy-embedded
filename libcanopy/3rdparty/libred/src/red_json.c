@@ -847,6 +847,11 @@ RedJsonObject RedJson_Parse(const char *text)
                 }
                 tail = _EmitStringToken(tail, stringStart, text - stringStart);
 
+                if (!*text) {
+                    /* unterminated parentheses */
+                    goto fail;
+                }
+
                 /* TODO: handle end-of-input */
                 text++;
                 break;
