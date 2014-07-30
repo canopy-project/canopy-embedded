@@ -885,6 +885,10 @@ RedJsonObject RedJson_Parse(const char *text)
                 {
                     text++;
                 }
+                else
+                {
+                    goto fail;
+                }
                 break;
             }
         }
