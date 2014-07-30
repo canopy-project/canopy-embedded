@@ -778,6 +778,8 @@ SDDLParseResult sddl_parse(const char *sddl)
 
     doc = result->doc;
 
+    doc->description = RedString_strdup("");
+
     jsonObj = RedJson_Parse(sddl);
     if (!jsonObj)
     {
@@ -909,6 +911,8 @@ SDDLParseResult sddl_parse(const char *sddl)
                 return NULL;
             }
             description = RedJsonValue_GetString(val);
+            if (doc->description)
+                free(doc->description);
             doc->description = RedString_strdup(description);
             if (!doc->description)
             {
@@ -971,6 +975,12 @@ void sddl_free_parse_result(SDDLParseResult result)
         free(result);
     }
 }
+
+const char * sddl_document_description(SDDLDocument doc)
+{
+    return doc->description;
+}
+
 unsigned sddl_document_num_authors(SDDLDocument doc)
 {
     return doc->numAuthors;

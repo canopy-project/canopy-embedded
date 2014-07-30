@@ -97,6 +97,7 @@ unsigned sddl_parse_result_num_warnings(SDDLParseResult result);
 const char * sddl_parse_result_warning(SDDLParseResult result, unsigned index);
 void sddl_free_parse_result(SDDLParseResult result);
 
+const char * sddl_document_description(SDDLDocument doc);
 unsigned sddl_document_num_authors(SDDLDocument doc);
 const char * sddl_document_author(SDDLDocument doc, unsigned index);
 SDDLProperty sddl_document_lookup_property(SDDLDocument doc, const char*propName);
