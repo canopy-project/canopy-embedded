@@ -75,7 +75,6 @@ struct SDDLClass_t
     struct SDDLProperty_t base;
     unsigned numAuthors;
     char **authors;
-    char *description;
     unsigned numProperties;
     SDDLProperty *properties;
     RedJsonObject json;
@@ -537,6 +536,7 @@ static SDDLClass _sddl_parse_class(RedString decl, RedJsonObject def)
 
     cls->base.type = SDDL_PROPERTY_TYPE_CLASS;
     cls->base.extra = NULL;
+    cls->base.description = RedString_strdup("");
     cls->json = def;
     /* TODO: set defaults */
 
@@ -664,8 +664,10 @@ static SDDLClass _sddl_parse_class(RedString decl, RedJsonObject def)
                 return NULL;
             }
             description = RedJsonValue_GetString(val);
-            cls->description = RedString_strdup(description);
-            if (!cls->description)
+            if (cls->base.description)
+                free(cls->base.description);
+            cls->base.description = RedString_strdup(description);
+            if (!cls->base.description)
             {
                 printf("OOM duplicating description string\n");
                 return NULL;

@@ -98,6 +98,81 @@ int main(int argc, const char *argv[])
             sddl_document_num_properties(doc) == 0);
     }
 
+    /* SDDL Empty Classes
+     *
+     * Test example SDDL from specification document:
+     * {
+     *     "class miele.smart_oven_3000" : { },
+     *     "class dyson.fans.dyson_cool.am08" : { },
+     * }
+     *
+     */
+    {
+        const char * EMPTY_CLASSES_SDDL = 
+            "{\n"
+            "    \"class miele.smart_oven_3000\" : { },\n"
+            "    \"class dyson.fans.dyson_cool.am08\" : { },\n"
+            "}\n";
+
+        SDDLParseResult pr;
+        SDDLDocument doc;
+        SDDLProperty propMiele, propDyson;
+        pr = sddl_parse(EMPTY_CLASSES_SDDL);
+        RedTest_Verify(suite, "sddl_parse(EMPTY_CLASSES_SDDL) returns ok", sddl_parse_result_ok(pr));
+        RedTest_Verify(suite, "sddl_parse(EMPTY_CLASSES_SDDL) no errors", sddl_parse_result_num_errors(pr) == 0);
+        RedTest_Verify(suite, "sddl_parse(EMPTY_CLASSES_SDDL) no warnings", sddl_parse_result_num_warnings(pr) == 0);
+        doc = sddl_parse_result_ref_document(pr);
+        sddl_free_parse_result(pr);
+
+        RedTest_Verify(suite, "Empty Classes SDDL - doc generated", doc != NULL);
+        RedTest_Verify(suite,
+            "Empty Classes SDDL - doc description default matches spec",
+            !strcmp(sddl_document_description(doc), ""));
+        RedTest_Verify(suite,
+            "Empty Classes SDDL - no authors",
+            sddl_document_num_authors(doc) == 0);
+
+        RedTest_Verify(suite,
+            "Empty Classes SDDL - 2 properties",
+            sddl_document_num_properties(doc) == 2);
+
+        propMiele = sddl_document_property(doc, 0);
+        RedTest_Verify(suite,
+            "Empty Classes SDDL - sddl_document_property 0 non-null",
+            propMiele != NULL);
+        RedTest_Verify(suite,
+            "Empty Classes SDDL - property 0 is class",
+            sddl_is_class(propMiele));
+        if (!strcmp(sddl_class_name(SDDL_CLASS(propMiele)), "miele.smart_oven_3000"))
+        {
+            propDyson = sddl_document_property(doc, 1);
+        }
+        else
+        {
+            propDyson = propMiele;
+            propMiele = sddl_document_property(doc, 1);
+        }
+
+        RedTest_Verify(suite,
+            "Empty Classes SDDL - No authors",
+            sddl_class_num_authors(SDDL_CLASS(propMiele)) == 0);
+        RedTest_Verify(suite,
+            "Empty Classes SDDL - No authors (2)",
+            sddl_class_num_authors(SDDL_CLASS(propDyson)) == 0);
+        RedTest_Verify(suite,
+            "Empty Classes SDDL - No description",
+            !strcmp(sddl_class_description(SDDL_CLASS(propMiele)), ""));
+        RedTest_Verify(suite,
+            "Empty Classes SDDL - No description (2)",
+            !strcmp(sddl_class_description(SDDL_CLASS(propDyson)), ""));
+        RedTest_Verify(suite,
+            "Empty Classes SDDL - No properties",
+            sddl_class_num_properties(SDDL_CLASS(propMiele)) == 0);
+        RedTest_Verify(suite,
+            "Empty Classes SDDL - No properties (2)",
+            sddl_class_num_properties(SDDL_CLASS(propMiele)) == 0);
+    }
+
     result = RedTest_End(suite);
     if (!result)
     {
