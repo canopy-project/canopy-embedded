@@ -483,6 +483,11 @@ RedString RedStringList_GetString(RedStringList hList, unsigned idx)
     return ZARRAY_AT(hList->array, idx);
 }
 
+const char * RedStringList_GetStringChars(RedStringList hList, unsigned idx)
+{
+    return RedString_GetChars(ZARRAY_AT(hList->array, idx));
+}
+
 void RedStringList_Join(RedString hString, RedStringList hList, const char *joiner)
 {
     /* TODO: optimize */

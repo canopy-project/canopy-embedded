@@ -312,6 +312,8 @@ unsigned RedStringList_NumStrings(RedStringList hList);
  */
 RedString RedStringList_GetString(RedStringList hList, unsigned idx);
 
+const char * RedStringList_GetStringChars(RedStringList hList, unsigned idx);
+
 void RedStringList_Join(RedString hString, RedStringList hList, const char *joiner);
 
 void RedStringList_AppendPrintf(RedStringList list, const char *fmt, ...);

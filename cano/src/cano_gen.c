@@ -356,6 +356,7 @@ static const char *_find_char_from_right(const char*in, char ch)
 int RunGen(int argc, const char *argv[])
 {
     SDDLDocument doc;
+    SDDLParseResult result;
     unsigned numProperties, i;
     RedStringList cFilenames = RedStringList_New();
 
@@ -365,12 +366,26 @@ int RunGen(int argc, const char *argv[])
         return -1;
     }
 
-    doc = sddl_load_and_parse(argv[2]);
-    if (!doc)
+    result = sddl_load_and_parse(argv[2]);
+    if (!sddl_parse_result_ok(result))
     {
         printf("fatal: error loading SDDL file\n");
+        if (result)
+        {
+            unsigned i;
+            for  (i = 0; i < sddl_parse_result_num_warnings(result); i++)
+            {
+                printf("%s\n", sddl_parse_result_warning(result, i));
+            }
+            for  (i = 0; i < sddl_parse_result_num_errors(result); i++)
+            {
+                printf("%s\n", sddl_parse_result_error(result, i));
+            }
+        }
         return -1;
     }
+    doc = sddl_parse_result_ref_document(result);
+    sddl_free_parse_result(result);
 
     numProperties = sddl_document_num_properties(doc);
     for (i = 0; i < numProperties; i++)

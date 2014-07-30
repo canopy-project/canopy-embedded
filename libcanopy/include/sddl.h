@@ -23,6 +23,14 @@
 #include <stdio.h>
 #include <stdint.h>
 
+typedef enum {
+    SDDL_SUCCESS,
+
+    /*
+     * Parsing SDDL content failed.
+     */
+    SDDL_ERROR_PARSING,
+} SDDLResultEnum;
 
 typedef enum
 {
@@ -74,9 +82,20 @@ typedef struct SDDLSensor_t * SDDLSensor;
 
 typedef struct SDDLClass_t * SDDLClass;
 
-SDDLDocument sddl_load_and_parse(const char *filename);
-SDDLDocument sddl_load_and_parse_file(FILE *file);
-SDDLDocument sddl_parse(const char *sddl);
+typedef struct SDDLParseResult_t * SDDLParseResult;
+
+SDDLParseResult sddl_load_and_parse(const char *filename);
+SDDLParseResult sddl_load_and_parse_file(FILE *file);
+SDDLParseResult sddl_parse(const char *sddl);
+
+bool sddl_parse_result_ok(SDDLParseResult result);
+SDDLDocument sddl_parse_result_document(SDDLParseResult result);
+SDDLDocument sddl_parse_result_ref_document(SDDLParseResult result);
+unsigned sddl_parse_result_num_errors(SDDLParseResult result);
+const char * sddl_parse_result_error(SDDLParseResult result, unsigned index);
+unsigned sddl_parse_result_num_warnings(SDDLParseResult result);
+const char * sddl_parse_result_warning(SDDLParseResult result, unsigned index);
+void sddl_free_parse_result(SDDLParseResult result);
 
 unsigned sddl_document_num_authors(SDDLDocument doc);
 const char * sddl_document_author(SDDLDocument doc, unsigned index);

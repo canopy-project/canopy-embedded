@@ -323,14 +323,17 @@ bool canopy_load_sddl_file(CanopyContext canopy, FILE *file, const char *classNa
 bool canopy_load_sddl_string(CanopyContext canopy, const char *sddl, const char *className)
 {
     SDDLDocument doc;
+    SDDLParseResult result;
     SDDLClass cls;
 
-    doc = sddl_parse(sddl);
-    if (!doc)
+    result = sddl_parse(sddl);
+    if (!sddl_parse_result_ok(result))
     {
         RedLog_ErrorLog("canopy", "Failed to parse SDDL");
         return false;
     }
+
+    doc = sddl_parse_result_ref_document(result);
 
     cls = sddl_document_lookup_class(doc, className);
     if (!cls)

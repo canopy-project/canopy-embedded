@@ -21,8 +21,17 @@
 #include <stdlib.h>
 #include <assert.h>
 
+struct SDDLParseResult_t
+{
+    bool ok;
+    SDDLDocument doc;
+    RedStringList errors;
+    RedStringList warnings;
+};
+
 struct SDDLDocument_t
 {
+    unsigned refcnt;
     unsigned numAuthors;
     char **authors;
     char *description;
@@ -669,26 +678,79 @@ static SDDLClass _sddl_parse_class(RedString decl, RedJsonObject def)
     return cls;
 }
 
-SDDLDocument sddl_load_and_parse(const char *filename)
+SDDLDocument sddl_ref_document(SDDLDocument doc)
+{
+    doc->refcnt++;
+    return doc;
+}
+
+void sddl_unref_document(SDDLDocument doc)
+{
+    if (doc->refcnt >= 1)
+    {
+        doc->refcnt--;
+    }
+    if (doc->refcnt == 0)
+    {
+        /* TODO: free document correctly */
+        free(doc);
+    }
+}
+
+static SDDLParseResult _new_parse_result()
+{
+    SDDLParseResult pr;
+    pr = calloc(1, sizeof(struct SDDLParseResult_t));
+    if (!pr) 
+        goto fail;
+    pr->ok = false;
+
+    pr->errors = RedStringList_New();
+    if (!pr->errors)
+        goto fail;
+
+    pr->warnings = RedStringList_New();
+    if (!pr->warnings)
+        goto fail;
+
+    pr->doc = calloc(1, sizeof(struct SDDLDocument_t));
+    if (!pr->doc)
+        goto fail;
+    pr->doc->refcnt = 1;
+
+    return pr;
+fail:
+    if (pr) 
+    {
+        RedStringList_Free(pr->errors);
+        RedStringList_Free(pr->warnings);
+        free(pr->doc);
+        free(pr);
+    }
+    return NULL;
+}
+
+
+SDDLParseResult sddl_load_and_parse(const char *filename)
 {
     FILE *fp;
-    SDDLDocument out;
+    SDDLParseResult out;
     fp = fopen(filename, "r");
     if (!fp)
     {
-        return false;
+        return NULL;
     }
     out = sddl_load_and_parse_file(fp);
     fclose(fp);
     return out;
 }
 
-SDDLDocument sddl_load_and_parse_file(FILE *file)
+SDDLParseResult sddl_load_and_parse_file(FILE *file)
 {
     /* Read entire file into memory */
     long filesize;
     char *buffer;
-    SDDLDocument out;
+    SDDLParseResult out;
     fseek(file, 0, SEEK_END);
     filesize = ftell(file); 
     fseek(file, 0, SEEK_SET);
@@ -699,21 +761,30 @@ SDDLDocument sddl_load_and_parse_file(FILE *file)
     return out;
 }
 
-SDDLDocument sddl_parse(const char *sddl)
+SDDLParseResult sddl_parse(const char *sddl)
 {
     RedJsonObject jsonObj;
     SDDLDocument doc;
+    SDDLParseResult result;
     unsigned numKeys;
     unsigned i;
     char **keysArray;
 
-    doc = calloc(1, sizeof(struct SDDLDocument_t));
-    if (!doc)
+    result = _new_parse_result();
+    if (!result)
     {
         return NULL;
     }
 
+    doc = result->doc;
+
     jsonObj = RedJson_Parse(sddl);
+    if (!jsonObj)
+    {
+        RedStringList_AppendChars(result->errors, "JSON parsing failed!");
+        return result;
+    }
+
     numKeys = RedJsonObject_NumItems(jsonObj);
     keysArray = RedJsonObject_NewKeysArray(jsonObj);
 
@@ -849,9 +920,57 @@ SDDLDocument sddl_parse(const char *sddl)
         RedString_Free(key);
     }
 
-    return doc;
+    result->doc = doc;
+    result->ok = true;
+    return result;
 }
 
+bool sddl_parse_result_ok(SDDLParseResult result)
+{
+    if (!result)
+        return false;
+    return result->ok;
+}
+
+SDDLDocument sddl_parse_result_document(SDDLParseResult result)
+{
+    return result->doc;
+}
+
+SDDLDocument sddl_parse_result_ref_document(SDDLParseResult result)
+{
+    return sddl_ref_document(result->doc);
+}
+
+unsigned sddl_parse_result_num_errors(SDDLParseResult result)
+{
+    return RedStringList_NumStrings(result->errors);
+}
+
+const char * sddl_parse_result_error(SDDLParseResult result, unsigned index)
+{
+    return RedStringList_GetStringChars(result->errors, index);
+}
+
+unsigned sddl_parse_result_num_warnings(SDDLParseResult result)
+{
+    return RedStringList_NumStrings(result->warnings);
+}
+
+const char * sddl_parse_result_warning(SDDLParseResult result, unsigned index)
+{
+    return RedStringList_GetStringChars(result->warnings, index);
+}
+
+void sddl_free_parse_result(SDDLParseResult result)
+{
+    if (result) {
+        RedStringList_Free(result->errors);
+        RedStringList_Free(result->warnings);
+        sddl_unref_document(result->doc);
+        free(result);
+    }
+}
 unsigned sddl_document_num_authors(SDDLDocument doc)
 {
     return doc->numAuthors;
