@@ -152,6 +152,12 @@ int main(int argc, const char *argv[])
             propDyson = propMiele;
             propMiele = sddl_document_property(doc, 1);
         }
+        RedTest_Verify(suite,
+            "Empty Classes SDDL - class name is correct",
+            !strcmp(sddl_class_name(SDDL_CLASS(propMiele)), "miele.smart_oven_3000"));
+        RedTest_Verify(suite,
+            "Empty Classes SDDL - class name is correct",
+            !strcmp(sddl_class_name(SDDL_CLASS(propDyson)), "dyson.fans.dyson_cool.am08"));
 
         RedTest_Verify(suite,
             "Empty Classes SDDL - No authors",
@@ -171,6 +177,61 @@ int main(int argc, const char *argv[])
         RedTest_Verify(suite,
             "Empty Classes SDDL - No properties (2)",
             sddl_class_num_properties(SDDL_CLASS(propMiele)) == 0);
+    }
+
+    /* 
+     * SDDL Control class - empty (defaults)
+     */
+    {
+        const char * CONTROL_DEFAULTS_SDDL = 
+        "{\n"
+        "    \"control mycontrol\" : {}\n"
+        "}\n";
+
+        SDDLParseResult pr;
+        SDDLDocument doc;
+        SDDLProperty prop;
+        SDDLControl control;
+        pr = sddl_parse(CONTROL_DEFAULTS_SDDL);
+        RedTest_Verify(suite, "sddl_parse(CONTROL_DEFAULTS_SDDL) returns ok", sddl_parse_result_ok(pr));
+        doc = sddl_parse_result_ref_document(pr);
+        sddl_free_parse_result(pr);
+
+        RedTest_Verify(suite,
+            "Control Defaults SDDL - 1 property",
+            sddl_document_num_properties(doc) == 1);
+        prop = sddl_document_property(doc, 0);
+        RedTest_Verify(suite,
+            "Control Defaults SDDL - property is control",
+            sddl_is_control(prop));
+        control = SDDL_CONTROL(prop);
+        RedTest_Verify(suite,
+            "Control Defaults SDDL - propery name",
+            !strcmp(sddl_control_name(control), "mycontrol"));
+        RedTest_Verify(suite,
+            "Control Defaults SDDL - control-type defaults to PARAMETER",
+            sddl_control_type(control) == SDDL_CONTROL_TYPE_PARAMETER);
+        RedTest_Verify(suite,
+            "Control Defaults SDDL - datatype defaults to FLOAT32",
+            sddl_control_datatype(control) == SDDL_DATATYPE_FLOAT32);
+        RedTest_Verify(suite,
+            "Control Defaults SDDL - description defaults to \"\"",
+            !strcmp(sddl_control_description(control), ""));
+        RedTest_Verify(suite,
+            "Control Defaults SDDL - max-value defaults to NULL",
+            sddl_control_max_value(control) == NULL);
+        RedTest_Verify(suite,
+            "Control Defaults SDDL - min-value defaults to NULL",
+            sddl_control_min_value(control) == NULL);
+        RedTest_Verify(suite,
+            "Control Defaults SDDL - numeric-display-hint defaults to NORMAL",
+            sddl_control_numeric_display_hint(control) == SDDL_NUMERIC_DISPLAY_HINT_NORMAL);
+        RedTest_Verify(suite,
+            "Control Defaults SDDL - regex defaults to NULL",
+            sddl_control_regex(control) == NULL);
+        RedTest_Verify(suite,
+            "Control Defaults SDDL - units defaults to NULL",
+            !strcmp(sddl_control_units(control), ""));
     }
 
     result = RedTest_End(suite);

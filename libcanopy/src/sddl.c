@@ -183,8 +183,11 @@ static SDDLControl _sddl_parse_control(RedString decl, RedJsonObject def)
 
     out->base.type = SDDL_PROPERTY_TYPE_CONTROL;
     out->base.extra = NULL;
+    out->base.description = RedString_strdup("");
     out->controlType = SDDL_CONTROL_TYPE_PARAMETER;
-    /* TODO: set defaults */
+    out->datatype = SDDL_DATATYPE_FLOAT32;
+    out->numericDisplayHint = SDDL_NUMERIC_DISPLAY_HINT_NORMAL;
+    out->units = RedString_strdup("");
 
     numKeys = RedJsonObject_NumItems(def);
     keysArray = RedJsonObject_NewKeysArray(def);
@@ -235,6 +238,7 @@ static SDDLControl _sddl_parse_control(RedString decl, RedJsonObject def)
                 return NULL;
             }
             description = RedJsonValue_GetString(val);
+            free(out->base.description);
             out->base.description = RedString_strdup(description);
             if (!out->base.description)
             {
@@ -331,6 +335,7 @@ static SDDLControl _sddl_parse_control(RedString decl, RedJsonObject def)
                 return NULL;
             }
             units = RedJsonValue_GetString(val);
+            free(out->units);
             out->units = RedString_strdup(units);
             if (!out->units)
             {
