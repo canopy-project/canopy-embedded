@@ -147,6 +147,10 @@ static SDDLDatatypeEnum _datatype_from_string(const char *sz)
     {
         return SDDL_DATATYPE_FLOAT64;
     }
+    else if (!strcmp(sz, "datetime"))
+    {
+        return SDDL_DATATYPE_DATETIME;
+    }
     return SDDL_DATATYPE_INVALID;
 }
 
@@ -395,7 +399,7 @@ static SDDLSensor _sddl_parse_sensor(RedString decl, RedJsonObject def)
             out->datatype = _datatype_from_string(datatypeString);
             if (out->datatype == SDDL_DATATYPE_INVALID)
             {
-                printf("invalid datatype %s", datatypeString);
+                printf("invalid datatype %s\n", datatypeString);
                 return NULL;
             }
         }
@@ -629,6 +633,7 @@ static SDDLClass _sddl_parse_class(RedString decl, RedJsonObject def)
         }
         else if (RedString_Equals(key, "authors"))
         {
+            int j;
             if (!RedJsonValue_IsArray(val))
             {
                 printf("Expected list for authors\n");
@@ -643,16 +648,16 @@ static SDDLClass _sddl_parse_class(RedString decl, RedJsonObject def)
                 printf("OOM - Failed to allocate author list\n");
                 return NULL;
             }
-            for (i = 0; i < cls->numAuthors; i++)
+            for (j = 0; j < cls->numAuthors; j++)
             {
                 char * author;
-                if (!RedJsonArray_IsEntryString(authorList, i))
+                if (!RedJsonArray_IsEntryString(authorList, j))
                 {
                     printf("Expected string for authors list entry\n");
                     return NULL;
                 }
-                author = RedJsonArray_GetEntryString(authorList, i);
-                cls->authors[i] = RedString_strdup(author);
+                author = RedJsonArray_GetEntryString(authorList, j);
+                cls->authors[j] = RedString_strdup(author);
                 if (!cls->authors)
                 {
                     printf("OOM - Failed to duplicate author\n");
@@ -879,6 +884,7 @@ SDDLParseResult sddl_parse(const char *sddl)
         else if (RedString_Equals(key, "authors"))
         {
             char * author;
+            int j;
             if (!RedJsonValue_IsArray(val))
             {
                 printf("Expected list for authors\n");
@@ -893,15 +899,15 @@ SDDLParseResult sddl_parse(const char *sddl)
                 printf("OOM - Failed to allocate author list\n");
                 return NULL;
             }
-            for (i = 0; i < doc->numAuthors; i++)
+            for (j = 0; j < doc->numAuthors; j++)
             {
-                if (!RedJsonArray_IsEntryString(authorList, i))
+                if (!RedJsonArray_IsEntryString(authorList, j))
                 {
                     printf("Expected string for authors list entry\n");
                     return NULL;
                 }
-                author = RedJsonArray_GetEntryString(authorList, i);
-                doc->authors[i] = RedString_strdup(author);
+                author = RedJsonArray_GetEntryString(authorList, j);
+                doc->authors[j] = RedString_strdup(author);
                 if (!doc->authors)
                 {
                     printf("OOM - Failed to duplicate author\n");
