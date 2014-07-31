@@ -1,0 +1,125 @@
+{
+    "description" : "SDDL file that uses each sensor and control type",
+    "authors" : ["Greg Prisament (greg@canopy.link)"],
+    "control ctrl_param_void" : {
+        "control-type" : "parameter", 
+        "datatype" : "void", 
+    },
+    "control ctrl_param_string" : {
+        "control-type" : "parameter", 
+        "datatype" : "string", 
+    },
+    "control ctrl_param_bool" : {
+        "control-type" : "parameter", 
+        "datatype" : "bool", 
+    },
+    "control ctrl_param_int8" : {
+        "control-type" : "parameter", 
+        "datatype" : "int8", 
+    },
+    "control ctrl_param_uint8" : {
+        "control-type" : "parameter", 
+        "datatype" : "uint8", 
+    },
+    "control ctrl_param_int16" : {
+        "control-type" : "parameter", 
+        "datatype" : "uint16", 
+    },
+    "control ctrl_param_int32" : {
+        "control-type" : "parameter", 
+        "datatype" : "int32", 
+    },
+    "control ctrl_param_uint32" : {
+        "control-type" : "parameter", 
+        "datatype" : "uint32", 
+    },
+    "control ctrl_param_float32" : {
+        "control-type" : "parameter", 
+        "datatype" : "float32", 
+    },
+    "control ctrl_param_float64" : {
+        "control-type" : "parameter", 
+        "datatype" : "float64", 
+    },
+    "control ctrl_param_datetime" : {
+        "control-type" : "parameter", 
+        "datatype" : "datetime", 
+    },
+    "control ctrl_trigger_void" : {
+        "control-type" : "trigger", 
+        "datatype" : "void", 
+    },
+    "control ctrl_trigger_string" : {
+        "control-type" : "trigger", 
+        "datatype" : "string", 
+    },
+    "control ctrl_trigger_bool" : {
+        "control-type" : "trigger", 
+        "datatype" : "bool", 
+    },
+    "control ctrl_trigger_int8" : {
+        "control-type" : "trigger", 
+        "datatype" : "int8", 
+    },
+    "control ctrl_trigger_uint8" : {
+        "control-type" : "trigger", 
+        "datatype" : "uint8", 
+    },
+    "control ctrl_trigger_int16" : {
+        "control-type" : "trigger", 
+        "datatype" : "uint16", 
+    },
+    "control ctrl_trigger_int32" : {
+        "control-type" : "trigger", 
+        "datatype" : "int32", 
+    },
+    "control ctrl_trigger_uint32" : {
+        "control-type" : "trigger", 
+        "datatype" : "uint32", 
+    },
+    "control ctrl_trigger_float32" : {
+        "control-type" : "trigger", 
+        "datatype" : "float32", 
+    },
+    "control ctrl_trigger_float64" : {
+        "control-type" : "trigger", 
+        "datatype" : "float64", 
+    },
+    "control ctrl_trigger_datetime" : {
+        "control-type" : "trigger", 
+        "datatype" : "datetime", 
+    },
+    "sensor snsr_void" : {
+        "datatype" : "void", 
+    },
+    "sensor snsr_string" : {
+        "datatype" : "string", 
+    },
+    "sensor snsr_bool" : {
+        "datatype" : "bool", 
+    },
+    "sensor snsr_int8" : {
+        "datatype" : "int8", 
+    },
+    "sensor snsr_uint8" : {
+        "datatype" : "uint8", 
+    },
+    "sensor snsr_int16" : {
+        "datatype" : "uint16", 
+    },
+    "sensor snsr_int32" : {
+        "datatype" : "int32", 
+    },
+    "sensor snsr_uint32" : {
+        "datatype" : "uint32", 
+    },
+    "sensor snsr_float32" : {
+        "datatype" : "float32", 
+    },
+    "sensor snsr_float64" : {
+        "datatype" : "float64", 
+    },
+    "sensor snsr_datetime" : {
+        "datatype" : "datetime", 
+    },
+}
