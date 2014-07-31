@@ -76,13 +76,18 @@ bool canopy_event_get_control_value_datetime(CanopyEventDetails event, struct tm
 CanopyContext canopy_event_context(CanopyEventDetails event);
 
 CanopyReport canopy_begin_report(CanopyContext canopy);
+bool canopy_report_void(CanopyReport report, const char *parameter);
+bool canopy_report_string(CanopyReport report, const char *parameter, const char *value);
+bool canopy_report_bool(CanopyReport report, const char *parameter, bool value);
 bool canopy_report_i8(CanopyReport report, const char *parameter, int8_t value);
 bool canopy_report_u8(CanopyReport report, const char *parameter, uint8_t value);
+bool canopy_report_i16(CanopyReport report, const char *parameter, int16_t value);
+bool canopy_report_u16(CanopyReport report, const char *parameter, uint16_t value);
 bool canopy_report_i32(CanopyReport report, const char *parameter, int32_t value);
 bool canopy_report_u32(CanopyReport report, const char *parameter, uint32_t value);
 bool canopy_report_float32(CanopyReport report, const char *parameter, float value);
 bool canopy_report_float64(CanopyReport report, const char *parameter, double value);
-bool canopy_report_string(CanopyReport report, const char *parameter, const char *value);
+bool canopy_report_datetime(CanopyReport report, const char *parameter, const struct tm *value);
 
 bool canopy_send_report(CanopyReport report);
 

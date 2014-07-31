@@ -148,11 +148,10 @@ fail:
     return NULL;
 }
 
-bool canopy_report_i8(CanopyReport report, const char *parameter, int8_t value)
+bool _canopy_report_generic(CanopyReport report, const char *parameter, const _CanopyPropertyValue *propval)
 {
-    /* First verify that value is acceptable */
     CanopyContext ctx = report->ctx;
-    _CanopyPropertyValue *propval;
+    _CanopyPropertyValue *propvalCopy;
     _CanopyPropertyValue *oldValue;
 
     SDDLSensor sensor = sddl_class_lookup_sensor(ctx->sddl, parameter);
@@ -161,97 +160,255 @@ bool canopy_report_i8(CanopyReport report, const char *parameter, int8_t value)
         RedLog_WarnLog("Device does not have sensor %s", parameter);
         return false;
     }
+
     if (report->finished)
     {
         /* canopy_end_report already called, cannot make further changes. */
-        return false;
-    }
-    if (sddl_sensor_datatype(sensor) != SDDL_DATATYPE_INT8)
-    {
-        /* incorrect datatype */
-        return false;
-    }
-    else if (sddl_sensor_min_value(sensor) && value < (int8_t)*sddl_sensor_min_value(sensor))
-    {
-        /* value too low */
-        return false;
-    }
-    else if (sddl_sensor_max_value(sensor) && value > (int8_t)*sddl_sensor_max_value(sensor))
-    {
-        /* value too large */
+        RedLog_WarnLog("Cannot report values after canopy_end_report has been called", 0);
         return false;
     }
 
-    /* create property value object */
-    propval = calloc(1, sizeof(_CanopyPropertyValue));
+    if (sddl_sensor_datatype(sensor) != propval->datatype)
+    {
+        /* incorrect datatype */
+        RedLog_WarnLog("Incorrect datatype reported for %s", parameter);
+        return false;
+    }
+
+    /* validate input value */
+    switch (propval->datatype)
+    {
+        case SDDL_DATATYPE_INT8:
+        {
+            int8_t value = propval->val.val_int8;
+            if (sddl_sensor_min_value(sensor) && value < (int8_t)*sddl_sensor_min_value(sensor))
+            {
+                /* value too low */
+                return false;
+            }
+            else if (sddl_sensor_max_value(sensor) && value > (int8_t)*sddl_sensor_max_value(sensor))
+            {
+                /* value too large */
+                return false;
+            }
+            break;
+        }
+        case SDDL_DATATYPE_UINT8:
+        {
+            uint8_t value = propval->val.val_uint8;
+            if (sddl_sensor_min_value(sensor) && value < (uint8_t)*sddl_sensor_min_value(sensor))
+            {
+                /* value too low */
+                return false;
+            }
+            else if (sddl_sensor_max_value(sensor) && value > (uint8_t)*sddl_sensor_max_value(sensor))
+            {
+                /* value too large */
+                return false;
+            }
+            break;
+        }
+        case SDDL_DATATYPE_INT16:
+        {
+            int16_t value = propval->val.val_int16;
+            if (sddl_sensor_min_value(sensor) && value < (int16_t)*sddl_sensor_min_value(sensor))
+            {
+                /* value too low */
+                return false;
+            }
+            else if (sddl_sensor_max_value(sensor) && value > (int16_t)*sddl_sensor_max_value(sensor))
+            {
+                /* value too large */
+                return false;
+            }
+            break;
+        }
+        case SDDL_DATATYPE_UINT16:
+        {
+            int16_t value = propval->val.val_uint16;
+            if (sddl_sensor_min_value(sensor) && value < (uint16_t)*sddl_sensor_min_value(sensor))
+            {
+                /* value too low */
+                return false;
+            }
+            else if (sddl_sensor_max_value(sensor) && value > (uint16_t)*sddl_sensor_max_value(sensor))
+            {
+                /* value too large */
+                return false;
+            }
+            break;
+        }
+        case SDDL_DATATYPE_INT32:
+        {
+            int16_t value = propval->val.val_int32;
+            if (sddl_sensor_min_value(sensor) && value < (int32_t)*sddl_sensor_min_value(sensor))
+            {
+                /* value too low */
+                return false;
+            }
+            else if (sddl_sensor_max_value(sensor) && value > (int32_t)*sddl_sensor_max_value(sensor))
+            {
+                /* value too large */
+                return false;
+            }
+            break;
+        }
+        case SDDL_DATATYPE_UINT32:
+        {
+            int16_t value = propval->val.val_uint32;
+            if (sddl_sensor_min_value(sensor) && value < (uint32_t)*sddl_sensor_min_value(sensor))
+            {
+                /* value too low */
+                return false;
+            }
+            else if (sddl_sensor_max_value(sensor) && value > (uint32_t)*sddl_sensor_max_value(sensor))
+            {
+                /* value too large */
+                return false;
+            }
+            break;
+        }
+        case SDDL_DATATYPE_FLOAT32:
+        {
+            int16_t value = propval->val.val_float32;
+            if (sddl_sensor_min_value(sensor) && value < (float)*sddl_sensor_min_value(sensor))
+            {
+                /* value too low */
+                return false;
+            }
+            else if (sddl_sensor_max_value(sensor) && value > (float)*sddl_sensor_max_value(sensor))
+            {
+                /* value too large */
+                return false;
+            }
+            break;
+        }
+        case SDDL_DATATYPE_FLOAT64:
+        {
+            int16_t value = propval->val.val_float64;
+            if (sddl_sensor_min_value(sensor) && value < *sddl_sensor_min_value(sensor))
+            {
+                /* value too low */
+                return false;
+            }
+            else if (sddl_sensor_max_value(sensor) && value > *sddl_sensor_max_value(sensor))
+            {
+                /* value too large */
+                return false;
+            }
+            break;
+        }
+        case SDDL_DATATYPE_STRING:
+        {
+            /* TODO: Regex checking */
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
+
+    /* copy property value object */
+    propvalCopy = malloc(sizeof(_CanopyPropertyValue));
     if (!propval)
     {
         /* allocation failed */
         return false;
     }
-
-    propval->datatype = SDDL_DATATYPE_INT8;
-    propval->val.val_int8 = value;
+    memcpy(propvalCopy, propval, sizeof(_CanopyPropertyValue));
 
     /* Add it to report's hash table */
-    if (RedHash_UpdateOrInsertS(report->values, (void **)&oldValue, parameter, propval))
+    if (RedHash_UpdateOrInsertS(report->values, (void **)&oldValue, parameter, propvalCopy))
     {
+        /* Free any value that it replaced */
         free(oldValue);
     }
     return true;
 }
 
+bool canopy_report_void(CanopyReport report, const char *parameter)
+{
+    _CanopyPropertyValue propval;
+    propval.datatype = SDDL_DATATYPE_VOID;
+    return _canopy_report_generic(report, parameter, &propval);
+}
+bool canopy_report_string(CanopyReport report, const char *parameter, const char *value)
+{
+    _CanopyPropertyValue propval;
+    propval.datatype = SDDL_DATATYPE_INT8;
+    propval.val.val_string = RedString_strdup(value);
+    return _canopy_report_generic(report, parameter, &propval);
+}
+bool canopy_report_bool(CanopyReport report, const char *parameter, bool value)
+{
+    _CanopyPropertyValue propval;
+    propval.datatype = SDDL_DATATYPE_BOOL;
+    propval.val.val_bool = value;
+    return _canopy_report_generic(report, parameter, &propval);
+}
+bool canopy_report_i8(CanopyReport report, const char *parameter, int8_t value)
+{
+    _CanopyPropertyValue propval;
+    propval.datatype = SDDL_DATATYPE_INT8;
+    propval.val.val_int8 = value;
+    return _canopy_report_generic(report, parameter, &propval);
+}
+bool canopy_report_u8(CanopyReport report, const char *parameter, uint8_t value)
+{
+    _CanopyPropertyValue propval;
+    propval.datatype = SDDL_DATATYPE_UINT8;
+    propval.val.val_uint8 = value;
+    return _canopy_report_generic(report, parameter, &propval);
+}
+bool canopy_report_i16(CanopyReport report, const char *parameter, int16_t value)
+{
+    _CanopyPropertyValue propval;
+    propval.datatype = SDDL_DATATYPE_INT16;
+    propval.val.val_int16 = value;
+    return _canopy_report_generic(report, parameter, &propval);
+}
+bool canopy_report_u16(CanopyReport report, const char *parameter, uint16_t value)
+{
+    _CanopyPropertyValue propval;
+    propval.datatype = SDDL_DATATYPE_UINT16;
+    propval.val.val_uint16 = value;
+    return _canopy_report_generic(report, parameter, &propval);
+}
+bool canopy_report_i32(CanopyReport report, const char *parameter, int32_t value)
+{
+    _CanopyPropertyValue propval;
+    propval.datatype = SDDL_DATATYPE_INT32;
+    propval.val.val_int32 = value;
+    return _canopy_report_generic(report, parameter, &propval);
+}
+bool canopy_report_u32(CanopyReport report, const char *parameter, uint32_t value)
+{
+    _CanopyPropertyValue propval;
+    propval.datatype = SDDL_DATATYPE_UINT32;
+    propval.val.val_uint32 = value;
+    return _canopy_report_generic(report, parameter, &propval);
+}
 bool canopy_report_float32(CanopyReport report, const char *parameter, float value)
 {
-    /* First verify that value is acceptable */
-    CanopyContext ctx = report->ctx;
-    _CanopyPropertyValue *propval;
-    _CanopyPropertyValue *oldValue;
-
-    SDDLSensor sensor = sddl_class_lookup_sensor(ctx->sddl, parameter);
-    if (!sensor)
-    {
-        RedLog_WarnLog("Device does not have sensor %s", parameter);
-        return false;
-    }
-    if (report->finished)
-    {
-        /* canopy_end_report already called, cannot make further changes. */
-        return false;
-    }
-    if (sddl_sensor_datatype(sensor) != SDDL_DATATYPE_FLOAT32)
-    {
-        /* incorrect datatype */
-        return false;
-    }
-    else if (sddl_sensor_min_value(sensor) && value < (int8_t)*sddl_sensor_min_value(sensor))
-    {
-        /* value too low */
-        return false;
-    }
-    else if (sddl_sensor_max_value(sensor) && value > (int8_t)*sddl_sensor_max_value(sensor))
-    {
-        /* value too large */
-        return false;
-    }
-
-    /* create property value object */
-    propval = calloc(1, sizeof(_CanopyPropertyValue));
-    if (!propval)
-    {
-        /* allocation failed */
-        return false;
-    }
-
-    propval->datatype = SDDL_DATATYPE_FLOAT32;
-    propval->val.val_float32 = value;
-
-    /* Add it to report's hash table */
-    if (RedHash_UpdateOrInsertS(report->values, (void **)&oldValue, parameter, propval))
-    {
-        free(oldValue);
-    }
-    return true;
+    _CanopyPropertyValue propval;
+    propval.datatype = SDDL_DATATYPE_FLOAT32;
+    propval.val.val_float32 = value;
+    return _canopy_report_generic(report, parameter, &propval);
+}
+bool canopy_report_float64(CanopyReport report, const char *parameter, double value)
+{
+    _CanopyPropertyValue propval;
+    propval.datatype = SDDL_DATATYPE_FLOAT64;
+    propval.val.val_float64 = value;
+    return _canopy_report_generic(report, parameter, &propval);
+}
+bool canopy_report_datetime(CanopyReport report, const char *parameter, const struct tm *datetime)
+{
+    _CanopyPropertyValue propval;
+    propval.datatype = SDDL_DATATYPE_FLOAT64;
+    memcpy(&propval.val.val_datetime, datetime, sizeof(struct tm));
+    return _canopy_report_generic(report, parameter, &propval);
 }
 
 bool canopy_send_report(CanopyReport report)

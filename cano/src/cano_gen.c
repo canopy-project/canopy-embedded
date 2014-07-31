@@ -242,7 +242,7 @@ static bool _dump_class_control_callbacks(SDDLClass cls, const char *classShortN
                     "   /* Your code here.\n"
                     "    * Return true on success.\n"
                     "    */\n"
-                    "   return false;\n}\n\n", 
+                    "    return false;\n}\n\n", 
                     opName,
                     controlName);
             }
@@ -253,7 +253,7 @@ static bool _dump_class_control_callbacks(SDDLClass cls, const char *classShortN
                     "   /* Your code here.\n"
                     "    * Return true on success.\n"
                     "    */\n"
-                    "   return false;\n}\n\n", 
+                    "    return false;\n}\n\n", 
                     opName,
                     controlName,
                     controlCType);
@@ -285,11 +285,39 @@ static bool _dump_class_control_callbacks(SDDLClass cls, const char *classShortN
             SDDLDatatypeEnum datatype = sddl_sensor_datatype(sensor);
             const char *sensorName = sddl_sensor_name(sensor);
             const char *abbrevType = _get_datatype_abbrev_type(datatype);
-            fprintf(fp, "    /* canopy_report_%s(report, \"%s\", 0); */\n",
-                abbrevType,
-                sensorName);
+            if (sddl_sensor_datatype(sensor) == SDDL_DATATYPE_VOID)
+            {
+                fprintf(fp, "    /* canopy_report_%s(report, \"%s\"); */\n",
+                    abbrevType,
+                    sensorName);
+            }
+            else if (sddl_sensor_datatype(sensor) == SDDL_DATATYPE_STRING)
+            {
+                fprintf(fp, "    /* canopy_report_%s(report, \"%s\", \"\"); */\n",
+                    abbrevType,
+                    sensorName);
+            }
+            else if (sddl_sensor_datatype(sensor) == SDDL_DATATYPE_BOOL)
+            {
+                fprintf(fp, "    /* canopy_report_%s(report, \"%s\", false); */\n",
+                    abbrevType,
+                    sensorName);
+            }
+            else if (sddl_sensor_datatype(sensor) == SDDL_DATATYPE_DATETIME)
+            {
+                fprintf(fp, "    /* { time_t datetime = time(NULL); canopy_report_%s(report, \"%s\", gmtime(&datetime)); } */\n",
+                    abbrevType,
+                    sensorName);
+            }
+            else
+            {
+                fprintf(fp, "    /* canopy_report_%s(report, \"%s\", 0); */\n",
+                    abbrevType,
+                    sensorName);
+            }
         }
     }
+    
 
     fprintf(fp, "\n");
     fprintf(fp, "    canopy_send_report(report);\n");
