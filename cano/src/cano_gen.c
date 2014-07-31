@@ -26,7 +26,7 @@ static const char *_get_datatype_c_type(SDDLDatatypeEnum datatype)
         case SDDL_DATATYPE_VOID:
             return "void";
         case SDDL_DATATYPE_STRING:
-            return "char *";
+            return "const char *";
         case SDDL_DATATYPE_BOOL:
             return "bool";
         case SDDL_DATATYPE_INT8:
@@ -46,7 +46,7 @@ static const char *_get_datatype_c_type(SDDLDatatypeEnum datatype)
         case SDDL_DATATYPE_FLOAT64:
             return "double";
         case SDDL_DATATYPE_DATETIME:
-            return "datetime";
+            return "struct tm";
         default:
             return NULL;
     }
@@ -332,7 +332,7 @@ static bool _dump_makefile(RedStringList cFilenames)
         fprintf(fp, "%s: %s\n", 
                 RedString_GetChars(RedStringList_GetString(targets, i)), 
                 RedString_GetChars(RedStringList_GetString(cFilenames, i)));
-        fprintf(fp, "\tgcc $< -g -lcanopy -lwebsockets -o $@\n");
+        fprintf(fp, "\tgcc $< -g -lcanopy -lcurl -lwebsockets -o $@\n");
     }
     fclose(fp);
     RedStringList_Free(targets);

@@ -46,6 +46,7 @@ typedef struct _CanopyPropertyValue
     union
     {
         bool val_bool;
+        char * val_string;
         int8_t val_int8;
         uint8_t val_uint8;
         int16_t val_int16;
@@ -54,6 +55,7 @@ typedef struct _CanopyPropertyValue
         uint32_t val_uint32;
         float val_float32;
         double val_float64;
+        struct tm val_datetime;
     } val;
 } _CanopyPropertyValue;
 

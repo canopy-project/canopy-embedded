@@ -33,6 +33,20 @@ bool canopy_event_control_name_matches(CanopyEventDetails event, const char *nam
     return !strcmp(name, event->eventControlName);
 }
 
+bool canopy_event_get_control_value_string(CanopyEventDetails event, const char **outValue)
+{
+    if (event->value.datatype != SDDL_DATATYPE_STRING)
+        return false; /* TODO: generate warning */
+    *outValue = event->value.val.val_string;
+    return true;
+}
+bool canopy_event_get_control_value_bool(CanopyEventDetails event, bool *outValue)
+{
+    if (event->value.datatype != SDDL_DATATYPE_BOOL)
+        return false; /* TODO: generate warning */
+    *outValue = event->value.val.val_bool;
+    return true;
+}
 bool canopy_event_get_control_value_i8(CanopyEventDetails event, int8_t *outValue)
 {
     if (event->value.datatype != SDDL_DATATYPE_INT8)
@@ -47,6 +61,20 @@ bool canopy_event_get_control_value_u8(CanopyEventDetails event, uint8_t *outVal
     *outValue = event->value.val.val_uint8;
     return true;
 }
+bool canopy_event_get_control_value_i16(CanopyEventDetails event, int16_t *outValue)
+{
+    if (event->value.datatype != SDDL_DATATYPE_INT16)
+        return false; /* TODO: generate warning */
+    *outValue = event->value.val.val_int16;
+    return true;
+}
+bool canopy_event_get_control_value_u16(CanopyEventDetails event, uint16_t *outValue)
+{
+    if (event->value.datatype != SDDL_DATATYPE_UINT16)
+        return false; /* TODO: generate warning */
+    *outValue = event->value.val.val_uint16;
+    return true;
+}
 bool canopy_event_get_control_value_i32(CanopyEventDetails event, int32_t *outValue)
 {
     if (event->value.datatype != SDDL_DATATYPE_INT32)
@@ -59,6 +87,27 @@ bool canopy_event_get_control_value_u32(CanopyEventDetails event, uint32_t *outV
     if (event->value.datatype != SDDL_DATATYPE_UINT32)
         return false; /* TODO: generate warning */
     *outValue = event->value.val.val_uint32;
+    return true;
+}
+bool canopy_event_get_control_value_float32(CanopyEventDetails event, float *outValue)
+{
+    if (event->value.datatype != SDDL_DATATYPE_FLOAT32)
+        return false; /* TODO: generate warning */
+    *outValue = event->value.val.val_float32;
+    return true;
+}
+bool canopy_event_get_control_value_float64(CanopyEventDetails event, double *outValue)
+{
+    if (event->value.datatype != SDDL_DATATYPE_FLOAT64)
+        return false; /* TODO: generate warning */
+    *outValue = event->value.val.val_float64;
+    return true;
+}
+bool canopy_event_get_control_value_datetime(CanopyEventDetails event, struct tm *outValue)
+{
+    if (event->value.datatype != SDDL_DATATYPE_DATETIME)
+        return false; /* TODO: generate warning */
+    *outValue = event->value.val.val_datetime;
     return true;
 }
 

@@ -20,6 +20,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <time.h>
 
 typedef struct CanopyContext_t * CanopyContext;
 typedef struct CanopyReport_t * CanopyReport;
@@ -61,10 +62,17 @@ bool canopy_load_sddl_string(CanopyContext canopy, const char *sddl, const char 
 
 CanopyEventEnum canopy_get_event_type(CanopyEventDetails event);
 bool canopy_event_control_name_matches(CanopyEventDetails event, const char *name);
+bool canopy_event_get_control_value_string(CanopyEventDetails event, const char **outValue);
+bool canopy_event_get_control_value_bool(CanopyEventDetails event, bool *outValue);
 bool canopy_event_get_control_value_i8(CanopyEventDetails event, int8_t *outValue);
 bool canopy_event_get_control_value_u8(CanopyEventDetails event, uint8_t *outValue);
+bool canopy_event_get_control_value_i16(CanopyEventDetails event, int16_t *outValue);
+bool canopy_event_get_control_value_u16(CanopyEventDetails event, uint16_t *outValue);
 bool canopy_event_get_control_value_i32(CanopyEventDetails event, int32_t *outValue);
 bool canopy_event_get_control_value_u32(CanopyEventDetails event, uint32_t *outValue);
+bool canopy_event_get_control_value_float32(CanopyEventDetails event, float *outValue);
+bool canopy_event_get_control_value_float64(CanopyEventDetails event, double *outValue);
+bool canopy_event_get_control_value_datetime(CanopyEventDetails event, struct tm *outValue);
 CanopyContext canopy_event_context(CanopyEventDetails event);
 
 CanopyReport canopy_begin_report(CanopyContext canopy);
