@@ -97,7 +97,7 @@ static void _RedHash_AutoResize(RedHash hash)
         return;
 
     /* Increase the number of buckets */
-    memcpy(&oldHash, hash, sizeof(RedHash));
+    memcpy(&oldHash, hash, sizeof(RedHash_t));
     hash->sizeLevel++;
     hash->numBuckets = _RedHashValidBucketCounts[hash->sizeLevel];
 
