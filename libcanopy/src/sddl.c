@@ -111,7 +111,7 @@ static SDDLDatatypeEnum _datatype_from_string(const char *sz)
     {
         return SDDL_DATATYPE_STRING;
     }
-    else if (!strcmp(sz, "boolean"))
+    else if (!strcmp(sz, "bool"))
     {
         return SDDL_DATATYPE_BOOL;
     }
