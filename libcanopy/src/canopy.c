@@ -157,21 +157,21 @@ bool _canopy_report_generic(CanopyReport report, const char *parameter, const _C
     SDDLSensor sensor = sddl_class_lookup_sensor(ctx->sddl, parameter);
     if (!sensor)
     {
-        RedLog_WarnLog("Device does not have sensor %s", parameter);
+        RedLog_Warn("Device does not have sensor %s", parameter);
         return false;
     }
 
     if (report->finished)
     {
         /* canopy_end_report already called, cannot make further changes. */
-        RedLog_WarnLog("Cannot report values after canopy_end_report has been called", 0);
+        RedLog_Warn("Cannot report values after canopy_end_report has been called", 0);
         return false;
     }
 
     if (sddl_sensor_datatype(sensor) != propval->datatype)
     {
         /* incorrect datatype */
-        RedLog_WarnLog("Incorrect datatype reported for %s", parameter);
+        RedLog_Warn("Incorrect datatype reported for %s", parameter);
         return false;
     }
 
@@ -336,7 +336,7 @@ bool canopy_report_void(CanopyReport report, const char *parameter)
 bool canopy_report_string(CanopyReport report, const char *parameter, const char *value)
 {
     _CanopyPropertyValue propval;
-    propval.datatype = SDDL_DATATYPE_INT8;
+    propval.datatype = SDDL_DATATYPE_STRING;
     propval.val.val_string = RedString_strdup(value);
     return _canopy_report_generic(report, parameter, &propval);
 }
@@ -406,7 +406,7 @@ bool canopy_report_float64(CanopyReport report, const char *parameter, double va
 bool canopy_report_datetime(CanopyReport report, const char *parameter, const struct tm *datetime)
 {
     _CanopyPropertyValue propval;
-    propval.datatype = SDDL_DATATYPE_FLOAT64;
+    propval.datatype = SDDL_DATATYPE_DATETIME;
     memcpy(&propval.val.val_datetime, datetime, sizeof(struct tm));
     return _canopy_report_generic(report, parameter, &propval);
 }
@@ -427,9 +427,65 @@ bool canopy_send_report(CanopyReport report)
         _CanopyPropertyValue * propVal = (_CanopyPropertyValue *)value;
         switch (propVal->datatype)
         {
+            case SDDL_DATATYPE_VOID:
+            {
+                RedJsonObject_SetNull(jsonObj, key);
+                break;
+            }
+            case SDDL_DATATYPE_STRING:
+            {
+                RedJsonObject_SetString(jsonObj, key, propVal->val.val_string);
+                break;
+            }
+            case SDDL_DATATYPE_BOOL:
+            {
+                RedJsonObject_SetBoolean(jsonObj, key, propVal->val.val_bool);
+                break;
+            }
+            case SDDL_DATATYPE_INT8:
+            {
+                RedJsonObject_SetNumber(jsonObj, key, (double)propVal->val.val_int8);
+                break;
+            }
+            case SDDL_DATATYPE_UINT8:
+            {
+                RedJsonObject_SetNumber(jsonObj, key, (double)propVal->val.val_uint8);
+                break;
+            }
+            case SDDL_DATATYPE_INT16:
+            {
+                RedJsonObject_SetNumber(jsonObj, key, (double)propVal->val.val_int16);
+                break;
+            }
+            case SDDL_DATATYPE_UINT16:
+            {
+                RedJsonObject_SetNumber(jsonObj, key, (double)propVal->val.val_uint16);
+                break;
+            }
+            case SDDL_DATATYPE_INT32:
+            {
+                RedJsonObject_SetNumber(jsonObj, key, (double)propVal->val.val_int32);
+                break;
+            }
+            case SDDL_DATATYPE_UINT32:
+            {
+                RedJsonObject_SetNumber(jsonObj, key, (double)propVal->val.val_uint32);
+                break;
+            }
             case SDDL_DATATYPE_FLOAT32:
             {
-                RedJsonObject_SetNumber(jsonObj, key, propVal->val.val_float32);
+                RedJsonObject_SetNumber(jsonObj, key, (double)propVal->val.val_float32);
+                break;
+            }
+            case SDDL_DATATYPE_FLOAT64:
+            {
+                RedJsonObject_SetNumber(jsonObj, key, propVal->val.val_float64);
+                break;
+            }
+            case SDDL_DATATYPE_DATETIME:
+            {
+                /*RedJsonObject_SetNumber(jsonObj, key, propVal->val.val_float64);*/
+                RedLog_Warn("Datetime reporting not implemented");
                 break;
             }
             default:
@@ -595,7 +651,7 @@ FILE * canopy_open_config_file(const char* filename)
     return NULL;
 }
 
-char *canopy_read_system_uuid()
+char * canopy_read_system_uuid()
 {
     char *uuidEnv;
     FILE *fp;
@@ -615,7 +671,7 @@ char *canopy_read_system_uuid()
         len = fread(uuid, sizeof(char), 36, fp);
         if (len != 36)
         {
-            RedLog_WarnLog("Expected 36 characters in UUID file", "");
+            RedLog_Warn("Expected 36 characters in UUID file", "");
             return NULL;
         }
         uuid[36] = '\0';

@@ -58,6 +58,7 @@ bool RedJsonValue_IsNull(RedJsonValue jsonVal);
 RedJsonObject RedJsonObject_New();
 
 void RedJsonObject_Set(RedJsonObject jsonObj, const char * szKey, RedJsonValue jsonVal);
+void RedJsonObject_SetNull(RedJsonObject jsonObj, const char * szKey);
 void RedJsonObject_SetString(RedJsonObject jsonObj, const char * szKey, char *szVal);
 void RedJsonObject_SetNumber(RedJsonObject jsonObj, const char * szKey, double val);
 void RedJsonObject_SetObject(RedJsonObject jsonObj, const char * szKey, RedJsonObject jsonVal);

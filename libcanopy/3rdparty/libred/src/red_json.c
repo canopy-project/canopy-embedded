@@ -166,6 +166,12 @@ void RedJsonObject_Set(RedJsonObject hObj, const char * szKey, RedJsonValue hVal
     RedHash_InsertS(hObj->hash, szKey, hVal);
 }
 
+void RedJsonObject_SetNull(RedJsonObject hObj, const char * szKey)
+{
+    RedJsonValue newVal = RedJsonValue_Null();
+    RedHash_InsertS(hObj->hash, szKey, newVal);
+}
+
 void RedJsonObject_SetString(RedJsonObject hObj, const char * szKey, char *szVal)
 {
     RedJsonValue newVal = RedJsonValue_FromString(szVal);
