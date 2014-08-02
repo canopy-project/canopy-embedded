@@ -23,6 +23,7 @@ static void dispatch(CanopyEventDetails event);
 #define SDDL_CLASSNAME "canopy.example.party_relay"
 static bool on_change__lights(CanopyContext canopy, bool value);
 static bool on_change__fog(CanopyContext canopy, bool value);
+static bool on_change__bubbles(CanopyContext canopy, bool value);
 static void dispatch(CanopyEventDetails event)
 {
     CanopyContext ctx = canopy_event_context(event);
@@ -37,6 +38,12 @@ static void dispatch(CanopyEventDetails event)
         bool val;
         canopy_event_get_control_value_bool(event, &val);
         on_change__fog(ctx, val);
+    }
+    if (canopy_event_control_name_matches(event, "bubbles"))
+    {
+        bool val;
+        canopy_event_get_control_value_bool(event, &val);
+        on_change__bubbles(ctx, val);
     }
 }
 

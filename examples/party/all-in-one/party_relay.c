@@ -4,6 +4,7 @@
 
 #define FOG_GPIO 23
 #define LIGHTS_GPIO 15
+#define BUBBLES_GPIO 18
 
 static bool on_change__lights(CanopyContext canopy, bool value)
 {
@@ -14,7 +15,13 @@ static bool on_change__lights(CanopyContext canopy, bool value)
 static bool on_change__fog(CanopyContext canopy, bool value)
 {
     set_gpio(FOG_GPIO, value ? 0 : 1);
-    return false;
+    return true;
+}
+
+static bool on_change__bubbles(CanopyContext canopy, bool value)
+{
+    set_gpio(BUBBLES_GPIO, value ? 0 : 1);
+    return true;
 }
 
 static bool on_canopy_init(CanopyContext canopy)
@@ -28,6 +35,10 @@ static bool on_canopy_init(CanopyContext canopy)
     init_gpio(LIGHTS_GPIO);
     set_gpio_direction(LIGHTS_GPIO, "out");
     set_gpio(LIGHTS_GPIO, 1);
+
+    init_gpio(BUBBLES_GPIO);
+    set_gpio_direction(BUBBLES_GPIO, "out");
+    set_gpio(BUBBLES_GPIO, 1);
     return true;
 }
 

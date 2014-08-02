@@ -7,6 +7,9 @@
         },
         "control lights" : {
             "datatype" : "bool",
+        },
+        "control bubbles" : {
+            "datatype" : "bool",
         }
     }
 }
