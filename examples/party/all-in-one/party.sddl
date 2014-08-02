@@ -1,0 +1,12 @@
+{
+    "class canopy.example.party_relay" : {
+        "description" : "Relay that controls party equipment",
+        "authors" : ["Greg Prisament (greg@canopy.link)"],
+        "control fog" : {
+            "datatype" : "bool",
+        },
+        "control lights" : {
+            "datatype" : "bool",
+        }
+    }
+}
