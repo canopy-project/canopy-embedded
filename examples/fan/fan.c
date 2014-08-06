@@ -107,11 +107,11 @@ static bool on_change__speed(CanopyContext canopy, int8_t value)
             set_gpio(18, 0);
             break;
         case 2:
-            set_gpio(15, 0);
+            set_gpio(23, 0);
             break;
         case 3:
             /* fastest */
-            set_gpio(23, 0);
+            set_gpio(15, 0);
             break;
     }
     return true;
