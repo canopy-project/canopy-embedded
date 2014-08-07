@@ -22,18 +22,18 @@ HEADER_TEMPLATES := resources/canopy_boilerplate_tail.h resources/canopy_boilerp
 HEADER_TEMPLATES_OUT := $(HEADER_TEMPLATES:resources/%.h=build/%.out.h)
 
 debug: $(HEADER_TEMPLATES_OUT)
-	gcc $(SOURCE_FILES) $(LIB_FLAGS) $(INCLUDE_FLAGS) $(DEBUG_FLAGS) -o cano
+	gcc $(SOURCE_FILES) $(LIB_FLAGS) $(INCLUDE_FLAGS) $(DEBUG_FLAGS) -o canotool
 
 release: $(HEADER_TEMPLATES_OUT)
-	gcc $(SOURCE_FILES) $(LIB_FLAGS) $(INCLUDE_FLAGS) $(RELEASE_FLAGS) -o cano
+	gcc $(SOURCE_FILES) $(LIB_FLAGS) $(INCLUDE_FLAGS) $(RELEASE_FLAGS) -o canotool
 
 run: debug
-	./cano
+	./canotool
 
 dbg: debug
-	gdb ./cano
+	gdb ./canotool
 clean:
-	rm cano build/*.h
+	rm canotool build/*.h
 
 build/canopy_boilerplate_tail.out.h: resources/canopy_boilerplate_tail.h
 	$(HEADERIFY) _CANOPY_BOILERPLATE_TAIL < $< > $@
