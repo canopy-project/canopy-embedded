@@ -577,6 +577,48 @@ bool canopy_event_loop(CanopyContext canopy)
         }
         libwebsocket_service(canopy->ws_ctx, 1000);
         cnt++;
+        /* Try to reconnect */
+        if (canopy->ws_closed)
+        {
+            /* we need to tear down entire ws ctx, because there's no other way
+             * to dissable the established callbacks (and we don't want them
+             * triggering anymore */
+            canopy->ws_write_ready = false;
+            libwebsocket_context_destroy(canopy->ws_ctx);
+            canopy_connect(canopy);
+        }
+        while (canopy->ws_closed)
+        {
+            fprintf(stderr, "Trying to reconnect...\n");
+            libwebsocket_service(canopy->ws_ctx, 500);
+            libwebsocket_service(canopy->ws_ctx, 500);
+            libwebsocket_service(canopy->ws_ctx, 500);
+            libwebsocket_service(canopy->ws_ctx, 500);
+            sleep(1);
+            if (!canopy->ws_closed)
+                break;
+            canopy->ws = libwebsocket_client_connect(
+                    canopy->ws_ctx, 
+                    canopy->cloudHost, 
+                    canopy_get_cloud_port(canopy), 
+                    canopy_ws_use_ssl(canopy), 
+                    "/echo",
+                    canopy->cloudHost,
+                    "localhost", /*origin?*/
+                    "echo",
+                    -1 /* latest ietf version */
+            );
+            if (!canopy->ws)
+            {
+                fprintf(stderr, "libwebsocket_client_connect failed\n");
+            }
+            else
+            {
+                /* 
+                 * This could be a failure, or a success, depending on which callback gets called
+                 */
+            }
+        }
     }
     libwebsocket_context_destroy(canopy->ws_ctx);
     return true;

@@ -125,16 +125,19 @@ static int ws_callback(
             eventDetails.eventType = CANOPY_EVENT_CONNECTION_ESTABLISHED;
             eventDetails.userData = canopy->cbExtra;
             canopy->cb(canopy, &eventDetails);
+            canopy->ws_closed = false; // TODO: change to "connected"
 
             break;
         }
         case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
             fprintf(stderr, "ws_callback: LWS_CALLBACK_CLIENT_CONNECTION_ERROR\n");
-            break;
+            return -1;
         case LWS_CALLBACK_CLOSED:
+        {
             fprintf(stderr, "ws_callback: LWS_CALLBACK_CLOSED\n");
-            break;
-
+            canopy->ws_closed = true;
+            return -1;
+        }
         case LWS_CALLBACK_CLIENT_WRITEABLE:
         {
             canopy->ws_write_ready = true;
@@ -198,6 +201,11 @@ bool canopy_ws_use_ssl(CanopyContext canopy)
     return !(strcmp(canopy->cloudWebProtocol, "https"));
 
 }
+
+/*bool canopy_disconnect(CanopyContext canopy)
+{
+    libwebsocket_context_destroy(ctx);
+}*/
 bool canopy_connect(CanopyContext canopy)
 {
     struct lws_context_creation_info info={0};

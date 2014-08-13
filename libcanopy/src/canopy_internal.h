@@ -37,6 +37,7 @@ typedef struct CanopyContext_t
     bool autoReconnect;
     struct libwebsocket *ws;
     struct libwebsocket_context *ws_ctx;
+    bool ws_closed;
     bool ws_write_ready;
 } CanopyContext_t;
 
@@ -79,4 +80,5 @@ void _canopy_ws_write(CanopyContext canopy, const char *msg);
 
 bool _canopy_load_system_config(CanopyContext canopy);
 
+bool canopy_ws_use_ssl(CanopyContext canopy);
 #endif
