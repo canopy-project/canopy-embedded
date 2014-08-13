@@ -226,6 +226,10 @@ bool canopy_connect(CanopyContext canopy)
         return 1;
     }
 
+    printf("Connecting to:\n");
+    printf("Host: %s\n", canopy->cloudHost);
+    printf("Port: %d\n", canopy_get_cloud_port(canopy));
+    printf("UseSSL: %d\n", canopy_ws_use_ssl(canopy));
     canopy->ws = libwebsocket_client_connect(
             canopy->ws_ctx, 
             canopy->cloudHost, 

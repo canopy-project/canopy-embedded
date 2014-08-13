@@ -606,6 +606,7 @@ FILE * canopy_open_config_file(const char* filename)
         if (!fns)
             return NULL;
         fp = fopen(RedString_GetChars(fns), "r");
+        printf("Using config file: %s\n", RedString_GetChars(fns));
         RedString_Free(fns);
         if (fp)
             return fp;
@@ -619,6 +620,7 @@ FILE * canopy_open_config_file(const char* filename)
         if (!fns)
             return NULL;
         fp = fopen(RedString_GetChars(fns), "r");
+        printf("Using config file: %s\n", RedString_GetChars(fns));
         RedString_Free(fns);
         if (fp)
             return fp;
@@ -631,6 +633,7 @@ FILE * canopy_open_config_file(const char* filename)
         if (!fns)
             return NULL;
         fp = fopen(RedString_GetChars(fns), "r");
+        printf("Using config file: %s\n", RedString_GetChars(fns));
         RedString_Free(fns);
         if (fp)
             return fp;
@@ -643,6 +646,7 @@ FILE * canopy_open_config_file(const char* filename)
         if (!fns)
             return NULL;
         fp = fopen(RedString_GetChars(fns), "r");
+        printf("Using config file: %s\n", RedString_GetChars(fns));
         RedString_Free(fns);
         if (fp)
             return fp;
