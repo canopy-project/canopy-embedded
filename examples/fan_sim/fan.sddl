@@ -1,0 +1,20 @@
+{
+    "authors" : ["Greg Prisament (greg@canopy.link)"],
+    "description" : "SDDL class for controlling a modded Honeywell fan.",
+
+    "class canopy.example.fan" : {
+        "control speed" : {
+            "datatype" : "int8",
+            "min-value" : 0,
+            "max-value" : 3
+        },
+        "sensor temperature" : {
+            "datatype" : "float32",
+            "units" : "degrees_f"
+        },
+        "sensor humidity" : {
+            "datatype" : "float32",
+            "numeric-display-hint" : "percentage"
+        }
+    }
+}
