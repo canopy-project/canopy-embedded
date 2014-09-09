@@ -21,6 +21,43 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>
+/*
+ * To post a sensor sample:
+ *
+ *    canopy_post_sample(
+ *      CANOPY_CLOUD_HOST, "http://canopy.link:8080",
+ *      CANOPY_DEVICE_ID, "16eeca6a-e8dc-4c54-b78e-6a7416803ca8",
+ *      CANOPY_PROPERTY_NAME, "temperature",
+ *      CANOPY_VALUE_FLOAT32, 4.0f,
+ *      NULL
+ *      );
+ *
+ *
+ * To receive notification when a control changes.
+ *
+ *     canopy_on_control_event(
+ *      CANOPY_CLOUD_HOST, "http://canopy.link:8080",
+ *      CANOPY_DEVICE_ID, "16eeca6a-e8dc-4c54-b78e-6a7416803ca8",
+ *      CANOPY_PROPERTY_NAME, "master.on_off",
+ *      CANOPY_CONTROL_CALLBACK, HandleOnOff,
+ *      NULL
+ *     );
+ *
+ */
+
+#define CANOPY_CLOUD_HOST 0xCA0000
+#define CANOPY_DEVICE_ID 0xCA0001
+#define CANOPY_PROPERTY_NAME 0xCA0002
+#define CANOPY_VALUE_FLOAT32 0xCA0003
+#define CANOPY_CONTROL_CALLBACK 0xCA0004
+
+bool canopy_post_sample(params, ...);
+
+bool canopy_on_control_event(params, ...);
+
+/*
+ * OLD INTERFACE -- Deprecated
+ */
 
 typedef struct CanopyContext_t * CanopyContext;
 typedef struct CanopyReport_t * CanopyReport;
