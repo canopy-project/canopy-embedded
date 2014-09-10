@@ -19,7 +19,6 @@
 #include "canopy.h"
 #include "sddl.h"
 #include "red_hash.h"
-#include "libwebsockets.h"
 
 typedef struct CanopyContext_t
 {
