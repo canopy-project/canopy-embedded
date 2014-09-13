@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Gregory Prisament
+ * Copyright 2014 SimpleThings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,181 @@
  * limitations under the License.
  */
 
+/*
+ *  The libcanopy library provides functionality for cloud-based monitoring,
+ *  control and notifications to firmware developers.
+ *
+ *
+ *  MONITORING:
+ *
+ *      The following example program sends a (fake) sensor sample to the
+ *      cloud:
+ * 
+ *      ----------------------------------------------------------------------
+ *      #include <canopy.h>
+ *
+ *      int main(void) 
+ *      {
+ *          canopy_post_sample(
+ *              CANOPY_DEVICE_UUID, "9dfe2a00-efe2-45f9-a84c-8afc69caf4e6",
+ *              CANOPY_PROPERTY_NAME, "temperature",
+ *              CANOPY_VALUE_FLOAT32, 98.0f
+ *          );
+ *          return 0;
+ *      }
+ *      ----------------------------------------------------------------------
+ *
+ *      When run, the data sample is sent using HTTP POST to the server
+ *      "http://canopy.link".  The libcanopy library can be configured to use a
+ *      different protocol or send the data to some other server that is
+ *      running the Canopy Cloud Service.
+ *
+ *      You should replace the UUID with a type-4 UUID specific for your
+ *      device.  If your device needs a UUID, you can generate one from the
+ *      linux command-line using:
+ *
+ *          uuid -v4
+ *
+ *      Without doing anything else, you can manage this device from any web
+ *      browser by going to:
+ *
+ *          http://canopy.link/9dfe2a00-efe2-45f9-a84c-8afc69caf4e6
+ *
+ *          (Of course, you should replace the UUID with your device's UUID).
+ *
+ *      Initially, Canopy considers the device an "Anonymous Device" since it
+ *      has not been registered or associated with an account.  You can perform
+ *      basic monitoring and control of an Anonymous Device simply by knowing
+ *      the above access URL.  However, for greater security and functionality,
+ *      you should register the device, which can be accomplished through the
+ *      web interface.
+ *
+ *
+ *  CONTROL:
+ *
+ *      The following example program shows how a firmware callback can be
+ *      triggered based on a web UI action.
+ *
+ *      -----------------------------------------------------------------------
+ *      #include <canopy.h>
+ *
+ *      int handle_brightness(const char *propname, float value) {
+ *          printf("Brightness set to %f\n", value);
+ *          return 0;
+ *      }
+ *
+ *      int main(void) {
+ *          canopy_on_change(
+ *              CANOPY_DEVICE_UUID, "9dfe2a00-efe2-45f9-a84c-8afc69caf4e6",
+ *              CANOPY_PROPERTY_NAME, "brightness",
+ *              CANOPY_ON_CHANGE_FLOAT32_CALLBACK, handle_brightness
+ *          );
+ *          canopy_run_event_loop();
+ *          return 0;
+ *      }
+ *      -----------------------------------------------------------------------
+ *
+ *      While this program is running, you can manipulate the device's
+ *      "brightness" property from any web browser by going to:
+ *
+ *          http://canopy.link/9dfe2a00-efe2-45f9-a84c-8afc69caf4e6
+ *
+ *
+ *  NOTIFICATIONS:
+ *
+ *      If the device has been registered with the Canopy Cloud Service and has
+ *      been associated with an account, the firmware can send notifications to
+ *      the owner of the device.  The firmware can send SMS, email, or in-app
+ *      notifications.
+ *
+ *      -----------------------------------------------------------------------
+ *      #include <canopy.h>
+ *
+ *      int main(void) {
+ *          canopy_notify(
+ *              CANOPY_DEVICE_UUID, "9dfe2a00-efe2-45f9-a84c-8afc69caf4e6",
+ *              CANOPY_NOTIFY_TYPE, CANOPY_NOTIFY_SMS,
+ *              CANOPY_NOTIFY_MSG, "Running low on green toner!"
+ *          );
+ *          return 0;
+ *      }
+ *      -----------------------------------------------------------------------
+ *
+ *
+ *  LIBCANOPY OPTIONS AND CONTEXTS:
+ *
+ *      Typically, you will need to make several calls to libcanopy within a
+ *      single application.  Instead of passing the same options every time you
+ *      call a routine, many libcanopy options can be configured globally.  For
+ *      example:
+ *
+ *      ----------------------------------------------------------------------
+ *      #include <canopy.h>
+ *
+ *      int main(void) 
+ *      {
+ *          canopy_global_opt(
+ *              CANOPY_DEVICE_UUID, "9dfe2a00-efe2-45f9-a84c-8afc69caf4e6",
+ *              CANOPY_CLOUD_SERVER, "localhost:8080",
+ *              CANOPY_REPORT_PROTOCOL, CANOPY_PROTOCOL_HTTPS,
+ *              CANOPY_NOTIFY_PROTOCOL, CANOPY_PROTOCOL_HTTPS,
+ *              CANOPY_NOTIFY_TYPE, CANOPY_NOTIFY_SMS
+ *          );
+ *
+ *          canopy_post_sample(
+ *              CANOPY_PROPERTY_NAME, "temperature",
+ *              CANOPY_VALUE_FLOAT32, 98.0f
+ *          );
+ *          canopy_post_sample(
+ *              CANOPY_PROPERTY_NAME, "humidity",
+ *              CANOPY_VALUE_FLOAT32, 50.0f
+ *          );
+ *          canopy_notify(
+ *              CANOPY_NOTIFY_MSG, "Running low on green toner!",
+ *          );
+ *          return 0;
+ *      }
+ *      ----------------------------------------------------------------------
+ *
+ *      Alternatively, you can explicitely create a Canopy Context object (or
+ *      several Canopy Context objects) to hold Canopy configuration settings.
+ *
+ *      ----------------------------------------------------------------------
+ *      #include <canopy.h>
+ *
+ *      int main(void) 
+ *      {
+ *          CanopyContext ctx;
+ *          ctx = canopy_create_ctx(NULL);
+ *
+ *          canopy_ctx_opt(ctx,
+ *              CANOPY_DEVICE_UUID, "9dfe2a00-efe2-45f9-a84c-8afc69caf4e6",
+ *              CANOPY_CLOUD_SERVER, "localhost:8080",
+ *              CANOPY_REPORT_PROTOCOL, CANOPY_PROTOCOL_HTTPS,
+ *              CANOPY_NOTIFY_PROTOCOL, CANOPY_PROTOCOL_HTTPS,
+ *              CANOPY_NOTIFY_TYPE, CANOPY_NOTIFY_SMS
+ *          );
+ *
+ *          canopy_post_sample(
+ *              CANOPY_CONTEXT, ctx,
+ *              CANOPY_PROPERTY_NAME, "temperature",
+ *              CANOPY_VALUE_FLOAT32, 98.0f
+ *          );
+ *          canopy_post_sample(
+ *              CANOPY_CONTEXT, ctx,
+ *              CANOPY_PROPERTY_NAME, "humidity",
+ *              CANOPY_VALUE_FLOAT32, 50.0f
+ *          );
+ *          canopy_notify(
+ *              CANOPY_CONTEXT, ctx,
+ *              CANOPY_NOTIFY_MSG, "Running low on green toner!",
+ *          );
+ *          return 0;
+ *      }
+ *      ----------------------------------------------------------------------
+ *      
+ */
+
 #ifndef CANOPY_INCLUDED
 #define CANOPY_INCLUDED
 
@@ -23,14 +198,281 @@
 #include <time.h>
 
 /*
+ * CanopyCtx
+ *
+ *  A CanopyCtx holds configuration options, connectivity state, and other
+ *  internal state used by this library.  The libcanopy library automatically
+ *  creates a "global context" that can be obtained by calling:
+ *
+ *      CanopyCtx ctx = canopy_global_ctx();
+ *
+ *  Some routines, such as canopy_global_opt() implicitely operate on the
+ *  global context.  Other routines, such as canopy_ctx_opt() operate on an
+ *  explicitly passed-in CanopyCtx object.  Some routines, such as
+ *  canopy_notify(), can operate either way, depending on whether or not the
+ *  CANOPY_CTX option is passed to the routine.
+ */
+typedef struct CanopyCtx_t CanopyCtx;
+
+
+/* 
+ * CanopyResultEnum
+ *
+ *  Contains success & error codes returned by many of the routines in this
+ *  library.
+ */
+typedef enum {
+    /*
+     * CANOPY_SUCCESS
+     *
+     *  Command succeeded.
+     */
+    CANOPY_SUCCESS,
+
+    /* 
+     * CANOPY_ERROR_UNKNOWN
+     *
+     *  An unknown error occured.
+     */
+    CANOPY_ERROR_UNKNOWN,
+
+    /* 
+     * CANOPY_ERROR_PROTOCOL_NOT_SUPPORTED
+     *
+     *  The requested communications protocol is not supported by the
+     *  implementation.
+     */
+    CANOPY_ERROR_UNKNOWN,
+} CanopyResultEnum;
+
+/*
+ * CanopyOptEnum
+ *
+ *  Identifiers for the options that can be provided to this library's
+ *  routines.
+ */
+typedef enum {
+    /*
+     * CANOPY_CLOUD_SERVER
+     * 
+     *  Configures the hostname and port of the Canopy Cloud Service to
+     *  interact with.  The value must be a string, such as "canopy.link" or
+     *  "localhost:8080".  Defaults to "canopy.link".
+     */
+    CANOPY_CLOUD_SERVER,
+
+    /*
+     * CANOPY_CONTROL_PROTOCOL
+     *
+     *  Configures the protocol to use for recieving control events from the
+     *  Canopy Cloud Service.  The value must be a CanopyProtocolEnum value.
+     *  Currently, the following protocols are supported:
+     *
+     *      CANOPY_PROTOCOL_WS
+     *
+     *  Defaults to CANOPY_PROTOCOL_WS.
+     */
+    CANOPY_CONTROL_PROTOCOL,
+
+    /*
+     * CANOPY_CONTEXT
+     *
+     *  Selects the Canopy context that the routine should use.  The value must
+     *  be a CanopyCtx object or NULL (in which case the implicit global
+     *  context will be used).  Defaults to NULL.
+     */
+    CANOPY_CONTEXT,
+
+    /*
+     * CANOPY_DEVICE_UUID
+     *
+     *  Configures the UUID of the current device.  The value must be a string
+     *  containing a type-4 UUID, such as
+     *  "16eeca6a-e8dc-4c54-b78e-6a7416803ca8", or NULL if unconfigured.
+     *  Defaults to nULL.
+     */
+    CANOPY_DEVICE_UUID,
+
+    /*
+     * CANOPY_NOTIFY_PROTOCOL
+     *
+     *  Configures the protocol to use for sending notifications to the device
+     *  owner via the Canopy Cloud Service.  The value must be a
+     *  CanopyProtocolEnum value.  Currently, the following protocols are
+     *  supported:
+     *
+     *      CANOPY_PROTOCOL_HTTP
+     *      CANOPY_PROTOCOL_WS
+     *
+     *  Defaults to CANOPY_PROTOCOL_HTTP.
+     */
+    CANOPY_NOTIFY_PROTOCOL,
+
+    /*
+     * CANOPY_NOTIFY_TYPE
+     *
+     *  Configures the desired method of notifying the device owner (SMS,
+     *  email, in-app notice, etc).  The value must be a CanopyNotifyTypeEnum
+     *  value.  Defaults to CANOPY_NOTIFY_DEFAULT.
+     */
+    CANOPY_NOTIFY_TYPE,
+
+    /*
+     * CANOPY_PROPERTY_NAME
+     *
+     *  Configures the property name to use for subsequent sensor sample
+     *  reporting and control callback registration.  The value must be a
+     *  string, or NULL (if unconfigured).  Defaults to NULL.
+     */
+    CANOPY_PROPERTY_NAME,
+
+    /*
+     * CANOPY_REPORT_PROTOCOL
+     *
+     *  Configures the protocol to use for reporting sensor data to the Canopy
+     *  Cloud Service.  The value must be a CanopyProtocolEnum value.
+     *  Currently, the following protocols are supported:
+     *
+     *      CANOPY_PROTOCOL_HTTP
+     *      CANOPY_PROTOCOL_WS
+     *
+     *  Defaults to CANOPY_PROTOCOL_HTTP.
+     */
+    CANOPY_REPORT_PROTOCOL
+} CanopyOptEnum;
+
+/*
+ * canopy_create_ctx -- Create a new Canopy context.
+ *
+ *  <copyOptsFrom> is the context to copy configuration options from, or NULL
+ *      to use library defaults for all configuration options.  To copy the
+ *      global context, use:
+ *
+ *          CanopyCtx ctx = canopy_create_ctx(canopy_global_ctx());
+ */
+CanopyCtx canopy_create_ctx(CanopyCtx copyOptsFrom);
+
+/*
+ * canopy_ctx_opt -- Set configuration options for a particular context.
+ *
+ *  The <ctx> parameter specifies the context to change configuration options
+ *  for.  After that, the canopy_ctx_opt() function takes an even number of
+ *  arguments, alternating between PARAM and VALUE.
+ *
+ *      canopy_ctx_opt(ctx,
+ *          CANOPY_CLOUD_SERVER, "localhost:8080",
+ *          CANOPY_DEVICE_ID, "16eeca6a-e8dc-4c54-b78e-6a7416803ca8",
+ *          CANOPY_REPORT_PROTOCOL, CANOPY_REPORT_PROTOCOL_HTTP
+ *      );
+ *      
+ *  For each PARAM, VALUE pair, the context's default for that PARAM is set.
+ *
+ *  The canopy_ctx_opt() function takes an all-or-nothing approach.  If any of
+ *  the configuration defaults could not be set, then the function does nothing
+ *  and returns an error.
+ *
+ *  Since canopy_ctx_opt() is implemented as a macro that automatically adds a
+ *  sentinal NULL value, there is no need to end the argument list with NULL.
+ */
+#define canopy_ctx_opt(ctx, ...) canopy_ctx_opt_impl(ctx, __VA_ARGS__, NULL)
+CanopyResultEnum canopy_global_config_impl(CanopyCtx ctx, ...);
+
+/*
+ * canopy_destroy_ctx -- Destroy a Canopy context.
+ */
+void canopy_destroy_ctx(CanopyCtx ctx);
+
+/*
+ * canopy_global_ctx -- Obtain the default "global context".
+ */
+CanopyCtx canopy_global_ctx();
+
+#define canopy_global_config(...) canopy_global_config_impl(NULL, __VA_ARGS__, NULL)
+CanopyResultEnum canopy_global_config_impl(start, ...);
+
+
+/*
+ * canopy_global_opt -- Set global configuration defaults.
+ *
+ *  This is equivalent to:
+ *      
+ *      canopy_ctx_opt(canopy_global_ctx(), ...)
+ *
+ *  The canopy_global_config() function takes an even number of arguments,
+ *  alternating between PARAM and VALUE.
+ *
+ *      canopy_global_opt(
+ *          CANOPY_CLOUD_SERVER, "localhost:8080",
+ *          CANOPY_DEVICE_ID, "16eeca6a-e8dc-4c54-b78e-6a7416803ca8",
+ *          CANOPY_REPORT_PROTOCOL, CANOPY_REPORT_PROTOCOL_HTTP
+ *      );
+ *
+ *  For each PARAM, VALUE pair, the global default for that PARAM is set.
+ *  As long as CANOPY_CTX is NULL, these global default values are used by:
+ *      
+ *      canopy_post_sample()
+ *      canopy_on_change()
+ *      canopy_notify()
+ *
+ *  The canopy_global_config() function takes an all-or-nothing approach.  If
+ *  any of the configuration defaults could not be set, then the function does
+ *  not set any of them and returns an error.
+ */
+#define canopy_global_config(...) canopy_global_config_impl(NULL, __VA_ARGS__, NULL)
+CanopyResultEnum canopy_global_config_impl(start, ...);
+
+/*
+ * canopy_post_sample -- Post sensor data sample to the Canopy Cloud Service.
+ *
+ *  Provides a convenient and flexible routine for posting data samples to the
+ *  Canopy Cloud Service.  It takes a variable number of arguments that must
+ *  alternate between parameter keys and values.
+ *
+ *  A simple example:
+ *
+ *      canopy_post_sample(
+ *          CANOPY_CLOUD_SERVER, "canopy.link",
+ *          CANOPY_DEVICE_ID, "16eeca6a-e8dc-4c54-b78e-6a7416803ca8",
+ *          CANOPY_PROPERTY_NAME, "temperature",
+ *          CANOPY_VALUE_FLOAT32, 4.0f
+ *      );
+ *
+ *  In your web browser, you can see the posted data by going to:
+ *
+ *      http://canopy.link/device/16eeca6a-e8dc-4c54-b78e-6a7416803ca8
+ *
+ *  This routine accepts the following parameter:
+ *
+ *      CANOPY_CLOUD_SERVER
+ *      CANOPY_CTX
+ *      CANOPY_DEVICE_ID
+ *      CANOPY_PROPERTY_NAME
+ *      CANOPY_VALUE_FLOAT32
+ *      CANOPY_VALUE_FLOAT64
+ *      CANOPY_VALUE_INT8
+ *      CANOPY_VALUE_UINT8
+ *      CANOPY_VALUE_INT16
+ *      CANOPY_VALUE_UINT16
+ *      CANOPY_VALUE_INT32
+ *      CANOPY_VALUE_UINT32
+ *
+ *  If parameter is 
+ *
+ *  Since canopy_post_sample is implemented as a macro that automatically adds a
+ *  sentinal NULL value, there is no need to end the argument list with NULL.
+ */
+#define canopy_post_sample(...) canopy_post_sample_impl(NULL, __VA_ARGS__, NULL)
+CanopyResultEnum canopy_post_sample_impl(start, ...);
+
+
+/*
  * To post a sensor sample:
  *
- *    canopy_easy_post_sample(
+ *    canopy_post_sample(
  *      CANOPY_CLOUD_HOST, "http://canopy.link:8080",
  *      CANOPY_DEVICE_ID, "16eeca6a-e8dc-4c54-b78e-6a7416803ca8",
  *      CANOPY_PROPERTY_NAME, "temperature",
  *      CANOPY_VALUE_FLOAT32, 4.0f,
- *      NULL
  *      );
  *
  *
