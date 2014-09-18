@@ -21,7 +21,7 @@
  *
  *  MONITORING:
  *
- *      The following example program sends a (fake) sensor sample to the
+ *      The following program demonstrates how to send a sensor sample to the
  *      cloud:
  * 
  *      ----------------------------------------------------------------------
@@ -43,18 +43,18 @@
  *      different protocol or send the data to some other server that is
  *      running the Canopy Cloud Service.
  *
- *      You should replace the UUID with a type-4 UUID specific for your
- *      device.  If your device needs a UUID, you can generate one from the
- *      linux command-line using:
+ *      Replace the UUID in the example above with a type-4 UUID specific for
+ *      your device.  If your device needs a UUID, you can generate one from
+ *      the linux command-line using:
  *
  *          uuid -v4
  *
- *      Without doing anything else, you can manage this device from any web
- *      browser by going to:
+ *      If you then compile and run the program, without doing anything else,
+ *      you can manage this device from a web browser by going to:
  *
  *          http://canopy.link/9dfe2a00-efe2-45f9-a84c-8afc69caf4e6
  *
- *          (Of course, you should replace the UUID with your device's UUID).
+ *          (Of course, you must replace the UUID with your device's UUID).
  *
  *      Initially, Canopy considers the device an "Anonymous Device" since it
  *      has not been registered or associated with an account.  You can perform
@@ -155,11 +155,13 @@
  *
  *      ----------------------------------------------------------------------
  *      #include <canopy.h>
+ *      #include <assert.h>
  *
  *      int main(void) 
  *      {
  *          CanopyContext ctx;
  *          ctx = canopy_create_ctx(NULL);
+ *          assert(ctx);
  *
  *          canopy_ctx_opt(ctx,
  *              CANOPY_DEVICE_UUID, "9dfe2a00-efe2-45f9-a84c-8afc69caf4e6",
@@ -170,23 +172,71 @@
  *          );
  *
  *          canopy_post_sample(
- *              CANOPY_CONTEXT, ctx,
+ *              CANOPY_CTX, ctx,
  *              CANOPY_PROPERTY_NAME, "temperature",
  *              CANOPY_VALUE_FLOAT32, 98.0f
  *          );
  *          canopy_post_sample(
- *              CANOPY_CONTEXT, ctx,
+ *              CANOPY_CTX, ctx,
  *              CANOPY_PROPERTY_NAME, "humidity",
  *              CANOPY_VALUE_FLOAT32, 50.0f
  *          );
  *          canopy_notify(
- *              CANOPY_CONTEXT, ctx,
+ *              CANOPY_CTX, ctx,
  *              CANOPY_NOTIFY_MSG, "Running low on green toner!",
  *          );
+ *
+ *          canopy_ctx_destroy(ctx);
  *          return 0;
  *      }
  *      ----------------------------------------------------------------------
  *      
+ *
+ *  PROMISES:
+ *
+ *      Many operations performed by libcanopy are asynchronous.  For example,
+ *      canopy_post_sample() returns immediately, but may begin an asynchronous
+ *      HTTP request/response communication in another thread.
+ *
+ *      Promises make it easy to wait for asynchronous operations to complete
+ *      and to register callbacks relating to libcanopy's asynchronous
+ *      operations.
+ *
+ *      The following example shows how to wait for the completion of a
+ *      canopy_post_sample() operation using a Promise.
+ *
+ *      ----------------------------------------------------------------------
+ *      #include <canopy.h>
+ *      #include <stdio.h>
+ *
+ *      int main(void)
+ *      {
+ *          CanopyPromise promise;
+ *
+ *          canopy_post_sample(
+ *              CANOPY_DEVICE_UUID, "9dfe2a00-efe2-45f9-a84c-8afc69caf4e6",
+ *              CANOPY_PROPERTY_NAME, "temperature",
+ *              CANOPY_VALUE_FLOAT32, 98.0f,
+ *              CANOPY_PROMISE, &promise
+ *          );
+ *
+ *          canopy_promise_wait(promise, CANOPY_TIMEOUT, 10.0f);
+ *          if (canopy_promise_result(promise) == CANOPY_SUCCESS)
+ *          {
+ *              printf("Sample successfully sent to server!\n");
+ *          }
+ *          else
+ *          {
+ *              printf("Error sending sample to server!\n");
+ *              canopy_print_error();
+ *          }
+ *
+ *          canopy_destroy_promise(promise);
+ *
+ *      }
+ *      
+ *      ----------------------------------------------------------------------
+ *
  */
 
 #ifndef CANOPY_INCLUDED
@@ -242,7 +292,22 @@ typedef enum {
      *  The requested communications protocol is not supported by the
      *  implementation.
      */
-    CANOPY_ERROR_UNKNOWN,
+    CANOPY_ERROR_PROTOCOL_NOT_SUPPORTED,
+
+    /* 
+     * CANOPY_ERROR_REDUNDANT_PARAMETER
+     *
+     *  A single parameter was provided too many times to a routine.
+     */
+    CANOPY_ERROR_REDUNDANT_PARAMETER,
+
+    /* 
+     * CANOPY_ERROR_PROMISE_NOT_COMPLETE
+     *
+     *  The requested operation cannot be performed on a non-completed promise.
+     */
+    CANOPY_ERROR_PROMISE_NOT_COMPLETE,
+
 } CanopyResultEnum;
 
 /*
@@ -275,13 +340,13 @@ typedef enum {
     CANOPY_CONTROL_PROTOCOL,
 
     /*
-     * CANOPY_CONTEXT
+     * CANOPY_CTX
      *
      *  Selects the Canopy context that the routine should use.  The value must
      *  be a CanopyCtx object or NULL (in which case the implicit global
      *  context will be used).  Defaults to NULL.
      */
-    CANOPY_CONTEXT,
+    CANOPY_CTX,
 
     /*
      * CANOPY_DEVICE_UUID
@@ -316,6 +381,21 @@ typedef enum {
      *  value.  Defaults to CANOPY_NOTIFY_DEFAULT.
      */
     CANOPY_NOTIFY_TYPE,
+
+    /*
+     * CANOPY_PROMISE
+     *
+     *  Instructs an asynchronous routine to create a CanopyPromise object,
+     *  which allows the application to wait for completion of the operation
+     *  and to get the operation's status.
+     *
+     *  The value must be the address of an uninitialized CanopyPromise
+     *  variable.  This variable will be assigned the newly-created
+     *  CanopyPromise.
+     *
+     *  
+     */
+    CANOPY_PROMISE,
 
     /*
      * CANOPY_PROPERTY_NAME
@@ -357,11 +437,11 @@ CanopyCtx canopy_create_ctx(CanopyCtx copyOptsFrom);
  *
  *  The <ctx> parameter specifies the context to change configuration options
  *  for.  After that, the canopy_ctx_opt() function takes an even number of
- *  arguments, alternating between PARAM and VALUE.
+ *  arguments that must alternate between parameter identifiers and values.
  *
  *      canopy_ctx_opt(ctx,
  *          CANOPY_CLOUD_SERVER, "localhost:8080",
- *          CANOPY_DEVICE_ID, "16eeca6a-e8dc-4c54-b78e-6a7416803ca8",
+ *          CANOPY_DEVICE_UUID, "16eeca6a-e8dc-4c54-b78e-6a7416803ca8",
  *          CANOPY_REPORT_PROTOCOL, CANOPY_REPORT_PROTOCOL_HTTP
  *      );
  *      
@@ -375,7 +455,7 @@ CanopyCtx canopy_create_ctx(CanopyCtx copyOptsFrom);
  *  sentinal NULL value, there is no need to end the argument list with NULL.
  */
 #define canopy_ctx_opt(ctx, ...) canopy_ctx_opt_impl(ctx, __VA_ARGS__, NULL)
-CanopyResultEnum canopy_global_config_impl(CanopyCtx ctx, ...);
+CanopyResultEnum canopy_ctx_opt_impl(CanopyCtx ctx, ...);
 
 /*
  * canopy_destroy_ctx -- Destroy a Canopy context.
@@ -387,10 +467,6 @@ void canopy_destroy_ctx(CanopyCtx ctx);
  */
 CanopyCtx canopy_global_ctx();
 
-#define canopy_global_config(...) canopy_global_config_impl(NULL, __VA_ARGS__, NULL)
-CanopyResultEnum canopy_global_config_impl(start, ...);
-
-
 /*
  * canopy_global_opt -- Set global configuration defaults.
  *
@@ -398,17 +474,18 @@ CanopyResultEnum canopy_global_config_impl(start, ...);
  *      
  *      canopy_ctx_opt(canopy_global_ctx(), ...)
  *
- *  The canopy_global_config() function takes an even number of arguments,
- *  alternating between PARAM and VALUE.
+ *  The canopy_global_config() function takes an even number of arguments that
+ *  must alternate between parameter identifiers and values.
  *
  *      canopy_global_opt(
  *          CANOPY_CLOUD_SERVER, "localhost:8080",
- *          CANOPY_DEVICE_ID, "16eeca6a-e8dc-4c54-b78e-6a7416803ca8",
+ *          CANOPY_DEVICE_UUID, "16eeca6a-e8dc-4c54-b78e-6a7416803ca8",
  *          CANOPY_REPORT_PROTOCOL, CANOPY_REPORT_PROTOCOL_HTTP
  *      );
  *
  *  For each PARAM, VALUE pair, the global default for that PARAM is set.
- *  As long as CANOPY_CTX is NULL, these global default values are used by:
+ *  These global default values are used by the following routines (as long as
+ *  the CANOPY_CTX parameter is not supplied):
  *      
  *      canopy_post_sample()
  *      canopy_on_change()
@@ -417,35 +494,40 @@ CanopyResultEnum canopy_global_config_impl(start, ...);
  *  The canopy_global_config() function takes an all-or-nothing approach.  If
  *  any of the configuration defaults could not be set, then the function does
  *  not set any of them and returns an error.
+ *
+ *  Since canopy_global_opt() is implemented as a macro that automatically adds
+ *  a sentinal NULL value, there is no need to end the argument list with NULL.
  */
-#define canopy_global_config(...) canopy_global_config_impl(NULL, __VA_ARGS__, NULL)
-CanopyResultEnum canopy_global_config_impl(start, ...);
+#define canopy_global_opt(...) canopy_ctx_opt_impl(canopy_global_ctx(), __VA_ARGS__, NULL)
 
 /*
  * canopy_post_sample -- Post sensor data sample to the Canopy Cloud Service.
  *
  *  Provides a convenient and flexible routine for posting data samples to the
  *  Canopy Cloud Service.  It takes a variable number of arguments that must
- *  alternate between parameter keys and values.
+ *  alternate between parameter identifiers and values.
  *
  *  A simple example:
  *
  *      canopy_post_sample(
  *          CANOPY_CLOUD_SERVER, "canopy.link",
- *          CANOPY_DEVICE_ID, "16eeca6a-e8dc-4c54-b78e-6a7416803ca8",
+ *          CANOPY_DEVICE_UUID, "16eeca6a-e8dc-4c54-b78e-6a7416803ca8",
  *          CANOPY_PROPERTY_NAME, "temperature",
  *          CANOPY_VALUE_FLOAT32, 4.0f
  *      );
  *
  *  In your web browser, you can see the posted data by going to:
  *
- *      http://canopy.link/device/16eeca6a-e8dc-4c54-b78e-6a7416803ca8
+ *      http://canopy.link/16eeca6a-e8dc-4c54-b78e-6a7416803ca8
  *
- *  This routine accepts the following parameter:
+ *      (Of course, replace the UUID with the UUID of your device).
+ *
+ *  This routine accepts the following parameters:
  *
  *      CANOPY_CLOUD_SERVER
+ *      CANOPY_REPORT_PROTOCOL
  *      CANOPY_CTX
- *      CANOPY_DEVICE_ID
+ *      CANOPY_DEVICE_UUID
  *      CANOPY_PROPERTY_NAME
  *      CANOPY_VALUE_FLOAT32
  *      CANOPY_VALUE_FLOAT64
@@ -456,7 +538,9 @@ CanopyResultEnum canopy_global_config_impl(start, ...);
  *      CANOPY_VALUE_INT32
  *      CANOPY_VALUE_UINT32
  *
- *  If parameter is 
+ *  At most one of the CANOPY_VALUE_* parameters may be supplied.  If more than
+ *  one CANOPY_VALUE_* parameter is supplied, the error
+ *  CANOPY_ERROR_REDUNDANT_PARAMETER will be returned.
  *
  *  Since canopy_post_sample is implemented as a macro that automatically adds a
  *  sentinal NULL value, there is no need to end the argument list with NULL.
@@ -466,48 +550,95 @@ CanopyResultEnum canopy_post_sample_impl(start, ...);
 
 
 /*
- * To post a sensor sample:
+ * canopy_promise_wait -- Wait for the completion of an asynchronous operation.
  *
- *    canopy_post_sample(
- *      CANOPY_CLOUD_HOST, "http://canopy.link:8080",
- *      CANOPY_DEVICE_ID, "16eeca6a-e8dc-4c54-b78e-6a7416803ca8",
- *      CANOPY_PROPERTY_NAME, "temperature",
- *      CANOPY_VALUE_FLOAT32, 4.0f,
- *      );
- *
- *
- * To receive notification when a control changes.
- *
- *     canopy_easy_on_control_event(
- *      CANOPY_CLOUD_HOST, "http://canopy.link:8080",
- *      CANOPY_DEVICE_ID, "16eeca6a-e8dc-4c54-b78e-6a7416803ca8",
- *      CANOPY_PROPERTY_NAME, "master.on_off",
- *      CANOPY_CONTROL_CALLBACK, HandleOnOff,
- *      NULL
- *     );
- *
+ *  This routine blocks the current thread until an asynchronous operation has
+ *  completed.
  */
+CanopyResultEnum canopy_promise_wait(CanopyPromise promise, ...);
 
 /*
-    canopy_global_server("https://canopy.link");
-    canopy_global_device_uuid("16eeca6a-e8dc-4c54-b78e-6a7416803ca8");
+ * canopy_promise_result -- Get the result of a completed asyncrhonous
+ *  operation.
+ *
+ *  If the asynchronous operation hasn't completed yet, this returns CANOPY_ERROR_PROMISE_NOT_COMPLETE
+ */
+CanopyResultEnum canopy_promise_result(CanopyPromise promise);
 
-    canopy_report_float32("temperature", 4.3f);
-    canopy_report_float32("gps.longitude", 4.3f);
-    canopy_report_send("gps.longitude", 4.3f);
-*/
+/*
+ * canopy_promise_on_success -- Register a success callback for an async op.
+ *
+ *  Registers a callback that gets triggered when an asynchronous operation has
+ *  completed successfully.
+ *
+ *  This callback will always be triggered from within canopy_service or
+ *  canopy_run_event_loop.
+ */
+CanopyResultEnum canopy_promise_on_success(
+        CanopyPromise promise, 
+        CanopySuccessCallback cb);
+/*
+ * canopy_promise_on_failure -- Register a failure callback for an async op.
+ *
+ *  Registers a callback that gets triggered when an asyhchronous operation has
+ *  failed.
+ *
+ *  This callback will always be triggered from within canopy_service or
+ *  canopy_run_event_loop.
+ *
+ */
+CanopyResultEnum canopy_promise_on_failure(
+        CanopyPromise promise, 
+        CanopyFailureCallback cb);
+
+/*
+ * canopy_promise_on_done -- Register a completion callback for an async op.
+ *
+ *  Registers a callback that gets triggered when an asyhchronous operation has
+ *  completed, whether or not it succeeded.  This is triggered in addition to
+ *  any registered canopy_promise_on_success and canopy_promise_on_failure
+ *  callbacks.
+ *
+ *  This callback will always be triggered from within canopy_service or
+ *  canopy_run_event_loop.
+ *
+ */
+CanopyResultEnum canopy_promise_on_done(
+        CanopyPromise promise, 
+        CanopyFailureCallback cb);
+
+/*
+ * canopy_run_event_loop -- Run the Canopy event loop.
+ *
+ *  This is roughly equivalent to:
+ *
+ *      while (1) {
+ *          canopy_service(...);
+ *      }
+ *
+ */
+#define canopy_run_event_loop(...) canopy_run_event_loop_impl(NULL, __VA_ARGS__, NULL)
+CanopyResultEnum canopy_run_event_loop(start, ...);
+
+/*
+ * canopy_service -- Perform outstanding tasks and triggers callbacks.
+ *
+ *  This routine instructs libcanopy to perform any outstanding tasks.  These
+ *  tasks may include:
+ *
+ *      - Servicing websocket connection(s).
+ *      - Triggering control event callbacks and other callbacks.
+ *
+ *  This only performs outstanding tasks for a single context.  If CANOPY_CTX
+ *  is omitted or NULL, the global context is serviced.
+ */
+#define canopy_service(...) canopy_service_impl(NULL, __VA_ARGS__, NULL)
+CanopyResultEnum canopy_service_impl(start, ...);
 
 
 
-#define CANOPY_CLOUD_HOST (void *)0xCA0000
-#define CANOPY_DEVICE_ID (void *)0xCA0001
-#define CANOPY_PROPERTY_NAME (void *)0xCA0002
-#define CANOPY_VALUE_FLOAT32 (void *)0xCA0003
-#define CANOPY_CONTROL_CALLBACK (void *)0xCA0004
 
-bool canopy_post_sample(void * params, ...);
 
-bool canopy_on_control_event(void * params, ...);
 
 /*
  * OLD INTERFACE -- Deprecated
