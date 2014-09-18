@@ -1,0 +1,12 @@
+{
+    "class canopy.example.lightbulb" : {
+        "control brightness" : {
+            "datatype" : "float32",
+            "min-value" : 0.0,
+            "max-value" : 1.0,
+        },
+        "sensor ambient_light" : {
+            "datatype" : "float32",
+        },
+    }
+}
