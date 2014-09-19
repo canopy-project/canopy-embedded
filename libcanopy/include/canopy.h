@@ -555,6 +555,44 @@ CanopyCtx canopy_global_ctx();
 #define canopy_global_opt(...) canopy_ctx_opt_impl(canopy_global_ctx(), __VA_ARGS__, NULL)
 
 /*
+ * canopy_notify -- Send a notification to the device owner.
+ *
+ *  Instructs the Canopy Cloud Service to send a notification to the device's
+ *  owner.  This notification may be:
+ *      
+ *      - An email.
+ *      - An SMS.
+ *      - An in-app notification.
+ *
+ *  Here is an example:
+ *
+ *          canopy_notify(
+ *              CANOPY_DEVICE_UUID, "9dfe2a00-efe2-45f9-a84c-8afc69caf4e6",
+ *              CANOPY_NOTIFY_TYPE, CANOPY_NOTIFY_SMS,
+ *              CANOPY_NOTIFY_MSG, "Running low on green toner!"
+ *          );
+ *
+ *  If the device is connected to the Canopy Cloud Service, the notification
+ *  will be sent to the device owner.  This feature is only available to
+ *  registered (non-anonymous) devices.
+ *
+ *  This routine accepts the following parameters:
+ *
+ *      CANOPY_CLOUD_SERVER
+ *      CANOPY_CTX
+ *      CANOPY_DEVICE_UUID
+ *      CANOPY_NOTIFY_MSG
+ *      CANOPY_NOTIFY_PROTOCOL
+ *      CANOPY_NOTIFY_TYPE
+ *      CANOPY_PROMISE
+ *
+ *  Since canopy_post_sample is implemented as a macro that automatically adds
+ *  a sentinal NULL value, there is no need to end the argument list with NULL.
+ */
+#define canopy_post_sample(...) canopy_post_sample_impl(NULL, __VA_ARGS__, NULL)
+CanopyResultEnum canopy_post_sample_impl(void * start, ...);
+
+/*
  * canopy_post_sample -- Post sensor data sample to the Canopy Cloud Service.
  *
  *  Provides a convenient and flexible routine for posting data samples to the
@@ -596,8 +634,8 @@ CanopyCtx canopy_global_ctx();
  *  one CANOPY_VALUE_* parameter is supplied, the error
  *  CANOPY_ERROR_REDUNDANT_PARAMETER will be returned.
  *
- *  Since canopy_post_sample is implemented as a macro that automatically adds a
- *  sentinal NULL value, there is no need to end the argument list with NULL.
+ *  Since canopy_post_sample is implemented as a macro that automatically adds
+ *  a sentinal NULL value, there is no need to end the argument list with NULL.
  */
 #define canopy_post_sample(...) canopy_post_sample_impl(NULL, __VA_ARGS__, NULL)
 CanopyResultEnum canopy_post_sample_impl(void * start, ...);
