@@ -262,8 +262,31 @@
  *  canopy_notify(), can operate either way, depending on whether or not the
  *  CANOPY_CTX option is passed to the routine.
  */
-typedef struct CanopyCtx_t CanopyCtx;
+typedef struct CanopyCtx_t * CanopyCtx;
 
+/*
+ * CanopyPromise
+ *
+ *  A CanopyPromise is a synchronization primitive.  When the libcanopy library
+ *  begins an asynchronous operation, it creates a CanopyPromise object that
+ *  can be used to wait for the completion of the event.
+ */
+typedef struct CanopyPromise_t * CanopyPromise;
+
+/*
+ * CanopyResult
+ *
+ *  A CanopyResult represents the results of an operation.
+ */
+typedef struct CanopyResult_t * CanopyResult;
+
+/*
+ * CanopyResultCallback
+ *
+ *  Callback routine that is triggered when an asynchronous event has
+ *  completed.
+ */
+typedef bool (*CanopyResultCallback)(CanopyResult result);
 
 /* 
  * CanopyResultEnum
@@ -546,7 +569,7 @@ CanopyCtx canopy_global_ctx();
  *  sentinal NULL value, there is no need to end the argument list with NULL.
  */
 #define canopy_post_sample(...) canopy_post_sample_impl(NULL, __VA_ARGS__, NULL)
-CanopyResultEnum canopy_post_sample_impl(start, ...);
+CanopyResultEnum canopy_post_sample_impl(void * start, ...);
 
 
 /*
@@ -576,7 +599,7 @@ CanopyResultEnum canopy_promise_result(CanopyPromise promise);
  */
 CanopyResultEnum canopy_promise_on_success(
         CanopyPromise promise, 
-        CanopySuccessCallback cb);
+        CanopyResultCallback cb);
 /*
  * canopy_promise_on_failure -- Register a failure callback for an async op.
  *
@@ -589,7 +612,7 @@ CanopyResultEnum canopy_promise_on_success(
  */
 CanopyResultEnum canopy_promise_on_failure(
         CanopyPromise promise, 
-        CanopyFailureCallback cb);
+        CanopyResultCallback cb);
 
 /*
  * canopy_promise_on_done -- Register a completion callback for an async op.
@@ -605,7 +628,7 @@ CanopyResultEnum canopy_promise_on_failure(
  */
 CanopyResultEnum canopy_promise_on_done(
         CanopyPromise promise, 
-        CanopyFailureCallback cb);
+        CanopyResultCallback cb);
 
 /*
  * canopy_run_event_loop -- Run the Canopy event loop.
@@ -618,7 +641,7 @@ CanopyResultEnum canopy_promise_on_done(
  *
  */
 #define canopy_run_event_loop(...) canopy_run_event_loop_impl(NULL, __VA_ARGS__, NULL)
-CanopyResultEnum canopy_run_event_loop(start, ...);
+CanopyResultEnum canopy_run_event_loop_impl(void *start, ...);
 
 /*
  * canopy_service -- Perform outstanding tasks and triggers callbacks.
@@ -633,7 +656,7 @@ CanopyResultEnum canopy_run_event_loop(start, ...);
  *  is omitted or NULL, the global context is serviced.
  */
 #define canopy_service(...) canopy_service_impl(NULL, __VA_ARGS__, NULL)
-CanopyResultEnum canopy_service_impl(start, ...);
+CanopyResultEnum canopy_service_impl(void *start, ...);
 
 
 
