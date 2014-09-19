@@ -331,6 +331,13 @@ typedef enum {
      */
     CANOPY_ERROR_PROMISE_NOT_COMPLETE,
 
+    /* 
+     * CANOPY_ERROR_INVALID_OPT
+     *
+     *  A supplied option was invalid.
+     */
+    CANOPY_ERROR_INVALID_OPT,
+
 } CanopyResultEnum;
 
 /*
@@ -340,6 +347,20 @@ typedef enum {
  *  routines.
  */
 typedef enum {
+    /*
+     * CANOPY_INVALID_OPT
+     *
+     *  Invalid option. (Equal to NULL).
+     */
+    CANOPY_INVALID_OPT=0,
+
+    /*
+     * CANOPY_OPT_LIST_END
+     *
+     *  Special value used as marker at end of argument lists.  (Also == NULL).
+     */
+    CANOPY_OPT_LIST_END=0,
+
     /*
      * CANOPY_CLOUD_SERVER
      * 
@@ -470,6 +491,16 @@ CanopyCtx canopy_create_ctx(CanopyCtx copyOptsFrom);
  *      
  *  For each PARAM, VALUE pair, the context's default for that PARAM is set.
  *
+ *  The following parameters are supported:
+ *
+ *      CANOPY_CLOUD_SERVER
+ *      CANOPY_CONTROL_PROTOCOL
+ *      CANOPY_DEVICE_UUID
+ *      CANOPY_NOTIFY_PROTOCOL
+ *      CANOPY_NOTIFY_TYPE
+ *      CANOPY_PROPERTY_NAME
+ *      CANOPY_REPORT_PROTOCOL
+ *
  *  The canopy_ctx_opt() function takes an all-or-nothing approach.  If any of
  *  the configuration defaults could not be set, then the function does nothing
  *  and returns an error.
@@ -573,33 +604,21 @@ CanopyResultEnum canopy_post_sample_impl(void * start, ...);
 
 
 /*
- * canopy_promise_wait -- Wait for the completion of an asynchronous operation.
+ * canopy_promise_on_done -- Register a completion callback for an async op.
  *
- *  This routine blocks the current thread until an asynchronous operation has
- *  completed.
- */
-CanopyResultEnum canopy_promise_wait(CanopyPromise promise, ...);
-
-/*
- * canopy_promise_result -- Get the result of a completed asyncrhonous
- *  operation.
- *
- *  If the asynchronous operation hasn't completed yet, this returns CANOPY_ERROR_PROMISE_NOT_COMPLETE
- */
-CanopyResultEnum canopy_promise_result(CanopyPromise promise);
-
-/*
- * canopy_promise_on_success -- Register a success callback for an async op.
- *
- *  Registers a callback that gets triggered when an asynchronous operation has
- *  completed successfully.
+ *  Registers a callback that gets triggered when an asyhchronous operation has
+ *  completed, whether or not it succeeded.  This is triggered in addition to
+ *  any registered canopy_promise_on_success and canopy_promise_on_failure
+ *  callbacks.
  *
  *  This callback will always be triggered from within canopy_service or
  *  canopy_run_event_loop.
+ *
  */
-CanopyResultEnum canopy_promise_on_success(
+CanopyResultEnum canopy_promise_on_done(
         CanopyPromise promise, 
         CanopyResultCallback cb);
+
 /*
  * canopy_promise_on_failure -- Register a failure callback for an async op.
  *
@@ -615,20 +634,33 @@ CanopyResultEnum canopy_promise_on_failure(
         CanopyResultCallback cb);
 
 /*
- * canopy_promise_on_done -- Register a completion callback for an async op.
+ * canopy_promise_on_success -- Register a success callback for an async op.
  *
- *  Registers a callback that gets triggered when an asyhchronous operation has
- *  completed, whether or not it succeeded.  This is triggered in addition to
- *  any registered canopy_promise_on_success and canopy_promise_on_failure
- *  callbacks.
+ *  Registers a callback that gets triggered when an asynchronous operation has
+ *  completed successfully.
  *
  *  This callback will always be triggered from within canopy_service or
  *  canopy_run_event_loop.
- *
  */
-CanopyResultEnum canopy_promise_on_done(
+CanopyResultEnum canopy_promise_on_success(
         CanopyPromise promise, 
         CanopyResultCallback cb);
+
+/*
+ * canopy_promise_result -- Get the result of a completed asyncrhonous
+ *  operation.
+ *
+ *  If the asynchronous operation hasn't completed yet, this returns CANOPY_ERROR_PROMISE_NOT_COMPLETE
+ */
+CanopyResultEnum canopy_promise_result(CanopyPromise promise);
+
+/*
+ * canopy_promise_wait -- Wait for the completion of an asynchronous operation.
+ *
+ *  This routine blocks the current thread until an asynchronous operation has
+ *  completed.
+ */
+CanopyResultEnum canopy_promise_wait(CanopyPromise promise, ...);
 
 /*
  * canopy_run_event_loop -- Run the Canopy event loop.
@@ -663,9 +695,15 @@ CanopyResultEnum canopy_service_impl(void *start, ...);
 
 
 
-/*
+
+
+
+
+
+
+/*****************************************************************************
  * OLD INTERFACE -- Deprecated
- */
+ ******************************************************************************/
 
 typedef struct CanopyContext_t * CanopyContext;
 typedef struct CanopyReport_t * CanopyReport;
