@@ -2,9 +2,9 @@
 #include <canopy.h>
 #include <stdlib.h>
 
-static bool on_change__brightness(CanopyContext canopy, float value)
+static bool on_change__brightness(CanopyContext canopy, bool value)
 {
-    printf("Brightness changed to %f\n", value);
+    printf("Brightness changed to %d\n", (int)value);
     return false;
 }
 
@@ -33,6 +33,7 @@ static bool on_report_requested(CanopyContext canopy)
     CanopyReport report = canopy_begin_report(canopy);
 
     canopy_report_float32(report, "ambient_light", rand()/(float)RAND_MAX);
+    canopy_report_float32(report, "temperature", rand()/(float)RAND_MAX);
 
     canopy_send_report(report);
     return true;

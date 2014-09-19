@@ -19,16 +19,16 @@ static bool on_report_requested(CanopyContext canopy);
 static void dispatch(CanopyEventDetails event);
 
 
-#define SDDL_FILENAME "fan.sddl"
+#define SDDL_FILENAME "lightbulb.sddl"
 #define SDDL_CLASSNAME "canopy.example.lightbulb"
-static bool on_change__brightness(CanopyContext canopy, float value);
+static bool on_change__brightness(CanopyContext canopy, bool value);
 static void dispatch(CanopyEventDetails event)
 {
     CanopyContext ctx = canopy_event_context(event);
     if (canopy_event_control_name_matches(event, "brightness"))
     {
-        float val;
-        canopy_event_get_control_value_float32(event, &val);
+        bool val;
+        canopy_event_get_control_value_bool(event, &val);
         on_change__brightness(ctx, val);
     }
 }
