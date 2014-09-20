@@ -354,6 +354,14 @@ typedef enum {
      *  Communicate with Canopy Cloud Service using Websocket-based protocol.
      */
     CANOPY_PROTOCOL_WS,
+
+    /*
+     * CANOPY_PROTOCOL_WSS
+     *
+     *  Communicate with Canopy Cloud Service using a secure Websocket-based
+     *  protocol.
+     */
+    CANOPY_PROTOCOL_WSS,
 } CanopyProtocolEnum;
 
 /*
@@ -428,6 +436,13 @@ typedef enum {
      *  A supplied option was invalid.
      */
     CANOPY_ERROR_INVALID_OPT,
+
+    /* 
+     * CANOPY_ERROR_OUT_OF_MEMORY
+     *
+     *  You need to add more RAM :-)
+     */
+    CANOPY_ERROR_OUT_OF_MEMORY,
 
 } CanopyResultEnum;
 
@@ -513,7 +528,7 @@ typedef enum {
      *
      *  Configures the desired method of notifying the device owner (SMS,
      *  email, in-app notice, etc).  The value must be a CanopyNotifyTypeEnum
-     *  value.  Defaults to CANOPY_NOTIFY_DEFAULT.
+     *  value.  Defaults to CANOPY_NOTIFY_MED_PRIORITY.
      */
     CANOPY_NOTIFY_TYPE,
 
