@@ -14,9 +14,19 @@
  * limitations under the License.
  */
 
-static CanopyCtx gCtx;
+#include "../include/canopy.h"
+#include "red_string.h"
+#include <stdarg.h>
 
-typedef struct
+/*
+ *
+ * COMPILE WITH:
+ * gcc -Isrc -Iinclude -I3rdparty/libred/include -I3rdparty/libred/under_construction -c src/canopy_simple.c -Wall -Werror
+ */
+
+static CanopyCtx gCtx=NULL;
+
+typedef struct CanopyCtx_t
 {
     /* 
      * Configuration options.
@@ -47,7 +57,8 @@ void _init_libcanopy_if_needed()
 
 CanopyCtx canopy_create_ctx(CanopyCtx copyOptsFrom)
 {
-    /* TODO: Implement */
+    /* TODO: implement */
+    return NULL;
 }
 
 CanopyResultEnum canopy_ctx_opt_impl(CanopyCtx ctx, ...)
@@ -56,7 +67,7 @@ CanopyResultEnum canopy_ctx_opt_impl(CanopyCtx ctx, ...)
     bool done = false;
     _init_libcanopy_if_needed();
 
-    char *new_cloud_host;
+    char *new_cloud_server;
     CanopyProtocolEnum new_control_protocol;
     char *new_device_uuid;
     CanopyProtocolEnum new_notify_protocol;
@@ -136,6 +147,7 @@ CanopyResultEnum canopy_ctx_opt_impl(CanopyCtx ctx, ...)
     va_end(ap);
 
     /* Everything's good (no errors).  Update the context. */
+    /* TODO: Handle alloc failures */
     if (cloud_server_changed)
         ctx->cloud_host = RedString_strdup(new_cloud_server);
     if (control_protocol_changed)
@@ -144,8 +156,10 @@ CanopyResultEnum canopy_ctx_opt_impl(CanopyCtx ctx, ...)
         ctx->device_uuid = RedString_strdup(new_device_uuid);
     if (notify_protocol_changed)
         ctx->notify_protocol = new_notify_protocol;
+    if (notify_type_changed)
+        ctx->notify_type = new_notify_type;
     if (property_name_changed)
-        ctx->property_name = RedString_strdup(property_name);
+        ctx->property_name = RedString_strdup(new_property_name);
     if (report_protocol_changed)
         ctx->report_protocol = new_report_protocol;
 
@@ -160,12 +174,9 @@ CanopyCtx canopy_global_ctx()
 
 CanopyResultEnum canopy_post_sample_impl(void * start, ...)
 {
-    /* TODO: Implement */
-}
+    _init_libcanopy_if_needed();
+    return CANOPY_ERROR_NOT_IMPLEMENTED;
 
-CanopyResultEnum canopy_post_sample_impl(void * start, ...)
-{
-    /* TODO: Implement */
 }
 
 CanopyResultEnum canopy_promise_on_done(
@@ -173,6 +184,7 @@ CanopyResultEnum canopy_promise_on_done(
         CanopyResultCallback cb)
 {
 
+    return CANOPY_ERROR_NOT_IMPLEMENTED;
     /* TODO: Implement */
 }
 
@@ -181,6 +193,7 @@ CanopyResultEnum canopy_promise_on_failure(
         CanopyResultCallback cb)
 {
     /* TODO: Implement */
+    return CANOPY_ERROR_NOT_IMPLEMENTED;
 }
 
 CanopyResultEnum canopy_promise_on_success(
@@ -188,24 +201,29 @@ CanopyResultEnum canopy_promise_on_success(
         CanopyResultCallback cb)
 {
     /* TODO: Implement */
+    return CANOPY_ERROR_NOT_IMPLEMENTED;
 }
 
 CanopyResultEnum canopy_promise_result(CanopyPromise promise)
 {
     /* TODO: Implement */
+    return CANOPY_ERROR_NOT_IMPLEMENTED;
 }
 
 CanopyResultEnum canopy_promise_wait(CanopyPromise promise, ...)
 {
     /* TODO: Implement */
+    return CANOPY_ERROR_NOT_IMPLEMENTED;
 }
 
 CanopyResultEnum canopy_run_event_loop_impl(void *start, ...)
 {
     /* TODO: Implement */
+    return CANOPY_ERROR_NOT_IMPLEMENTED;
 }
 
 CanopyResultEnum canopy_service_impl(void *start, ...)
 {
     /* TODO: Implement */
+    return CANOPY_ERROR_NOT_IMPLEMENTED;
 }

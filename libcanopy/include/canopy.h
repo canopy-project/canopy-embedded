@@ -264,6 +264,61 @@
  */
 typedef struct CanopyCtx_t * CanopyCtx;
 
+/* 
+ * CanopyNotifyTypeEnum
+ *
+ *  List of ways to deliver a notification to the device owner.
+ */
+typedef enum {
+    /*
+     * CANOPY_NOTIFY_LOW_PRIORITY
+     *
+     *  Send a low-priority message.  The Canopy Cloud Service will decide how
+     *  to deliver the notification based on the user's preferences and system
+     *  defaults.
+     */
+    CANOPY_NOTIFY_LOW_PRIORITY,
+
+    /*
+     * CANOPY_NOTIFY_MED_PRIORITY
+     *
+     *  Send a medium-priority message.  The Canopy Cloud Service will decide
+     *  how to deliver the notification based on the user's preferences and
+     *  system defaults.
+     */
+    CANOPY_NOTIFY_MED_PRIORITY,
+
+    /*
+     * CANOPY_NOTIFY_HIGH_PRIORITY
+     *
+     *  Send a medium-priority message.  The Canopy Cloud Service will decide
+     *  how to deliver the notification based on the user's preferences and
+     *  system defaults.
+     */
+    CANOPY_NOTIFY_HIGH_PRIORITY,
+
+    /*
+     * CANOPY_NOTIFY_SMS
+     *
+     *  Send an SMS text message to the device owner.
+     */
+    CANOPY_NOTIFY_SMS,
+
+    /*
+     * CANOPY_NOTIFY_EMAIL
+     *
+     *  Send an email to the device owner.
+     */
+    CANOPY_NOTIFY_EMAIL,
+
+    /*
+     * CANOPY_NOTIFY_IN_APP
+     *
+     *  Send an in-app notification to the device owner.
+     */
+    CANOPY_NOTIFY_IN_APP,
+} CanopyNotifyTypeEnum;
+
 /*
  * CanopyPromise
  *
@@ -272,6 +327,34 @@ typedef struct CanopyCtx_t * CanopyCtx;
  *  can be used to wait for the completion of the event.
  */
 typedef struct CanopyPromise_t * CanopyPromise;
+
+/* 
+ * CanopyProtocolEnum
+ *
+ *  List of communication protocols.
+ */
+typedef enum {
+    /*
+     * CANOPY_PROTOCOL_HTTP
+     *
+     *  Communicate with Canopy Cloud Service using HTTP-based protocol.
+     */
+    CANOPY_PROTOCOL_HTTP,
+
+    /*
+     * CANOPY_PROTOCOL_HTTPS
+     *
+     *  Communicate with Canopy Cloud Service using HTTPS-based protocol.
+     */
+    CANOPY_PROTOCOL_HTTPS,
+
+    /*
+     * CANOPY_PROTOCOL_WS
+     *
+     *  Communicate with Canopy Cloud Service using Websocket-based protocol.
+     */
+    CANOPY_PROTOCOL_WS,
+} CanopyProtocolEnum;
 
 /*
  * CanopyResult
@@ -308,6 +391,14 @@ typedef enum {
      *  An unknown error occured.
      */
     CANOPY_ERROR_UNKNOWN,
+
+    /* 
+     * CANOPY_ERROR_NOT_IMPLEMENTED
+     *
+     *  The requested operation has not been implemented on the current
+     *  platform.
+     */
+    CANOPY_ERROR_NOT_IMPLEMENTED,
 
     /* 
      * CANOPY_ERROR_PROTOCOL_NOT_SUPPORTED
