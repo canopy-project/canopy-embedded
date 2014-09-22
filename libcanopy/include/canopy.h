@@ -568,7 +568,15 @@ typedef enum {
      *
      *  Defaults to CANOPY_PROTOCOL_HTTP.
      */
-    CANOPY_REPORT_PROTOCOL
+    CANOPY_REPORT_PROTOCOL,
+
+    /*
+     * CANOPY_VALUE_FLOAT32
+     *
+     *  Configures a 32-bit floating-point value.
+     *  Used by canopy_post_sample().
+     */
+    CANOPY_VALUE_FLOAT32
 } CanopyOptEnum;
 
 /*
