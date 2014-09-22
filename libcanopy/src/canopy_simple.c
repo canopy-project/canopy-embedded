@@ -15,11 +15,13 @@
  */
 
 #include "../include/canopy.h"
+#include "red_json.h"
 #include "red_string.h"
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <curl/curl.h>
 
 /*
  *
@@ -38,7 +40,7 @@ typedef struct
 } CanopyResult_t;
 
 /*
- * _ConfigOpt_t
+ * _ConfigOpts_t
  *
  *  Represents a set of configuration options.
  */
@@ -150,7 +152,7 @@ static void _copy_config_opts(_ConfigOpts dest, _ConfigOpts src)
  *
  *  Update configuration options using an argument list.
  */
-static CanopyResultEnum _config_opts_extend_va(_ConfigOpts opts, va_list ap)
+static CanopyResultEnum _config_opts_extend_va(_ConfigOpts dest, _ConfigOpts src, va_list ap)
 {
     _ConfigOpts new_opts = _new_config_opts_empty();
     bool done;
@@ -224,7 +226,7 @@ static CanopyResultEnum _config_opts_extend_va(_ConfigOpts opts, va_list ap)
     va_end(ap);
 
     /* No errors.  Extend the original */
-    _config_opts_extend(opts, opts, new_opts);
+    _config_opts_extend(dest, src, new_opts);
 
     free(new_opts);
     return CANOPY_SUCCESS;
@@ -318,10 +320,77 @@ CanopyResultEnum canopy_ctx_opt_impl(CanopyCtx ctx, ...)
     _init_libcanopy_if_needed();
 
     va_start(ap, ctx);
-    result = _config_opts_extend_va(&ctx->opts, ap);
+    result = _config_opts_extend_va(&ctx->opts, &ctx->opts, ap);
     va_end(ap);
 
     return result;
+}
+
+static size_t _canopy_curl_write_func(void *ptr, size_t size, size_t nmemb, void *userdata)
+{
+    RedStringList response = (RedStringList)userdata;
+    RedStringList_AppendChars(response, ptr);
+    return size*nmemb;
+}
+
+static CanopyResultEnum _canopy_http_request(CanopyCtx ctx, const char *url, const char *payload, CanopyPromise *outPromise)
+{
+    /* TODO: fix cleanup & error handling */
+    CURL *curl = NULL;
+    RedStringList response_sl;
+    char *response_body;
+    RedJsonObject response_json;
+
+    response_sl = RedStringList_New();
+
+    /*
+    results = calloc(1, sizeof(_CanopyHTTPResults));
+    if (!results)
+    {
+        return CANOPY_ERROR_OUT_OF_MEMORY;
+    }*/
+
+    curl = curl_easy_init();
+    if (!curl)
+    {
+        goto cleanup;
+    }
+
+    /* TODO: fix this */
+    url = RedString_PrintfToNewChars("%s://%s:%d/%s/report",
+            "http",
+            "canopy.link",
+            "80",
+            ctx->opts.device_uuid);
+    if (!url)
+    {
+        return CANOPY_ERROR_OUT_OF_MEMORY;
+    }
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, _canopy_curl_write_func);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, response_sl);
+
+    curl_easy_perform(curl);
+
+    /* TODO: check server response */
+    response_body = RedStringList_ToNewChars(response_sl);
+    if (!response_body)
+    {
+        return CANOPY_ERROR_OUT_OF_MEMORY;
+    }
+
+    /* Parse response body */
+    response_json = RedJson_Parse(response_body);
+    if (!response_json)
+    {
+        return CANOPY_ERROR_UNKNOWN;
+    }
+    return CANOPY_SUCCESS;
+
+cleanup:
+    RedStringList_Free(response_sl);
+    return CANOPY_ERROR_UNKNOWN;
 }
 
 CanopyCtx canopy_global_ctx()
@@ -332,7 +401,28 @@ CanopyCtx canopy_global_ctx()
 
 CanopyResultEnum canopy_post_sample_impl(void * start, ...)
 {
+    _ConfigOpts_t opts;
+    va_list ap;
     _init_libcanopy_if_needed();
+    CanopyCtx ctx = gCtx;
+    /* TODO: support other contexts */
+
+    /* Process arguments */
+    va_start(ap, start);
+    _config_opts_extend_va(&opts, &ctx->opts, ap);
+    va_end(ap);
+
+    if (opts.report_protocol == CANOPY_PROTOCOL_HTTP)
+    {
+        /* Use curl */
+        CanopyPromise promise;
+        _canopy_http_request(ctx, "http://canopy.link/abcdef/report", "{ \"temperature\" : 98.0 }", &promise);
+    }
+    else
+    {
+        return CANOPY_ERROR_PROTOCOL_NOT_SUPPORTED;
+    }
+
     return CANOPY_ERROR_NOT_IMPLEMENTED;
 
 }
