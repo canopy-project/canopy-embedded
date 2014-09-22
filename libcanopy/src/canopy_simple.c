@@ -66,6 +66,9 @@ typedef struct _ConfigOpts_t
 
     bool has_report_protocol;
     CanopyProtocolEnum report_protocol;
+
+    bool has_value_float32;
+    float value_float32;
 } _ConfigOpts_t;
 
 typedef struct CanopyCtx_t
@@ -90,17 +93,11 @@ static void _config_opts_defaults(_ConfigOpts dest)
     dest->has_control_protocol = true;
     dest->control_protocol = CANOPY_PROTOCOL_WS;
 
-    dest->has_device_uuid = false;
-    dest->device_uuid = NULL;
-
     dest->has_notify_protocol = true;
     dest->notify_protocol = CANOPY_PROTOCOL_HTTP;
 
     dest->has_notify_type = true;
     dest->notify_type = CANOPY_NOTIFY_MED_PRIORITY;
-
-    dest->has_property_name = false;
-    dest->property_name = NULL;
 
     dest->has_report_protocol = true;
     dest->report_protocol = CANOPY_PROTOCOL_HTTP;
@@ -139,6 +136,16 @@ static _ConfigOpts _new_config_opts_empty()
     _ConfigOpts opts;
     opts = calloc(1, sizeof(struct _ConfigOpts_t));
     return opts;
+}
+
+/*
+ * _config_opts_init_empty
+ *
+ *  Initialize an empty configuration set.
+ */
+static void _config_opts_empty(_ConfigOpts opts)
+{
+    memset(opts, 0, sizeof(_ConfigOpts_t));
 }
 
 static void _copy_config_opts(_ConfigOpts dest, _ConfigOpts src)
@@ -209,6 +216,12 @@ static CanopyResultEnum _config_opts_extend_va(_ConfigOpts dest, _ConfigOpts src
             {
                 new_opts->has_report_protocol = true;
                 new_opts->report_protocol = va_arg(ap, CanopyProtocolEnum);
+                break;
+            }
+            case CANOPY_VALUE_FLOAT32:
+            {
+                new_opts->has_value_float32 = true;
+                new_opts->value_float32 = (float)va_arg(ap, double);
                 break;
             }
             case CANOPY_OPT_LIST_END:
@@ -341,6 +354,8 @@ static CanopyResultEnum _canopy_http_request(CanopyCtx ctx, const char *url, con
     char *response_body;
     RedJsonObject response_json;
 
+    printf("Sending payload to %s:\n%s\n\n", url, payload);
+
     response_sl = RedStringList_New();
 
     /*
@@ -354,17 +369,6 @@ static CanopyResultEnum _canopy_http_request(CanopyCtx ctx, const char *url, con
     if (!curl)
     {
         goto cleanup;
-    }
-
-    /* TODO: fix this */
-    url = RedString_PrintfToNewChars("%s://%s:%d/%s/report",
-            "http",
-            "canopy.link",
-            "80",
-            ctx->opts.device_uuid);
-    if (!url)
-    {
-        return CANOPY_ERROR_OUT_OF_MEMORY;
     }
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -401,22 +405,47 @@ CanopyCtx canopy_global_ctx()
 
 CanopyResultEnum canopy_post_sample_impl(void * start, ...)
 {
+    /* TODO: Free memory */
     _ConfigOpts_t opts;
     va_list ap;
     _init_libcanopy_if_needed();
     CanopyCtx ctx = gCtx;
+    CanopyResultEnum result;
     /* TODO: support other contexts */
 
     /* Process arguments */
     va_start(ap, start);
-    _config_opts_extend_va(&opts, &ctx->opts, ap);
+    _config_opts_empty(&opts);
+    result = _config_opts_extend_va(&opts, &ctx->opts, ap);
     va_end(ap);
+    if (result != CANOPY_SUCCESS)
+    {
+        return result;
+    }
+
+    /* Construct payload  */
+    RedJsonObject payload_json = RedJsonObject_New();
+    if (!opts.has_property_name)
+    {
+        /* Property name required */
+        return CANOPY_ERROR_MISSING_REQUIRED_OPTION;
+    }
+    RedJsonObject_SetNumber(payload_json, opts.property_name, 98);
 
     if (opts.report_protocol == CANOPY_PROTOCOL_HTTP)
     {
+        char *url;
+        url = RedString_PrintfToNewChars("http://%s/api/device/%s/report", 
+                opts.cloud_server,
+                opts.device_uuid);
+        if (!url)
+        {
+            return CANOPY_ERROR_OUT_OF_MEMORY;
+        }
         /* Use curl */
         CanopyPromise promise;
-        _canopy_http_request(ctx, "http://canopy.link/abcdef/report", "{ \"temperature\" : 98.0 }", &promise);
+        _canopy_http_request(ctx, url, RedJsonObject_ToJsonString(payload_json), &promise);
+        free(url);
     }
     else
     {
@@ -475,3 +504,14 @@ CanopyResultEnum canopy_service_impl(void *start, ...)
     /* TODO: Implement */
     return CANOPY_ERROR_NOT_IMPLEMENTED;
 }
+
+/*
+ * TODO:
+ *
+ * 1) Send actual report.
+ *      - Add REPORT_POST_IMMEDIATELY
+ *      - Support multiple value types
+ *      - Use actual hostname & device UUID in request
+ *
+ *
+ */

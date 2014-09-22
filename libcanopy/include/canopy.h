@@ -409,6 +409,14 @@ typedef enum {
     CANOPY_ERROR_NOT_IMPLEMENTED,
 
     /* 
+     * CANOPY_ERROR_MISSING_REQUIRED_OPTION
+     *
+     *  A required configuration option must be supplied to the requested
+     *  operation.
+     */
+    CANOPY_ERROR_MISSING_REQUIRED_OPTION,
+
+    /* 
      * CANOPY_ERROR_PROTOCOL_NOT_SUPPORTED
      *
      *  The requested communications protocol is not supported by the
@@ -555,6 +563,22 @@ typedef enum {
      *  string, or NULL (if unconfigured).  Defaults to NULL.
      */
     CANOPY_PROPERTY_NAME,
+
+    /*
+     * CANOPY_REPORT_POST_IMMEDIATELY
+     *
+     *  Configures when reports will be posted to the Canopy Cloud Service.
+     *
+     *  If true, a report will be sent immediately when canopy_post_sample() is
+     *  called.
+     *
+     *  If false, a report will be sent the next time canopy_service() is
+     *  called.  This allows multiple reports to be combined into a single
+     *  payload, which can be much more efficient.
+     *
+     *  Defaults to true.
+     */
+    CANOPY_REPORT_POST_IMMEDIATELY,
 
     /*
      * CANOPY_REPORT_PROTOCOL
