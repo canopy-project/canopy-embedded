@@ -126,4 +126,5 @@ char * RedJsonObject_ToJsonString(RedJsonObject jsonObj);
 
 /* TODO: Error reporting */
 RedJsonObject RedJson_Parse(const char *text);
+
 #endif

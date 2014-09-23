@@ -296,6 +296,9 @@ static void _config_opts_extend(_ConfigOpts dest, _ConfigOpts base, _ConfigOpts 
 
     dest->report_protocol = override->has_report_protocol ? override->report_protocol : base->report_protocol;
     dest->has_report_protocol = base->report_protocol || override->report_protocol;
+
+    dest->value_float32 = override->has_value_float32 ? override->value_float32 : base->value_float32;
+    dest->has_value_float32 = base->has_value_float32 || override->value_float32;
 }
 
 void _init_libcanopy_if_needed()
@@ -352,7 +355,7 @@ static CanopyResultEnum _canopy_http_request(CanopyCtx ctx, const char *url, con
     CURL *curl = NULL;
     RedStringList response_sl;
     char *response_body;
-    RedJsonObject response_json;
+    //RedJsonObject response_json;
 
     printf("Sending payload to %s:\n%s\n\n", url, payload);
 
@@ -372,6 +375,7 @@ static CanopyResultEnum _canopy_http_request(CanopyCtx ctx, const char *url, con
     }
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, _canopy_curl_write_func);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, response_sl);
 
@@ -383,13 +387,15 @@ static CanopyResultEnum _canopy_http_request(CanopyCtx ctx, const char *url, con
     {
         return CANOPY_ERROR_OUT_OF_MEMORY;
     }
+    printf("Response: %s\n", response_body);
 
     /* Parse response body */
-    response_json = RedJson_Parse(response_body);
+    /*response_json = RedJson_Parse(response_body);
     if (!response_json)
     {
         return CANOPY_ERROR_UNKNOWN;
     }
+    */
     return CANOPY_SUCCESS;
 
 cleanup:
@@ -430,12 +436,20 @@ CanopyResultEnum canopy_post_sample_impl(void * start, ...)
         /* Property name required */
         return CANOPY_ERROR_MISSING_REQUIRED_OPTION;
     }
-    RedJsonObject_SetNumber(payload_json, opts.property_name, 98);
+    if (opts.has_value_float32)
+    {
+        RedJsonObject_SetNumber(payload_json, opts.property_name, opts.value_float32);
+    }
+    else
+    {
+        /* value required */
+        return CANOPY_ERROR_MISSING_REQUIRED_OPTION;
+    }
 
     if (opts.report_protocol == CANOPY_PROTOCOL_HTTP)
     {
         char *url;
-        url = RedString_PrintfToNewChars("http://%s/api/device/%s/report", 
+        url = RedString_PrintfToNewChars("http://%s/di/device/%s", 
                 opts.cloud_server,
                 opts.device_uuid);
         if (!url)
@@ -444,7 +458,7 @@ CanopyResultEnum canopy_post_sample_impl(void * start, ...)
         }
         /* Use curl */
         CanopyPromise promise;
-        _canopy_http_request(ctx, url, RedJsonObject_ToJsonString(payload_json), &promise);
+        _canopy_http_request(ctx, url, RedJsonObject_ToJsonString(payload_json) /* TODO: mem leak */, &promise);
         free(url);
     }
     else

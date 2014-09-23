@@ -18,9 +18,10 @@
 int main(void) 
 {
     canopy_post_sample(
-        CANOPY_DEVICE_UUID, "9dfe2a00-efe2-45f9-a84c-8afc69caf4e6",
-        CANOPY_PROPERTY_NAME, "temperature",
-        CANOPY_VALUE_FLOAT32, 98.0f
+        CANOPY_CLOUD_SERVER, "dev02.canopy.link",
+        CANOPY_DEVICE_UUID, "9dfe2a00-efe2-45f9-a84c-8afc69caf4e7",
+        CANOPY_PROPERTY_NAME, "cpu",
+        CANOPY_VALUE_FLOAT32, 0.22f
     );
     return 0;
 }
