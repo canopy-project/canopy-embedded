@@ -55,6 +55,9 @@ typedef struct _ConfigOpts_t
     bool has_device_uuid;
     char *device_uuid;
 
+    bool has_notify_msg;
+    char *notify_msg;
+
     bool has_notify_protocol;
     CanopyProtocolEnum notify_protocol;
 
@@ -69,6 +72,7 @@ typedef struct _ConfigOpts_t
 
     bool has_value_float32;
     float value_float32;
+
 } _ConfigOpts_t;
 
 typedef struct CanopyCtx_t
@@ -194,6 +198,12 @@ static CanopyResultEnum _config_opts_extend_va(_ConfigOpts dest, _ConfigOpts src
                 new_opts->device_uuid = va_arg(ap, char *);
                 break;
             }
+            case CANOPY_NOTIFY_MSG:
+            {
+                new_opts->has_notify_msg = true;
+                new_opts->notify_msg = va_arg(ap, char *);
+                break;
+            }
             case CANOPY_NOTIFY_PROTOCOL:
             {
                 new_opts->has_notify_protocol = true;
@@ -284,6 +294,9 @@ static void _config_opts_extend(_ConfigOpts dest, _ConfigOpts base, _ConfigOpts 
 
     dest->device_uuid = override->has_device_uuid ? override->device_uuid : base->device_uuid;
     dest->has_device_uuid = base->device_uuid || override->device_uuid;
+
+    dest->notify_msg = override->has_notify_msg ? override->notify_msg : base->notify_msg;
+    dest->has_notify_msg = base->notify_msg || override->notify_msg;
 
     dest->notify_protocol = override->has_notify_protocol ? override->notify_protocol : base->notify_protocol;
     dest->has_notify_protocol = base->notify_protocol || override->notify_protocol;
@@ -466,8 +479,59 @@ CanopyResultEnum canopy_post_sample_impl(void * start, ...)
         return CANOPY_ERROR_PROTOCOL_NOT_SUPPORTED;
     }
 
-    return CANOPY_ERROR_NOT_IMPLEMENTED;
+    return CANOPY_SUCCESS;
+}
 
+CanopyResultEnum canopy_notify_impl(void *start, ...)
+{
+    _ConfigOpts_t opts;
+    va_list ap;
+    _init_libcanopy_if_needed();
+    CanopyCtx ctx = gCtx;
+    CanopyResultEnum result;
+
+    /* Process arguments */
+    va_start(ap, start);
+    _config_opts_empty(&opts);
+    result = _config_opts_extend_va(&opts, &ctx->opts, ap);
+    va_end(ap);
+    if (result != CANOPY_SUCCESS)
+    {
+        return result;
+    }
+
+    /* Construct payload */
+    RedJsonObject payload_json = RedJsonObject_New();
+    if (!opts.has_notify_msg)
+    {
+        /* Notification message required */
+        return CANOPY_ERROR_MISSING_REQUIRED_OPTION;
+    }
+
+    RedJsonObject_SetString(payload_json, "notify-msg", opts.notify_msg);
+    RedJsonObject_SetString(payload_json, "notify-type", "email");
+
+    if (opts.report_protocol == CANOPY_PROTOCOL_HTTP)
+    {
+        char *url;
+        url = RedString_PrintfToNewChars("http://%s/di/device/%s/notify", 
+                opts.cloud_server,
+                opts.device_uuid);
+        if (!url)
+        {
+            return CANOPY_ERROR_OUT_OF_MEMORY;
+        }
+        /* Use curl */
+        CanopyPromise promise;
+        _canopy_http_request(ctx, url, RedJsonObject_ToJsonString(payload_json) /* TODO: mem leak */, &promise);
+        free(url);
+    }
+    else
+    {
+        return CANOPY_ERROR_PROTOCOL_NOT_SUPPORTED;
+    }
+
+    return CANOPY_SUCCESS;
 }
 
 CanopyResultEnum canopy_promise_on_done(

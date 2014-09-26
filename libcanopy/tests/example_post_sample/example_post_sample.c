@@ -17,11 +17,19 @@
 
 int main(void) 
 {
-    canopy_post_sample(
+    if (0) {
+        canopy_post_sample(
+            CANOPY_CLOUD_SERVER, "dev02.canopy.link",
+            CANOPY_DEVICE_UUID, "9dfe2a00-efe2-45f9-a84c-8afc69caf4e7",
+            CANOPY_PROPERTY_NAME, "cpu",
+            CANOPY_VALUE_FLOAT32, 0.22f
+        );
+    }
+    canopy_notify(
         CANOPY_CLOUD_SERVER, "dev02.canopy.link",
         CANOPY_DEVICE_UUID, "9dfe2a00-efe2-45f9-a84c-8afc69caf4e7",
-        CANOPY_PROPERTY_NAME, "cpu",
-        CANOPY_VALUE_FLOAT32, 0.22f
+        CANOPY_NOTIFY_TYPE, CANOPY_NOTIFY_TYPE,
+        CANOPY_NOTIFY_MSG, "Testing testing"
     );
     return 0;
 }
