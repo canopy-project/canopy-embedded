@@ -552,6 +552,16 @@ typedef enum {
     CANOPY_NOTIFY_TYPE,
 
     /*
+     * CANOPY_ON_CHANGE_FLOAT32_CALLBACK
+     *
+     *  Configures float32 control event callback.  The value must be a
+     *  function pointer with the following type:
+     *      
+     *      int (*func)(CanopyCtx, const char *propname, float value, void *extra)
+     */
+    CANOPY_ON_CHANGE_FLOAT32_CALLBACK,
+
+    /*
      * CANOPY_PROMISE
      *
      *  Instructs an asynchronous routine to create a CanopyPromise object,
@@ -740,6 +750,26 @@ CanopyCtx canopy_global_ctx();
  */
 #define canopy_notify(...) canopy_notify_impl(NULL, __VA_ARGS__, NULL)
 CanopyResultEnum canopy_notify_impl(void * start, ...);
+
+/*
+ * canopy_on_change -- Register a remote control event callback.
+ *
+ *  Registers a callback that gets triggered when a control change event is
+ *  recieved from the Canopy Cloud Service.  The callback gets triggered from
+ *  within canopy_service() or canopy_event_loop().
+ *
+ *  A simple example:
+ *
+ *      canopy_post_sample(
+ *          CANOPY_CLOUD_SERVER, "canopy.link",
+ *          CANOPY_DEVICE_UUID, "16eeca6a-e8dc-4c54-b78e-6a7416803ca8",
+ *          CANOPY_PROPERTY_NAME, "temperature",
+ *          CANOPY_VALUE_FLOAT32, 4.0f
+ *      );
+ *  
+ */
+#define canopy_on_change(...) canopy_on_change_impl(NULL, __VA_ARGS__, NULL)
+CanopyResultEnum canopy_on_change_impl(void *start, ...);
 
 /*
  * canopy_post_sample -- Post sensor data sample to the Canopy Cloud Service.

@@ -17,6 +17,7 @@
 #include "../include/canopy.h"
 #include "red_json.h"
 #include "red_string.h"
+#include "red_hash.h"
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -78,6 +79,12 @@ typedef struct _ConfigOpts_t
 typedef struct CanopyCtx_t
 {
     _ConfigOpts_t opts;
+
+    /* 
+     * Hash table storing registered callbacks.
+     *      (char *)propertyName ==> (_ConfigOpts_t *)
+     */
+    RedHash control_cb_hash;
 } CanopyCtx_t;
 
 typedef struct _ConfigOpts_t * _ConfigOpts;
@@ -156,6 +163,21 @@ static void _copy_config_opts(_ConfigOpts dest, _ConfigOpts src)
 {
     /* TODO: duplicate strings */
     memcpy(dest, src, sizeof(struct _ConfigOpts_t));
+}
+
+/*
+ * _new_config_opts_copy
+ *
+ *  Create a new configuration set by copying another.
+ */
+static _ConfigOpts _new_config_opts_copy(_ConfigOpts src)
+{
+    _ConfigOpts opts = _new_config_opts_empty();
+    if (!opts)
+        return NULL;
+
+    _copy_config_opts(opts, src);
+    return opts;
 }
 
 /*
@@ -330,6 +352,8 @@ CanopyCtx canopy_create_ctx(CanopyCtx copyOptsFrom)
         return NULL;
     }
 
+    ctx->control_cb_hash = RedHash_New(0);
+
     if (copyOptsFrom == NULL)
     {
         _config_opts_defaults(&ctx->opts);
@@ -422,6 +446,53 @@ CanopyCtx canopy_global_ctx()
     return gCtx;
 }
 
+CanopyResultEnum canopy_on_change_impl(void *start, ...)
+{
+    /* TODO: Free memory */
+    _ConfigOpts_t opts;
+    _ConfigOpts optsCopy;
+    va_list ap;
+    _init_libcanopy_if_needed();
+    CanopyCtx ctx = gCtx;
+    CanopyResultEnum result;
+    /* TODO: support other contexts */
+
+    /* Process arguments */
+    va_start(ap, start);
+    _config_opts_empty(&opts);
+    result = _config_opts_extend_va(&opts, &ctx->opts, ap);
+    va_end(ap);
+    if (result != CANOPY_SUCCESS)
+    {
+        return result;
+    }
+
+    /* Copy options */
+    optsCopy = _new_config_opts_copy(&opts);
+    if (!optsCopy)
+    {
+        return CANOPY_ERROR_OUT_OF_MEMORY;
+    }
+
+    /* Register callback by adding to hash table. 
+     * TODO: RedHash_Insert should return error code
+     */
+    if (!opts.has_property_name)
+    {
+        /* Property name required */
+        return CANOPY_ERROR_MISSING_REQUIRED_OPTION;
+    }
+
+    /* TODO: How to handle mutliple callbacks for single property name?
+     * Should we override/replace or trigger both callbacks?
+     */
+    RedHash_InsertS(ctx->control_cb_hash, opts.property_name, optsCopy);
+
+    /* TODO: Promises */
+
+    return CANOPY_SUCCESS;
+}
+
 CanopyResultEnum canopy_post_sample_impl(void * start, ...)
 {
     /* TODO: Free memory */
@@ -459,6 +530,7 @@ CanopyResultEnum canopy_post_sample_impl(void * start, ...)
         return CANOPY_ERROR_MISSING_REQUIRED_OPTION;
     }
 
+    /* Send payload to server, if using HTTP */
     if (opts.report_protocol == CANOPY_PROTOCOL_HTTP)
     {
         char *url;
