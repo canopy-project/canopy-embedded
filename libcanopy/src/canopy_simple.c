@@ -15,6 +15,7 @@
  */
 
 #include "../include/canopy.h"
+#include "../include/canopy.h"
 #include "red_json.h"
 #include "red_string.h"
 #include "red_hash.h"
@@ -23,6 +24,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <curl/curl.h>
+#include <unistd.h>
+#include <libwebsockets.h>
 
 /*
  *
@@ -47,6 +50,9 @@ typedef struct
  */
 typedef struct _ConfigOpts_t
 {
+    bool has_ctx;
+    CanopyCtx ctx;
+
     bool has_cloud_server;
     char *cloud_server;
 
@@ -58,6 +64,9 @@ typedef struct _ConfigOpts_t
 
     bool has_notify_msg;
     char *notify_msg;
+
+    bool has_on_change_float32_callback;
+    CanopyOnChangeFloat32Callback on_change_float32_callback;
 
     bool has_notify_protocol;
     CanopyProtocolEnum notify_protocol;
@@ -79,6 +88,9 @@ typedef struct _ConfigOpts_t
 typedef struct CanopyCtx_t
 {
     _ConfigOpts_t opts;
+
+    struct libwebsocket_context *ws_ctx;
+    struct libwebsocket *ws;
 
     /* 
      * Hash table storing registered callbacks.
@@ -114,6 +126,13 @@ static void _config_opts_defaults(_ConfigOpts dest)
     dest->report_protocol = CANOPY_PROTOCOL_HTTP;
 }
 
+CanopyCtx _get_ctx(_ConfigOpts opts)
+{
+    assert(opts);
+    if (opts->has_ctx)
+        return opts->ctx;
+    return gCtx;
+}
 
 /*
  * _new_config_opts_default
@@ -236,6 +255,12 @@ static CanopyResultEnum _config_opts_extend_va(_ConfigOpts dest, _ConfigOpts src
             {
                 new_opts->has_notify_type = true;
                 new_opts->notify_type = va_arg(ap, CanopyNotifyTypeEnum);
+                break;
+            }
+            case CANOPY_ON_CHANGE_FLOAT32_CALLBACK:
+            {
+                new_opts->has_on_change_float32_callback = true;
+                new_opts->on_change_float32_callback = va_arg(ap, CanopyOnChangeFloat32Callback);
                 break;
             }
             case CANOPY_PROPERTY_NAME:
@@ -643,16 +668,145 @@ CanopyResultEnum canopy_promise_wait(CanopyPromise promise, ...)
     return CANOPY_ERROR_NOT_IMPLEMENTED;
 }
 
+static int _ws_callback(
+        struct libwebsocket_context *this,
+        struct libwebsocket *wsi,
+        enum libwebsocket_callback_reasons reason,
+        void *user,
+        void *in,
+        size_t len)
+{
+    /* TODO: implement */
+    return 0;
+}
+static CanopyResultEnum _ws_connect(_ConfigOpts opts)
+{
+    CanopyCtx ctx = _get_ctx(opts);
+    static struct libwebsocket_protocols sCanopyWsProtocols[] = {
+        {
+            "echo", /* TODO: rename */
+            _ws_callback,
+            1024,
+            1024,
+            0,
+            NULL,
+            0
+        },
+        { NULL, NULL, 0, 0, 0, NULL, 0} /* end */
+    };
+    struct lws_context_creation_info info={0};
+    info.port = CONTEXT_PORT_NO_LISTEN;
+    info.iface = NULL;
+    info.protocols = sCanopyWsProtocols;
+    info.extensions = NULL;
+    info.ssl_cert_filepath = NULL;
+    info.ssl_private_key_filepath = NULL;
+    info.ssl_ca_filepath = NULL;
+    info.ssl_cipher_list = NULL;
+    info.gid = -1;
+    info.uid = -1;
+    info.options = 0;
+    info.user = ctx;
+    info.ka_time = 0;
+    info.ka_probes = 0;
+    info.ka_interval = 0;
+
+    //lws_set_log_level(511, NULL);
+
+    ctx->ws_ctx = libwebsocket_create_context(&info);
+    if (!ctx->ws_ctx)
+    {
+        fprintf(stderr, "Failed to create libwebsocket context\n");
+        return CANOPY_ERROR_CONNECTION_FAILED;
+    }
+
+    printf("Connecting to:\n");
+    printf("Host: %s\n", opts->cloud_server);
+    printf("Port: %d\n", 80); /* TODO: Don't hardcode  */
+    printf("UseSSL: %d\n", false); /* TODO: Don't hardcode */
+    ctx->ws = libwebsocket_client_connect(
+            ctx->ws_ctx, 
+            opts->cloud_server, 
+            80,  /* TODO: Don't hardcode */
+            false, /*canopy_ws_use_ssl(ctx), TODO: Don't  hardcode */
+            "/echo", /* TODO: rename */
+            opts->cloud_server,
+            "localhost", /*origin?*/
+            "echo", /* TODO: rename */
+            -1 /* latest ietf version */
+        );
+    if (!ctx->ws)
+    {
+        fprintf(stderr, "Failed to create libwebsocket connection\n");
+        return CANOPY_ERROR_CONNECTION_FAILED;
+    }
+
+    return CANOPY_SUCCESS;
+}
+
+static CanopyResultEnum _canopy_service_opts(_ConfigOpts params)
+{
+    CanopyCtx ctx = _get_ctx(params);
+
+    /* Start server if necessary */
+    if (!ctx->ws)
+    {
+        CanopyResultEnum result;
+        result = _ws_connect(params);
+        if (result != CANOPY_SUCCESS)
+            return result;
+    }
+
+    printf("Servicing\n");
+    return CANOPY_ERROR_NOT_IMPLEMENTED;
+}
+
+
 CanopyResultEnum canopy_run_event_loop_impl(void *start, ...)
 {
+    _ConfigOpts_t opts;
+    va_list ap;
+    _init_libcanopy_if_needed();
+    CanopyCtx ctx = gCtx;
+    CanopyResultEnum result;
+
+    va_start(ap, start);
+    _config_opts_empty(&opts);
+    result = _config_opts_extend_va(&opts, &ctx->opts, ap);
+    va_end(ap);
+    if (result != CANOPY_SUCCESS)
+    {
+        return result;
+    }
+
+    while (1)
+    {
+        _canopy_service_opts(&opts);
+        sleep(1); /* TODO: No sleeping! */
+    }
     /* TODO: Implement */
     return CANOPY_ERROR_NOT_IMPLEMENTED;
 }
 
 CanopyResultEnum canopy_service_impl(void *start, ...)
 {
-    /* TODO: Implement */
-    return CANOPY_ERROR_NOT_IMPLEMENTED;
+    _ConfigOpts_t opts;
+    va_list ap;
+    _init_libcanopy_if_needed();
+    CanopyCtx ctx = gCtx;
+    CanopyResultEnum result;
+
+    /* Process arguments */
+    va_start(ap, start);
+    _config_opts_empty(&opts);
+    result = _config_opts_extend_va(&opts, &ctx->opts, ap);
+    va_end(ap);
+    if (result != CANOPY_SUCCESS)
+    {
+        return result;
+    }
+
+    return _canopy_service_opts(&opts);
 }
 
 /*

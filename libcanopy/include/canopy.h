@@ -320,6 +320,13 @@ typedef enum {
 } CanopyNotifyTypeEnum;
 
 /*
+ * CanopyOnChangeFloat32Callback
+ */
+typedef int (*CanopyOnChangeFloat32Callback)(CanopyCtx, const char *propname, float value, void *extra);
+
+
+
+/*
  * CanopyPromise
  *
  *  A CanopyPromise is a synchronization primitive.  When the libcanopy library
@@ -400,6 +407,12 @@ typedef enum {
      */
     CANOPY_ERROR_UNKNOWN,
 
+    /* 
+     * CANOPY_ERROR_CONNECTION_FAILED
+     *
+     *  Unable to connect to cloud server.
+     */
+    CANOPY_ERROR_CONNECTION_FAILED,
     /* 
      * CANOPY_ERROR_NOT_IMPLEMENTED
      *
