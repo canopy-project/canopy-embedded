@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+/*
+ * canopy.c
+ *
+ * This file implements the API entrypoints declared in canopy.h
+ */
+
 #include "../include/canopy.h"
 #include "red_json.h"
 #include "red_string.h"
