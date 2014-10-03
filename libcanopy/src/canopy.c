@@ -22,6 +22,7 @@
 
 #include <canopy.h>
 #include "http/st_http.h"
+#include "websocket/st_websocket.h"
 #include "red_json.h"
 #include "red_string.h"
 #include "red_hash.h"
@@ -95,9 +96,7 @@ typedef struct CanopyCtx_t
 {
     _ConfigOpts_t opts;
 
-    struct libwebsocket_context *ws_ctx;
-    struct libwebsocket *ws;
-    bool ws_write_ready;
+    STWebSocket ws;
 
     /* 
      * Hash table storing registered callbacks.
@@ -625,147 +624,6 @@ CanopyResultEnum canopy_promise_wait(CanopyPromise promise, ...)
     return CANOPY_ERROR_NOT_IMPLEMENTED;
 }
 
-static int _ws_callback(
-        struct libwebsocket_context *this,
-        struct libwebsocket *wsi,
-        enum libwebsocket_callback_reasons reason,
-        void *user,
-        void *in,
-        size_t len)
-{
-    CanopyCtx ctx = (CanopyCtx)libwebsocket_context_user(this);
-    switch (reason)
-    {
-        case LWS_CALLBACK_CLIENT_ESTABLISHED:
-        {
-            fprintf(stderr, "ws_callback: LWS_CALLBACK_CLIENT_ESTABLISHED\n");
-#if 0
-            CanopyEventDetails_t eventDetails;
-            fprintf(stderr, "ws_callback: LWS_CALLBACK_CLIENT_ESTABLISHED\n");
-            libwebsocket_callback_on_writable(this, wsi);
-
-            /* Call event callback */
-            eventDetails.ctx = canopy;
-            eventDetails.eventType = CANOPY_EVENT_CONNECTION_ESTABLISHED;
-            eventDetails.userData = canopy->cbExtra;
-            canopy->cb(canopy, &eventDetails);
-            canopy->ws_closed = false; // TODO: change to "connected"
-#endif
-            ctx->ws_write_ready = true; /* TODO Is it actually writeable here? */
-
-            break;
-        }
-        case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
-            fprintf(stderr, "ws_callback: LWS_CALLBACK_CLIENT_CONNECTION_ERROR\n");
-            return -1;
-        case LWS_CALLBACK_CLOSED:
-        {
-#if 0
-            fprintf(stderr, "ws_callback: LWS_CALLBACK_CLOSED\n");
-            canopy->ws_closed = true;
-#endif
-            return -1;
-        }
-        case LWS_CALLBACK_CLIENT_WRITEABLE:
-        {
-            ctx->ws_write_ready = true;
-            break;
-        }
-        case LWS_CALLBACK_CLIENT_RECEIVE:
-#if 0
-            /* TODO: this next line seems dangerous! */
-            ((char *)in)[len] = '\0';
-            fprintf(stderr, "rx %d '%s'\n", (int)len, (char *)in);
-            _process_ws_payload(canopy, in);
-#endif
-            break;
-        /*case LWS_CALLBACK_CLIENT_CONFIRM_EXTENSION_SUPPORTED:*/
-        default:
-            break;
-    }
-    return 0;
-}
-static CanopyResultEnum _ws_connect(_ConfigOpts opts)
-{
-    CanopyCtx ctx = _get_ctx(opts);
-    static struct libwebsocket_protocols sCanopyWsProtocols[] = {
-        {
-            "echo", /* TODO: rename */
-            _ws_callback,
-            1024,
-            1024,
-            0,
-            NULL,
-            0
-        },
-        { NULL, NULL, 0, 0, 0, NULL, 0} /* end */
-    };
-    struct lws_context_creation_info info={0};
-    info.port = CONTEXT_PORT_NO_LISTEN;
-    info.iface = NULL;
-    info.protocols = sCanopyWsProtocols;
-    info.extensions = NULL;
-    info.ssl_cert_filepath = NULL;
-    info.ssl_private_key_filepath = NULL;
-    info.ssl_ca_filepath = NULL;
-    info.ssl_cipher_list = NULL;
-    info.gid = -1;
-    info.uid = -1;
-    info.options = 0;
-    info.user = ctx;
-    info.ka_time = 0;
-    info.ka_probes = 0;
-    info.ka_interval = 0;
-
-    //lws_set_log_level(511, NULL);
-
-    ctx->ws_ctx = libwebsocket_create_context(&info);
-    if (!ctx->ws_ctx)
-    {
-        fprintf(stderr, "Failed to create libwebsocket context\n");
-        return CANOPY_ERROR_CONNECTION_FAILED;
-    }
-
-    printf("Connecting to:\n");
-    printf("Host: %s\n", opts->cloud_server);
-    printf("Port: %d\n", 80); /* TODO: Don't hardcode  */
-    printf("UseSSL: %d\n", false); /* TODO: Don't hardcode */
-    ctx->ws = libwebsocket_client_connect(
-            ctx->ws_ctx, 
-            opts->cloud_server, 
-            80,  /* TODO: Don't hardcode */
-            false, /*canopy_ws_use_ssl(ctx), TODO: Don't  hardcode */
-            "/echo", /* TODO: rename */
-            opts->cloud_server,
-            "localhost", /*origin?*/
-            "echo", /* TODO: rename */
-            -1 /* latest ietf version */
-        );
-    if (!ctx->ws)
-    {
-        fprintf(stderr, "Failed to create libwebsocket connection\n");
-        return CANOPY_ERROR_CONNECTION_FAILED;
-    }
-
-    return CANOPY_SUCCESS;
-}
-
-void _canopy_ws_write(CanopyCtx ctx, const char *msg)
-{
-    char *buf;
-    if (!ctx->ws_write_ready)
-    {
-        RedLog_DebugLog("canopy", "WS not ready for write!  Skipping.");
-        return;
-    }
-    size_t len = strlen(msg);
-    buf = calloc(1, LWS_SEND_BUFFER_PRE_PADDING + len + LWS_SEND_BUFFER_POST_PADDING);
-    strcpy(&buf[LWS_SEND_BUFFER_PRE_PADDING], msg);
-    libwebsocket_write(ctx->ws, (unsigned char *)&buf[LWS_SEND_BUFFER_PRE_PADDING], len, LWS_WRITE_TEXT);
-    ctx->ws_write_ready = false;
-    libwebsocket_callback_on_writable(ctx->ws_ctx, ctx->ws);
-    free(buf);
-}
 
 static CanopyResultEnum _canopy_service_opts(_ConfigOpts params)
 {
@@ -774,18 +632,24 @@ static CanopyResultEnum _canopy_service_opts(_ConfigOpts params)
     printf("Servicing\n");
 
     /* Start server if necessary */
-    if (!ctx->ws)
+    if (!st_websocket_is_connected(ctx->ws))
     {
         CanopyResultEnum result;
-        result = _ws_connect(params);
+        result = st_websocket_connect(
+                ctx->ws,
+                params->cloud_server,
+                80, // TODO: don't hardcode
+                false, // TODO: don't hardcode
+                "/echo"); // TODO: rename
         if (result != CANOPY_SUCCESS)
             return result;
+
         /* Service websocket for first time */
-        libwebsocket_service(ctx->ws_ctx, 100);
+        st_websocket_service(ctx->ws, 100);
     }
 
     /* If SDDL dirty flag is set, write updated SDDL to websocket */
-    if (ctx->sddl_dirty && ctx->ws_write_ready)
+    if (ctx->sddl_dirty && st_websocket_is_write_ready(ctx->ws))
     {
         printf("SDDL IS DIRTY SENDING PAYLOAD\n");
         /* Construct payload */
@@ -795,13 +659,13 @@ static CanopyResultEnum _canopy_service_opts(_ConfigOpts params)
         payload = RedString_PrintfToNewChars("{\"device_id\" : \"%s\", \"__sddl_update\" : {\"control %s\" : { \"datatype\" : \"float32\" } } }", 
                 params->device_uuid,
                 controlName);
-        _canopy_ws_write(ctx, payload);
+        st_websocket_write(ctx->ws, payload);
 
         ctx->sddl_dirty = false;
     }
 
     /* Service websockets */
-    libwebsocket_service(ctx->ws_ctx, 1000);
+    st_websocket_service(ctx->ws, 1000);
 
     return CANOPY_SUCCESS;
 }
