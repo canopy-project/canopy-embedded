@@ -15,10 +15,10 @@
  */
 
 #include "../include/canopy.h"
-#include "../include/canopy.h"
 #include "red_json.h"
 #include "red_string.h"
 #include "red_hash.h"
+#include "red_log.h"
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -91,12 +91,17 @@ typedef struct CanopyCtx_t
 
     struct libwebsocket_context *ws_ctx;
     struct libwebsocket *ws;
+    bool ws_write_ready;
 
     /* 
      * Hash table storing registered callbacks.
      *      (char *)propertyName ==> (_ConfigOpts_t *)
      */
     RedHash control_cb_hash;
+
+    /* Has SDDL been modified since last call to canopy_service? 
+     */
+    bool sddl_dirty;
 } CanopyCtx_t;
 
 typedef struct _ConfigOpts_t * _ConfigOpts;
@@ -130,7 +135,9 @@ CanopyCtx _get_ctx(_ConfigOpts opts)
 {
     assert(opts);
     if (opts->has_ctx)
+    {
         return opts->ctx;
+    }
     return gCtx;
 }
 
@@ -289,6 +296,7 @@ static CanopyResultEnum _config_opts_extend_va(_ConfigOpts dest, _ConfigOpts src
             default:
             {
                 /* Invalid parameter.  Throw error. */
+                printf("Invalid parameter %d\n", param);
                 return CANOPY_ERROR_INVALID_OPT;
             }
         }
@@ -364,7 +372,10 @@ static void _config_opts_extend(_ConfigOpts dest, _ConfigOpts base, _ConfigOpts 
 void _init_libcanopy_if_needed()
 {
     /* Create global ctx */
-    gCtx = canopy_create_ctx(NULL);
+    if (!gCtx)
+    {
+        gCtx = canopy_create_ctx(NULL);
+    }
 }
 
 CanopyCtx canopy_create_ctx(CanopyCtx copyOptsFrom)
@@ -399,7 +410,6 @@ CanopyResultEnum canopy_ctx_opt_impl(CanopyCtx ctx, ...)
 
     va_start(ap, ctx);
     result = _config_opts_extend_va(&ctx->opts, &ctx->opts, ap);
-    va_end(ap);
 
     return result;
 }
@@ -485,8 +495,7 @@ CanopyResultEnum canopy_on_change_impl(void *start, ...)
     /* Process arguments */
     va_start(ap, start);
     _config_opts_empty(&opts);
-    result = _config_opts_extend_va(&opts, &ctx->opts, ap);
-    va_end(ap);
+    result = _config_opts_extend_va(&opts, &ctx->opts, ap); /* This calls va_end */
     if (result != CANOPY_SUCCESS)
     {
         return result;
@@ -515,6 +524,11 @@ CanopyResultEnum canopy_on_change_impl(void *start, ...)
 
     /* TODO: Promises */
 
+    /* Mark SDDL as dirty, so that details about this control get sent to the
+     * Cloud Service next time canopy_service() is called
+     */
+    ctx->sddl_dirty = true;
+
     return CANOPY_SUCCESS;
 }
 
@@ -532,7 +546,6 @@ CanopyResultEnum canopy_post_sample_impl(void * start, ...)
     va_start(ap, start);
     _config_opts_empty(&opts);
     result = _config_opts_extend_va(&opts, &ctx->opts, ap);
-    va_end(ap);
     if (result != CANOPY_SUCCESS)
     {
         return result;
@@ -591,7 +604,6 @@ CanopyResultEnum canopy_notify_impl(void *start, ...)
     va_start(ap, start);
     _config_opts_empty(&opts);
     result = _config_opts_extend_va(&opts, &ctx->opts, ap);
-    va_end(ap);
     if (result != CANOPY_SUCCESS)
     {
         return result;
@@ -676,7 +688,56 @@ static int _ws_callback(
         void *in,
         size_t len)
 {
-    /* TODO: implement */
+    CanopyCtx ctx = (CanopyCtx)libwebsocket_context_user(this);
+    switch (reason)
+    {
+        case LWS_CALLBACK_CLIENT_ESTABLISHED:
+        {
+            fprintf(stderr, "ws_callback: LWS_CALLBACK_CLIENT_ESTABLISHED\n");
+#if 0
+            CanopyEventDetails_t eventDetails;
+            fprintf(stderr, "ws_callback: LWS_CALLBACK_CLIENT_ESTABLISHED\n");
+            libwebsocket_callback_on_writable(this, wsi);
+
+            /* Call event callback */
+            eventDetails.ctx = canopy;
+            eventDetails.eventType = CANOPY_EVENT_CONNECTION_ESTABLISHED;
+            eventDetails.userData = canopy->cbExtra;
+            canopy->cb(canopy, &eventDetails);
+            canopy->ws_closed = false; // TODO: change to "connected"
+#endif
+            ctx->ws_write_ready = true; /* TODO Is it actually writeable here? */
+
+            break;
+        }
+        case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
+            fprintf(stderr, "ws_callback: LWS_CALLBACK_CLIENT_CONNECTION_ERROR\n");
+            return -1;
+        case LWS_CALLBACK_CLOSED:
+        {
+#if 0
+            fprintf(stderr, "ws_callback: LWS_CALLBACK_CLOSED\n");
+            canopy->ws_closed = true;
+#endif
+            return -1;
+        }
+        case LWS_CALLBACK_CLIENT_WRITEABLE:
+        {
+            ctx->ws_write_ready = true;
+            break;
+        }
+        case LWS_CALLBACK_CLIENT_RECEIVE:
+#if 0
+            /* TODO: this next line seems dangerous! */
+            ((char *)in)[len] = '\0';
+            fprintf(stderr, "rx %d '%s'\n", (int)len, (char *)in);
+            _process_ws_payload(canopy, in);
+#endif
+            break;
+        /*case LWS_CALLBACK_CLIENT_CONFIRM_EXTENSION_SUPPORTED:*/
+        default:
+            break;
+    }
     return 0;
 }
 static CanopyResultEnum _ws_connect(_ConfigOpts opts)
@@ -744,9 +805,28 @@ static CanopyResultEnum _ws_connect(_ConfigOpts opts)
     return CANOPY_SUCCESS;
 }
 
+void _canopy_ws_write(CanopyCtx ctx, const char *msg)
+{
+    char *buf;
+    if (!ctx->ws_write_ready)
+    {
+        RedLog_DebugLog("canopy", "WS not ready for write!  Skipping.");
+        return;
+    }
+    size_t len = strlen(msg);
+    buf = calloc(1, LWS_SEND_BUFFER_PRE_PADDING + len + LWS_SEND_BUFFER_POST_PADDING);
+    strcpy(&buf[LWS_SEND_BUFFER_PRE_PADDING], msg);
+    libwebsocket_write(ctx->ws, (unsigned char *)&buf[LWS_SEND_BUFFER_PRE_PADDING], len, LWS_WRITE_TEXT);
+    ctx->ws_write_ready = false;
+    libwebsocket_callback_on_writable(ctx->ws_ctx, ctx->ws);
+    free(buf);
+}
+
 static CanopyResultEnum _canopy_service_opts(_ConfigOpts params)
 {
     CanopyCtx ctx = _get_ctx(params);
+
+    printf("Servicing\n");
 
     /* Start server if necessary */
     if (!ctx->ws)
@@ -755,10 +835,30 @@ static CanopyResultEnum _canopy_service_opts(_ConfigOpts params)
         result = _ws_connect(params);
         if (result != CANOPY_SUCCESS)
             return result;
+        /* Service websocket for first time */
+        libwebsocket_service(ctx->ws_ctx, 100);
     }
 
-    printf("Servicing\n");
-    return CANOPY_ERROR_NOT_IMPLEMENTED;
+    /* If SDDL dirty flag is set, write updated SDDL to websocket */
+    if (ctx->sddl_dirty && ctx->ws_write_ready)
+    {
+        printf("SDDL IS DIRTY SENDING PAYLOAD\n");
+        /* Construct payload */
+        char * payload;
+        /* TODO: make this work with multiple controls */
+        char * controlName = "onoff";
+        payload = RedString_PrintfToNewChars("{\"device_id\" : \"%s\", \"__sddl_update\" : {\"control %s\" : { \"datatype\" : \"float32\" } } }", 
+                params->device_uuid,
+                controlName);
+        _canopy_ws_write(ctx, payload);
+
+        ctx->sddl_dirty = false;
+    }
+
+    /* Service websockets */
+    libwebsocket_service(ctx->ws_ctx, 1000);
+
+    return CANOPY_SUCCESS;
 }
 
 
@@ -773,9 +873,9 @@ CanopyResultEnum canopy_run_event_loop_impl(void *start, ...)
     va_start(ap, start);
     _config_opts_empty(&opts);
     result = _config_opts_extend_va(&opts, &ctx->opts, ap);
-    va_end(ap);
     if (result != CANOPY_SUCCESS)
     {
+        fprintf(stderr, "Error processing arguments in canopy_run_event_loop\n");
         return result;
     }
 
@@ -800,9 +900,9 @@ CanopyResultEnum canopy_service_impl(void *start, ...)
     va_start(ap, start);
     _config_opts_empty(&opts);
     result = _config_opts_extend_va(&opts, &ctx->opts, ap);
-    va_end(ap);
     if (result != CANOPY_SUCCESS)
     {
+        fprintf(stderr, "Error processing arguments in canopy_service\n");
         return result;
     }
 
