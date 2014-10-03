@@ -20,7 +20,8 @@
  * This file implements the API entrypoints declared in canopy.h
  */
 
-#include "../include/canopy.h"
+#include <canopy.h>
+#include "http/st_http.h"
 #include "red_json.h"
 #include "red_string.h"
 #include "red_hash.h"
@@ -29,7 +30,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <curl/curl.h>
 #include <unistd.h>
 #include <libwebsockets.h>
 
@@ -420,67 +420,6 @@ CanopyResultEnum canopy_ctx_opt_impl(CanopyCtx ctx, ...)
     return result;
 }
 
-static size_t _canopy_curl_write_func(void *ptr, size_t size, size_t nmemb, void *userdata)
-{
-    RedStringList response = (RedStringList)userdata;
-    RedStringList_AppendChars(response, ptr);
-    return size*nmemb;
-}
-
-static CanopyResultEnum _canopy_http_request(CanopyCtx ctx, const char *url, const char *payload, CanopyPromise *outPromise)
-{
-    /* TODO: fix cleanup & error handling */
-    CURL *curl = NULL;
-    RedStringList response_sl;
-    char *response_body;
-    //RedJsonObject response_json;
-
-    printf("Sending payload to %s:\n%s\n\n", url, payload);
-
-    response_sl = RedStringList_New();
-
-    /*
-    results = calloc(1, sizeof(_CanopyHTTPResults));
-    if (!results)
-    {
-        return CANOPY_ERROR_OUT_OF_MEMORY;
-    }*/
-
-    curl = curl_easy_init();
-    if (!curl)
-    {
-        goto cleanup;
-    }
-
-    curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, _canopy_curl_write_func);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, response_sl);
-
-    curl_easy_perform(curl);
-
-    /* TODO: check server response */
-    response_body = RedStringList_ToNewChars(response_sl);
-    if (!response_body)
-    {
-        return CANOPY_ERROR_OUT_OF_MEMORY;
-    }
-    printf("Response: %s\n", response_body);
-
-    /* Parse response body */
-    /*response_json = RedJson_Parse(response_body);
-    if (!response_json)
-    {
-        return CANOPY_ERROR_UNKNOWN;
-    }
-    */
-    return CANOPY_SUCCESS;
-
-cleanup:
-    RedStringList_Free(response_sl);
-    return CANOPY_ERROR_UNKNOWN;
-}
-
 CanopyCtx canopy_global_ctx()
 {
     _init_libcanopy_if_needed();
@@ -587,7 +526,7 @@ CanopyResultEnum canopy_post_sample_impl(void * start, ...)
         }
         /* Use curl */
         CanopyPromise promise;
-        _canopy_http_request(ctx, url, RedJsonObject_ToJsonString(payload_json) /* TODO: mem leak */, &promise);
+        st_http_post(ctx, url, RedJsonObject_ToJsonString(payload_json) /* TODO: mem leak */, &promise);
         free(url);
     }
     else
@@ -638,7 +577,7 @@ CanopyResultEnum canopy_notify_impl(void *start, ...)
         }
         /* Use curl */
         CanopyPromise promise;
-        _canopy_http_request(ctx, url, RedJsonObject_ToJsonString(payload_json) /* TODO: mem leak */, &promise);
+        st_http_post(ctx, url, RedJsonObject_ToJsonString(payload_json) /* TODO: mem leak */, &promise);
         free(url);
     }
     else
