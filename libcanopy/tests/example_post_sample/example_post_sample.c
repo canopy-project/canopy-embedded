@@ -13,23 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "../include/canopy.h"
+#include <canopy.h>
 
 int main(void) 
 {
-    if (0) {
-        canopy_post_sample(
-            CANOPY_CLOUD_SERVER, "dev02.canopy.link",
-            CANOPY_DEVICE_UUID, "9dfe2a00-efe2-45f9-a84c-8afc69caf4e7",
-            CANOPY_PROPERTY_NAME, "cpu",
-            CANOPY_VALUE_FLOAT32, 0.22f
-        );
-    }
-    canopy_notify(
+    canopy_post_sample(
         CANOPY_CLOUD_SERVER, "dev02.canopy.link",
         CANOPY_DEVICE_UUID, "9dfe2a00-efe2-45f9-a84c-8afc69caf4e7",
-        CANOPY_NOTIFY_TYPE, CANOPY_NOTIFY_TYPE,
-        CANOPY_NOTIFY_MSG, "Testing testing"
+        CANOPY_PROPERTY_NAME, "cpu",
+        CANOPY_VALUE_FLOAT32, 0.22f
     );
     return 0;
 }

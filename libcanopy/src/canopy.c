@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Gregory Prisament
+ * Copyright 2014 SimpleThings, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,743 +13,415 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "canopy.h"
-#include "canopy_internal.h"
-#include "red_hash.h"
-#include "red_json.h"
-#include "red_log.h"
-#include "red_string.h"
-#include <unistd.h>
-#include <assert.h>
 
-CanopyContext canopy_init()
+/*
+ * canopy.c
+ *
+ * This file implements the API entrypoints declared in canopy.h
+ */
+
+#include <canopy.h>
+#include "http/st_http.h"
+#include "options/st_options.h"
+#include "websocket/st_websocket.h"
+#include "red_json.h"
+#include "red_string.h"
+#include "red_hash.h"
+#include "red_log.h"
+#include <stdarg.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <libwebsockets.h>
+
+/*
+ *
+ * COMPILE WITH:
+ * gcc -Isrc -Iinclude -I3rdparty/libred/include -I3rdparty/libred/under_construction -c src/canopy_simple.c -Wall -Werror
+ */
+
+static CanopyCtx gCtx=NULL;
+
+typedef struct
 {
-    CanopyContext ctx = NULL;
-    bool result;
-    char *uuid = NULL;
-    ctx = calloc(1, sizeof(CanopyContext_t));
+} CanopyPromise_t;
+
+typedef struct
+{
+} CanopyResult_t;
+
+typedef struct CanopyCtx_t
+{
+    STOptions options;
+
+    STWebSocket ws;
+
+    /* 
+     * Hash table storing registered callbacks.
+     *      (char *)propertyName ==> (_ConfigOpts_t *)
+     */
+    RedHash control_cb_hash;
+
+    /* Has SDDL been modified since last call to canopy_service? 
+     */
+    bool sddl_dirty;
+} CanopyCtx_t;
+
+void _init_libcanopy_if_needed()
+{
+    /* Create global ctx */
+    if (!gCtx)
+    {
+        gCtx = canopy_create_ctx(NULL);
+    }
+}
+
+CanopyCtx canopy_create_ctx(CanopyCtx copyOptsFrom)
+{
+    CanopyCtx ctx;
+
+    ctx = calloc(1, sizeof(struct CanopyCtx_t));
     if (!ctx)
     {
-        /* TODO: set error */
-        goto fail;
+        return NULL;
     }
 
-    ctx->properties = RedHash_New(0);
-    if (!ctx->properties)
-    {
-        goto fail;
-    }
-    ctx->initialized = true;
+    ctx->control_cb_hash = RedHash_New(0);
 
-    /* Set defaults */
-    ctx->cloudHost = RedString_strdup("canopy.link");
-    ctx->cloudHttpPort = 80;
-    ctx->cloudHttpsPort = 433;
-    ctx->cloudWebProtocol = "https";
-    _canopy_load_system_config(ctx);
-
-    uuid = canopy_read_system_uuid();
-    if (!uuid)
+    if (copyOptsFrom == NULL)
     {
-        RedLog_Warn("Could not determine device UUID.");
-        RedLog_Warn("Please run 'sudo cano uuid --install'.");
-        RedLog_Warn("Or call canopy_set_device_id before canopy_connect");
+        ctx->options = st_options_new_default();
     }
     else
     {
-        result = canopy_set_device_id(ctx, uuid);
-        if (!result)
-        {
-            RedLog_Error("Could not set UUID to %s", uuid);
-            goto fail;
-        }
+        ctx->options = st_options_dup(copyOptsFrom->options);
+    }
+    if (!ctx->options)
+    {
+        RedLog_Error("OOM in canopy_create_ctx");
+        goto fail;
     }
 
-    free(uuid);
     return ctx;
 fail:
-    free(uuid);
-    if (ctx)
-    {
-        /*RedHash_Free(ctx->properties);*/
-        free(ctx);
-    }
+    free(ctx->options);
+    free(ctx);
     return NULL;
 }
 
-bool canopy_set_device_id(CanopyContext canopy, const char *uuid)
+CanopyResultEnum canopy_ctx_opt_impl(CanopyCtx ctx, ...)
 {
-    canopy->uuid = calloc(1, strlen(uuid)+1);
-    if (!canopy->uuid)
-    {
-        return false;
-    }
-    strcpy(canopy->uuid, uuid);
-    return true;
-}
+    va_list ap;
+    CanopyResultEnum result;
+    _init_libcanopy_if_needed();
 
-bool canopy_set_device_id_filename(CanopyContext canopy, const char *filename)
-{
-    FILE *fp;
-    bool result;
-    long filesize;
-    char *buffer;
-
-    fp = fopen(filename, "r");
-    if (!fp)
-    {
-        return false;
-    }
-
-    fseek(fp, 0, SEEK_END);
-    filesize = ftell(fp); 
-    fseek(fp, 0, SEEK_SET);
-    buffer = calloc(1, filesize+1);
-    fread(buffer, 1, filesize, fp);
-    result = canopy_set_device_id(canopy, buffer);
-    free(buffer);
-    fclose(fp);
+    result = st_options_extend_varargs(ctx->options, ctx, ap);
 
     return result;
 }
 
-bool canopy_register_event_callback(CanopyContext canopy, CanopyEventCallbackRoutine fn, void *extra)
+CanopyCtx canopy_global_ctx()
 {
-    canopy->cb = fn;
-    canopy->cbExtra = extra;
-    return true;
+    _init_libcanopy_if_needed();
+    return gCtx;
 }
 
-
-CanopyReport canopy_begin_report(CanopyContext canopy)
+CanopyResultEnum canopy_on_change_impl(void *start, ...)
 {
-    CanopyReport report = NULL;
-    report = calloc(1, sizeof(CanopyReport_t));
-    if (!report)
+    // TODO: Free memory 
+    STOptions options;
+    STOptions optionsCopy;
+    va_list ap;
+    _init_libcanopy_if_needed();
+    CanopyCtx ctx = gCtx;
+    CanopyResultEnum result;
+    /* TODO: support other contexts */
+
+    /* Process arguments */
+    result = st_options_new_extend_varargs(&options, ctx->options, start, ap);
+    if (result != CANOPY_SUCCESS)
     {
-        goto fail;
+        // TODO: Error details
+        return result;
     }
 
-    report->values = RedHash_New(0);
-    if (!report->values)
+    /* Copy options */
+    optionsCopy = st_options_dup(options);
+    if (!optionsCopy)
     {
-        goto fail;
+        return CANOPY_ERROR_OUT_OF_MEMORY;
     }
 
-    report->ctx = canopy; /* TODO: refcnt? */
-
-    return report;
-fail:
-    if (report)
+    /* Register callback by adding to hash table. 
+     */
+    if (!st_option_is_set(options, CANOPY_PROPERTY_NAME))
     {
-        /*RedHash_Free(report->values);*/
-        free(report);
+        /* Property name required */
+        return CANOPY_ERROR_MISSING_REQUIRED_OPTION;
     }
-    return NULL;
+
+    /* TODO: How to handle mutliple callbacks for single property name?
+     * Should we override/replace or trigger both callbacks?
+     * TODO: RedHash_Insert should return error code
+     */
+    RedHash_InsertS(ctx->control_cb_hash, options->val_CANOPY_PROPERTY_NAME, optionsCopy);
+
+    /* TODO: Promises */
+
+    /* Mark SDDL as dirty, so that details about this control get sent to the
+     * Cloud Service next time canopy_service() is called
+     */
+    ctx->sddl_dirty = true;
+
+    return CANOPY_SUCCESS;
 }
 
-bool _canopy_report_generic(CanopyReport report, const char *parameter, const _CanopyPropertyValue *propval)
+CanopyResultEnum canopy_post_sample_impl(void * start, ...)
 {
-    CanopyContext ctx = report->ctx;
-    _CanopyPropertyValue *propvalCopy;
-    _CanopyPropertyValue *oldValue;
+    /* TODO: Free memory */
+    STOptions options;
+    va_list ap;
+    _init_libcanopy_if_needed();
+    CanopyCtx ctx = gCtx;
+    CanopyResultEnum result;
+    /* TODO: support other contexts */
 
-    SDDLSensor sensor = sddl_class_lookup_sensor(ctx->sddl, parameter);
-    if (!sensor)
+    /* Process arguments */
+    result = st_options_new_extend_varargs(&options, ctx->options, start, ap);
+    if (result != CANOPY_SUCCESS)
     {
-        RedLog_Warn("Device does not have sensor %s", parameter);
-        return false;
+        // TODO: Error details
+        return result;
     }
 
-    if (report->finished)
+    /* Construct payload  */
+    RedJsonObject payload_json = RedJsonObject_New();
+    if (!st_option_is_set(options, CANOPY_PROPERTY_NAME))
     {
-        /* canopy_end_report already called, cannot make further changes. */
-        RedLog_Warn("Cannot report values after canopy_end_report has been called", 0);
-        return false;
+        /* Property name required */
+        return CANOPY_ERROR_MISSING_REQUIRED_OPTION;
+    }
+    if (st_option_is_set(options, CANOPY_VALUE_FLOAT32))
+    {
+        RedJsonObject_SetNumber(payload_json, options->val_CANOPY_PROPERTY_NAME, options->val_CANOPY_VALUE_FLOAT32);
+    }
+    else
+    {
+        /* value required */
+        return CANOPY_ERROR_MISSING_REQUIRED_OPTION;
     }
 
-    if (sddl_sensor_datatype(sensor) != propval->datatype)
+    /* Send payload to server, if using HTTP */
+    if (options->val_CANOPY_REPORT_PROTOCOL == CANOPY_PROTOCOL_HTTP)
     {
-        /* incorrect datatype */
-        RedLog_Warn("Incorrect datatype reported for %s", parameter);
-        return false;
-    }
-
-    /* validate input value */
-    switch (propval->datatype)
-    {
-        case SDDL_DATATYPE_INT8:
+        char *url;
+        url = RedString_PrintfToNewChars("http://%s/di/device/%s", 
+                options->val_CANOPY_CLOUD_SERVER,
+                options->val_CANOPY_DEVICE_UUID);
+        if (!url)
         {
-            int8_t value = propval->val.val_int8;
-            if (sddl_sensor_min_value(sensor) && value < (int8_t)*sddl_sensor_min_value(sensor))
-            {
-                /* value too low */
-                return false;
-            }
-            else if (sddl_sensor_max_value(sensor) && value > (int8_t)*sddl_sensor_max_value(sensor))
-            {
-                /* value too large */
-                return false;
-            }
-            break;
+            return CANOPY_ERROR_OUT_OF_MEMORY;
         }
-        case SDDL_DATATYPE_UINT8:
-        {
-            uint8_t value = propval->val.val_uint8;
-            if (sddl_sensor_min_value(sensor) && value < (uint8_t)*sddl_sensor_min_value(sensor))
-            {
-                /* value too low */
-                return false;
-            }
-            else if (sddl_sensor_max_value(sensor) && value > (uint8_t)*sddl_sensor_max_value(sensor))
-            {
-                /* value too large */
-                return false;
-            }
-            break;
-        }
-        case SDDL_DATATYPE_INT16:
-        {
-            int16_t value = propval->val.val_int16;
-            if (sddl_sensor_min_value(sensor) && value < (int16_t)*sddl_sensor_min_value(sensor))
-            {
-                /* value too low */
-                return false;
-            }
-            else if (sddl_sensor_max_value(sensor) && value > (int16_t)*sddl_sensor_max_value(sensor))
-            {
-                /* value too large */
-                return false;
-            }
-            break;
-        }
-        case SDDL_DATATYPE_UINT16:
-        {
-            int16_t value = propval->val.val_uint16;
-            if (sddl_sensor_min_value(sensor) && value < (uint16_t)*sddl_sensor_min_value(sensor))
-            {
-                /* value too low */
-                return false;
-            }
-            else if (sddl_sensor_max_value(sensor) && value > (uint16_t)*sddl_sensor_max_value(sensor))
-            {
-                /* value too large */
-                return false;
-            }
-            break;
-        }
-        case SDDL_DATATYPE_INT32:
-        {
-            int16_t value = propval->val.val_int32;
-            if (sddl_sensor_min_value(sensor) && value < (int32_t)*sddl_sensor_min_value(sensor))
-            {
-                /* value too low */
-                return false;
-            }
-            else if (sddl_sensor_max_value(sensor) && value > (int32_t)*sddl_sensor_max_value(sensor))
-            {
-                /* value too large */
-                return false;
-            }
-            break;
-        }
-        case SDDL_DATATYPE_UINT32:
-        {
-            int16_t value = propval->val.val_uint32;
-            if (sddl_sensor_min_value(sensor) && value < (uint32_t)*sddl_sensor_min_value(sensor))
-            {
-                /* value too low */
-                return false;
-            }
-            else if (sddl_sensor_max_value(sensor) && value > (uint32_t)*sddl_sensor_max_value(sensor))
-            {
-                /* value too large */
-                return false;
-            }
-            break;
-        }
-        case SDDL_DATATYPE_FLOAT32:
-        {
-            int16_t value = propval->val.val_float32;
-            if (sddl_sensor_min_value(sensor) && value < (float)*sddl_sensor_min_value(sensor))
-            {
-                /* value too low */
-                return false;
-            }
-            else if (sddl_sensor_max_value(sensor) && value > (float)*sddl_sensor_max_value(sensor))
-            {
-                /* value too large */
-                return false;
-            }
-            break;
-        }
-        case SDDL_DATATYPE_FLOAT64:
-        {
-            int16_t value = propval->val.val_float64;
-            if (sddl_sensor_min_value(sensor) && value < *sddl_sensor_min_value(sensor))
-            {
-                /* value too low */
-                return false;
-            }
-            else if (sddl_sensor_max_value(sensor) && value > *sddl_sensor_max_value(sensor))
-            {
-                /* value too large */
-                return false;
-            }
-            break;
-        }
-        case SDDL_DATATYPE_STRING:
-        {
-            /* TODO: Regex checking */
-            break;
-        }
-        default:
-        {
-            break;
-        }
+        /* Use curl */
+        CanopyPromise promise;
+        st_http_post(ctx, url, RedJsonObject_ToJsonString(payload_json) /* TODO: mem leak */, &promise);
+        free(url);
     }
-
-    /* copy property value object */
-    propvalCopy = malloc(sizeof(_CanopyPropertyValue));
-    if (!propval)
+    else
     {
-        /* allocation failed */
-        return false;
+        return CANOPY_ERROR_PROTOCOL_NOT_SUPPORTED;
     }
-    memcpy(propvalCopy, propval, sizeof(_CanopyPropertyValue));
 
-    /* Add it to report's hash table */
-    if (RedHash_UpdateOrInsertS(report->values, (void **)&oldValue, parameter, propvalCopy))
+    return CANOPY_SUCCESS;
+}
+
+CanopyResultEnum canopy_notify_impl(void *start, ...)
+{
+    STOptions options;
+    va_list ap;
+    _init_libcanopy_if_needed();
+    CanopyCtx ctx = gCtx;
+    CanopyResultEnum result;
+
+    /* Process arguments */
+    result = st_options_new_extend_varargs(&options, ctx->options, start, ap);
+    if (result != CANOPY_SUCCESS)
     {
-        /* Free any value that it replaced */
-        free(oldValue);
+        // TODO: Error details
+        return result;
     }
-    return true;
-}
 
-bool canopy_report_void(CanopyReport report, const char *parameter)
-{
-    _CanopyPropertyValue propval;
-    propval.datatype = SDDL_DATATYPE_VOID;
-    return _canopy_report_generic(report, parameter, &propval);
-}
-bool canopy_report_string(CanopyReport report, const char *parameter, const char *value)
-{
-    _CanopyPropertyValue propval;
-    propval.datatype = SDDL_DATATYPE_STRING;
-    propval.val.val_string = RedString_strdup(value);
-    return _canopy_report_generic(report, parameter, &propval);
-}
-bool canopy_report_bool(CanopyReport report, const char *parameter, bool value)
-{
-    _CanopyPropertyValue propval;
-    propval.datatype = SDDL_DATATYPE_BOOL;
-    propval.val.val_bool = value;
-    return _canopy_report_generic(report, parameter, &propval);
-}
-bool canopy_report_i8(CanopyReport report, const char *parameter, int8_t value)
-{
-    _CanopyPropertyValue propval;
-    propval.datatype = SDDL_DATATYPE_INT8;
-    propval.val.val_int8 = value;
-    return _canopy_report_generic(report, parameter, &propval);
-}
-bool canopy_report_u8(CanopyReport report, const char *parameter, uint8_t value)
-{
-    _CanopyPropertyValue propval;
-    propval.datatype = SDDL_DATATYPE_UINT8;
-    propval.val.val_uint8 = value;
-    return _canopy_report_generic(report, parameter, &propval);
-}
-bool canopy_report_i16(CanopyReport report, const char *parameter, int16_t value)
-{
-    _CanopyPropertyValue propval;
-    propval.datatype = SDDL_DATATYPE_INT16;
-    propval.val.val_int16 = value;
-    return _canopy_report_generic(report, parameter, &propval);
-}
-bool canopy_report_u16(CanopyReport report, const char *parameter, uint16_t value)
-{
-    _CanopyPropertyValue propval;
-    propval.datatype = SDDL_DATATYPE_UINT16;
-    propval.val.val_uint16 = value;
-    return _canopy_report_generic(report, parameter, &propval);
-}
-bool canopy_report_i32(CanopyReport report, const char *parameter, int32_t value)
-{
-    _CanopyPropertyValue propval;
-    propval.datatype = SDDL_DATATYPE_INT32;
-    propval.val.val_int32 = value;
-    return _canopy_report_generic(report, parameter, &propval);
-}
-bool canopy_report_u32(CanopyReport report, const char *parameter, uint32_t value)
-{
-    _CanopyPropertyValue propval;
-    propval.datatype = SDDL_DATATYPE_UINT32;
-    propval.val.val_uint32 = value;
-    return _canopy_report_generic(report, parameter, &propval);
-}
-bool canopy_report_float32(CanopyReport report, const char *parameter, float value)
-{
-    _CanopyPropertyValue propval;
-    propval.datatype = SDDL_DATATYPE_FLOAT32;
-    propval.val.val_float32 = value;
-    return _canopy_report_generic(report, parameter, &propval);
-}
-bool canopy_report_float64(CanopyReport report, const char *parameter, double value)
-{
-    _CanopyPropertyValue propval;
-    propval.datatype = SDDL_DATATYPE_FLOAT64;
-    propval.val.val_float64 = value;
-    return _canopy_report_generic(report, parameter, &propval);
-}
-bool canopy_report_datetime(CanopyReport report, const char *parameter, const struct tm *datetime)
-{
-    _CanopyPropertyValue propval;
-    propval.datatype = SDDL_DATATYPE_DATETIME;
-    memcpy(&propval.val.val_datetime, datetime, sizeof(struct tm));
-    return _canopy_report_generic(report, parameter, &propval);
-}
-
-bool canopy_send_report(CanopyReport report)
-{
-    /* construct websocket message */
-    CanopyContext canopy = report->ctx;
-    RedHashIterator_t iter;
-    const void *key;
-    size_t keySize;
-    const void * value;
-    RedJsonObject sddlJson;
-
-    RedJsonObject jsonObj = RedJsonObject_New();
-    RED_HASH_FOREACH(iter, report->values, &key, &keySize, &value)
+    /* Construct payload */
+    RedJsonObject payload_json = RedJsonObject_New();
+    if (!options->has_CANOPY_NOTIFY_MSG)
     {
-        _CanopyPropertyValue * propVal = (_CanopyPropertyValue *)value;
-        switch (propVal->datatype)
+        /* Notification message required */
+        return CANOPY_ERROR_MISSING_REQUIRED_OPTION;
+    }
+
+    RedJsonObject_SetString(payload_json, "notify-msg", options->val_CANOPY_NOTIFY_MSG);
+    RedJsonObject_SetString(payload_json, "notify-type", "email");
+
+    if (options->has_CANOPY_REPORT_PROTOCOL == CANOPY_PROTOCOL_HTTP)
+    {
+        char *url;
+        url = RedString_PrintfToNewChars("http://%s/di/device/%s/notify", 
+                options->val_CANOPY_CLOUD_SERVER,
+                options->val_CANOPY_DEVICE_UUID);
+        if (!url)
         {
-            case SDDL_DATATYPE_VOID:
-            {
-                RedJsonObject_SetNull(jsonObj, key);
-                break;
-            }
-            case SDDL_DATATYPE_STRING:
-            {
-                RedJsonObject_SetString(jsonObj, key, propVal->val.val_string);
-                break;
-            }
-            case SDDL_DATATYPE_BOOL:
-            {
-                RedJsonObject_SetBoolean(jsonObj, key, propVal->val.val_bool);
-                break;
-            }
-            case SDDL_DATATYPE_INT8:
-            {
-                RedJsonObject_SetNumber(jsonObj, key, (double)propVal->val.val_int8);
-                break;
-            }
-            case SDDL_DATATYPE_UINT8:
-            {
-                RedJsonObject_SetNumber(jsonObj, key, (double)propVal->val.val_uint8);
-                break;
-            }
-            case SDDL_DATATYPE_INT16:
-            {
-                RedJsonObject_SetNumber(jsonObj, key, (double)propVal->val.val_int16);
-                break;
-            }
-            case SDDL_DATATYPE_UINT16:
-            {
-                RedJsonObject_SetNumber(jsonObj, key, (double)propVal->val.val_uint16);
-                break;
-            }
-            case SDDL_DATATYPE_INT32:
-            {
-                RedJsonObject_SetNumber(jsonObj, key, (double)propVal->val.val_int32);
-                break;
-            }
-            case SDDL_DATATYPE_UINT32:
-            {
-                RedJsonObject_SetNumber(jsonObj, key, (double)propVal->val.val_uint32);
-                break;
-            }
-            case SDDL_DATATYPE_FLOAT32:
-            {
-                RedJsonObject_SetNumber(jsonObj, key, (double)propVal->val.val_float32);
-                break;
-            }
-            case SDDL_DATATYPE_FLOAT64:
-            {
-                RedJsonObject_SetNumber(jsonObj, key, propVal->val.val_float64);
-                break;
-            }
-            case SDDL_DATATYPE_DATETIME:
-            {
-                /*RedJsonObject_SetNumber(jsonObj, key, propVal->val.val_float64);*/
-                RedLog_Warn("Datetime reporting not implemented");
-                break;
-            }
-            default:
-                assert(!"unimplemented datatype");
+            return CANOPY_ERROR_OUT_OF_MEMORY;
         }
+        /* Use curl */
+        CanopyPromise promise;
+        st_http_post(ctx, url, RedJsonObject_ToJsonString(payload_json) /* TODO: mem leak */, &promise);
+        free(url);
     }
-
-    RedJsonObject_SetString(jsonObj, "device_id", report->ctx->uuid);
-
-    sddlJson = sddl_class_json(canopy->sddl);
-    RedJsonObject_SetObject(jsonObj, "sddl", sddlJson);
-
-    RedLog_DebugLog("canopy", "Sending Message: %s\n", RedJsonObject_ToJsonString(jsonObj));
-    _canopy_ws_write(report->ctx, RedJsonObject_ToJsonString(jsonObj));
-    return false;
-}
-
-bool canopy_load_sddl(CanopyContext canopy, const char *filename, const char *className)
-{
-    FILE *fp;
-    bool out;
-    fp = fopen(filename, "r");
-    if (!fp)
+    else
     {
-        return false;
+        return CANOPY_ERROR_PROTOCOL_NOT_SUPPORTED;
     }
-    out = canopy_load_sddl_file(canopy, fp, className);
-    fclose(fp);
-    return out;
+
+    return CANOPY_SUCCESS;
 }
 
-bool canopy_load_sddl_file(CanopyContext canopy, FILE *file, const char *className)
+CanopyResultEnum canopy_promise_on_done(
+        CanopyPromise promise, 
+        CanopyResultCallback cb)
 {
-    /* Read entire file into memory */
-    long filesize;
-    char *buffer;
-    bool out;
-    fseek(file, 0, SEEK_END);
-    filesize = ftell(file); 
-    fseek(file, 0, SEEK_SET);
-    buffer = calloc(1, filesize+1);
-    fread(buffer, 1, filesize, file);
-    out = canopy_load_sddl_string(canopy, buffer, className);
-    free(buffer);
-    return out;
+
+    return CANOPY_ERROR_NOT_IMPLEMENTED;
+    /* TODO: Implement */
 }
 
-bool canopy_load_sddl_string(CanopyContext canopy, const char *sddl, const char *className)
+CanopyResultEnum canopy_promise_on_failure(
+        CanopyPromise promise, 
+        CanopyResultCallback cb)
 {
-    SDDLDocument doc;
-    SDDLParseResult result;
-    SDDLClass cls;
+    /* TODO: Implement */
+    return CANOPY_ERROR_NOT_IMPLEMENTED;
+}
 
-    result = sddl_parse(sddl);
-    if (!sddl_parse_result_ok(result))
+CanopyResultEnum canopy_promise_on_success(
+        CanopyPromise promise, 
+        CanopyResultCallback cb)
+{
+    /* TODO: Implement */
+    return CANOPY_ERROR_NOT_IMPLEMENTED;
+}
+
+CanopyResultEnum canopy_promise_result(CanopyPromise promise)
+{
+    /* TODO: Implement */
+    return CANOPY_ERROR_NOT_IMPLEMENTED;
+}
+
+CanopyResultEnum canopy_promise_wait(CanopyPromise promise, ...)
+{
+    /* TODO: Implement */
+    return CANOPY_ERROR_NOT_IMPLEMENTED;
+}
+
+
+static CanopyResultEnum _canopy_service_opts(STOptions options)
+{
+    CanopyCtx ctx = gCtx; // TODO: Use real ctx
+
+    printf("Servicing\n");
+
+    /* Start server if necessary */
+    if (!st_websocket_is_connected(ctx->ws))
     {
-        RedLog_ErrorLog("canopy", "Failed to parse SDDL");
-        return false;
+        CanopyResultEnum result;
+        result = st_websocket_connect(
+                ctx->ws,
+                options->val_CANOPY_CLOUD_SERVER,
+                80, // TODO: don't hardcode
+                false, // TODO: don't hardcode
+                "/echo"); // TODO: rename
+        if (result != CANOPY_SUCCESS)
+            return result;
+
+        /* Service websocket for first time */
+        st_websocket_service(ctx->ws, 100);
     }
 
-    doc = sddl_parse_result_ref_document(result);
-
-    cls = sddl_document_lookup_class(doc, className);
-    if (!cls)
+    /* If SDDL dirty flag is set, write updated SDDL to websocket */
+    if (ctx->sddl_dirty && st_websocket_is_write_ready(ctx->ws))
     {
-        RedLog_ErrorLog("canopy", "Class not found in SDDL: %s", className);
-        return false;
+        printf("SDDL IS DIRTY SENDING PAYLOAD\n");
+        /* Construct payload */
+        char * payload;
+        /* TODO: make this work with multiple controls */
+        char * controlName = "onoff";
+        payload = RedString_PrintfToNewChars("{\"device_id\" : \"%s\", \"__sddl_update\" : {\"control %s\" : { \"datatype\" : \"float32\" } } }", 
+                options->val_CANOPY_DEVICE_UUID,
+                controlName);
+        st_websocket_write(ctx->ws, payload);
+
+        ctx->sddl_dirty = false;
     }
 
-    canopy->sddl = cls;
-    return true;
+    /* Service websockets */
+    st_websocket_service(ctx->ws, 1000);
+
+    return CANOPY_SUCCESS;
 }
 
 
-bool canopy_event_loop(CanopyContext canopy)
+CanopyResultEnum canopy_run_event_loop_impl(void *start, ...)
 {
-    int cnt = 0;
-    while (!canopy->quitRequested)
+    STOptions options;
+    va_list ap;
+    _init_libcanopy_if_needed();
+    CanopyCtx ctx = gCtx;
+    CanopyResultEnum result;
+
+    result = st_options_new_extend_varargs(&options, ctx->options, start, ap);
+    if (result != CANOPY_SUCCESS)
     {
-        if (canopy->cb && (cnt % 10 == 0))
-        {
-            CanopyEventDetails event;
-            event = calloc(1, sizeof(CanopyEventDetails_t));
-            event->ctx = canopy;
-            event->eventType = CANOPY_EVENT_REPORT_REQUESTED;
-            event->userData = canopy->cbExtra;
-            canopy->cb(canopy, event);
-            free(event);
-        }
-        libwebsocket_service(canopy->ws_ctx, 1000);
-        cnt++;
-        /* Try to reconnect */
-        if (canopy->ws_closed)
-        {
-            /* we need to tear down entire ws ctx, because there's no other way
-             * to dissable the established callbacks (and we don't want them
-             * triggering anymore */
-            canopy->ws_write_ready = false;
-            libwebsocket_context_destroy(canopy->ws_ctx);
-            canopy_connect(canopy);
-        }
-        while (canopy->ws_closed)
-        {
-            fprintf(stderr, "Trying to reconnect...\n");
-            libwebsocket_service(canopy->ws_ctx, 500);
-            libwebsocket_service(canopy->ws_ctx, 500);
-            libwebsocket_service(canopy->ws_ctx, 500);
-            libwebsocket_service(canopy->ws_ctx, 500);
-            sleep(1);
-            if (!canopy->ws_closed)
-                break;
-            canopy->ws = libwebsocket_client_connect(
-                    canopy->ws_ctx, 
-                    canopy->cloudHost, 
-                    canopy_get_cloud_port(canopy), 
-                    canopy_ws_use_ssl(canopy), 
-                    "/echo",
-                    canopy->cloudHost,
-                    "localhost", /*origin?*/
-                    "echo",
-                    -1 /* latest ietf version */
-            );
-            if (!canopy->ws)
-            {
-                fprintf(stderr, "libwebsocket_client_connect failed\n");
-            }
-            else
-            {
-                /* 
-                 * This could be a failure, or a success, depending on which callback gets called
-                 */
-            }
-        }
+        // TODO: Error details
+        fprintf(stderr, "Error processing arguments in canopy_run_event_loop\n");
+        return result;
     }
-    libwebsocket_context_destroy(canopy->ws_ctx);
-    return true;
-}
 
-void canopy_quit(CanopyContext canopy)
-{
-    canopy->quitRequested = true;
-}
-
-void canopy_shutdown(CanopyContext canopy)
-{
-    free(canopy);
-}
-
-FILE * canopy_open_config_file(const char* filename)
-{
-    FILE *fp;
-    const char *canopyHome;
-    const char *home;
-
-    /* Try: $CANOPY_HOME/<filename> */
-    canopyHome = getenv("CANOPY_HOME");
-    if (canopyHome)
+    while (1)
     {
-        RedString fns = RedString_NewPrintf("%s/%s", 2048, canopyHome, filename);
-        if (!fns)
-            return NULL;
-        fp = fopen(RedString_GetChars(fns), "r");
-        printf("Using config file: %s\n", RedString_GetChars(fns));
-        RedString_Free(fns);
-        if (fp)
-            return fp;
+        _canopy_service_opts(options);
+        sleep(1); /* TODO: No sleeping! */
     }
-
-    /* Try: ~/.canopy/<filename> */
-    home = getenv("HOME");
-    if (home)
-    {
-        RedString fns = RedString_NewPrintf("%s/.canopy/%s", 2048, home, filename);
-        if (!fns)
-            return NULL;
-        fp = fopen(RedString_GetChars(fns), "r");
-        printf("Using config file: %s\n", RedString_GetChars(fns));
-        RedString_Free(fns);
-        if (fp)
-            return fp;
-    }
-
-    /* Try: SYSCONFIGDIR/<filename> */
-#ifdef CANOPY_SYSCONFIGDIR
-    {
-        RedString fns = RedString_NewPrintf("%s/%s", 2048, CANOPY_SYSCONFIGDIR, filename);
-        if (!fns)
-            return NULL;
-        fp = fopen(RedString_GetChars(fns), "r");
-        printf("Using config file: %s\n", RedString_GetChars(fns));
-        RedString_Free(fns);
-        if (fp)
-            return fp;
-    }
-#endif
-
-    /* Try /etc/canopy/<filename> */
-    {
-        RedString fns = RedString_NewPrintf("/etc/canopy/%s", 2048, filename);
-        if (!fns)
-            return NULL;
-        fp = fopen(RedString_GetChars(fns), "r");
-        printf("Using config file: %s\n", RedString_GetChars(fns));
-        RedString_Free(fns);
-        if (fp)
-            return fp;
-    }
-
-    return NULL;
+    /* TODO: Implement */
+    return CANOPY_ERROR_NOT_IMPLEMENTED;
 }
 
-char * canopy_read_system_uuid()
+CanopyResultEnum canopy_service_impl(void *start, ...)
 {
-    char *uuidEnv;
-    FILE *fp;
-    char uuid[37];
-    char *out;
-    uuidEnv = getenv("CANOPY_UUID");
-    if (uuidEnv)
+    STOptions options;
+    va_list ap;
+    _init_libcanopy_if_needed();
+    CanopyCtx ctx = gCtx;
+    CanopyResultEnum result;
+
+    /* Process arguments */
+    result = st_options_new_extend_varargs(&options, ctx->options, start, ap);
+    if (result != CANOPY_SUCCESS)
     {
-        /* TODO: Verify that it is, in fact, a UUID */
-        return RedString_strdup(uuidEnv);
+        // TODO: Error details
+        fprintf(stderr, "Error processing arguments in canopy_service\n");
+        return result;
     }
 
-    fp = canopy_open_config_file("uuid");
-    if (fp)
-    {
-        size_t len;
-        len = fread(uuid, sizeof(char), 36, fp);
-        if (len != 36)
-        {
-            RedLog_Warn("Expected 36 characters in UUID file", "");
-            return NULL;
-        }
-        uuid[36] = '\0';
-        /* TODO: Verify that it is, in fact, a UUID */
-        out = RedString_strdup(uuid);
-        fclose(fp);
-        return out;
-    }
-    return NULL;
+    return _canopy_service_opts(options);
 }
 
-const char * canopy_get_web_protocol(CanopyContext ctx)
-{
-    return ctx->cloudWebProtocol;
-}
-
-const char * canopy_get_cloud_host(CanopyContext ctx)
-{
-    return ctx->cloudHost;
-}
-
-uint16_t canopy_get_cloud_port(CanopyContext ctx)
-{
-    return !strcmp(ctx->cloudWebProtocol, "http") ?
-        ctx->cloudHttpPort:
-        ctx->cloudHttpsPort;
-}
-
-const char *canopy_get_sysconfigdir()
-{
-#ifdef CANOPY_SYSCONFIGDIR
-    return CANOPY_SYSCONFIGDIR
-#endif
-    return "(was not configured at compilation)\n";
-}
+/*
+ * TODO:
+ *
+ * 1) Send actual report.
+ *      - Add REPORT_POST_IMMEDIATELY
+ *      - Support multiple value types
+ *      - Use actual hostname & device UUID in request
+ *
+ *
+ */
