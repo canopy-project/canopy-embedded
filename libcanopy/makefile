@@ -11,6 +11,7 @@ SOURCE_FILES = \
     src/canopy.c \
     src/http/st_http_curl.c \
     src/websocket/st_websocket.c \
+    src/options/st_options.c \
     $(LIBRED_DIR)/src/red_hash.c \
     $(LIBRED_DIR)/src/red_test.c \
     $(LIBRED_DIR)/src/red_json.c \
