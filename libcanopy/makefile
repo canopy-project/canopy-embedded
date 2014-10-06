@@ -9,6 +9,7 @@ INCLUDE_FLAGS := -Isrc -Iinclude -I$(LIBRED_DIR)/include -I$(LIBRED_DIR)/under_c
 
 SOURCE_FILES = \
     src/canopy.c \
+    src/sddl.c \
     src/http/st_http_curl.c \
     src/websocket/st_websocket.c \
     src/options/st_options.c \
