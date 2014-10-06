@@ -54,19 +54,19 @@
 // on the currently-defined value of _OPTION_LIST_FOREACH.  So by redefining
 // _OPTION_LIST_FOREACH you can easily generate code for the whole list.
 //
-//                       ENUM VALUE,  DATATYPE,  FREE_ROUTINE
+//                       ENUM VALUE,  DATATYPE,  VARARG_DATATYPE, FREE_ROUTINE
 #define _OPTION_LIST \
-    _OPTION_LIST_FOREACH(CANOPY_CLOUD_SERVER, char *, free) \
-    _OPTION_LIST_FOREACH(CANOPY_CONTROL_PROTOCOL, CanopyProtocolEnum, _noop) \
-    _OPTION_LIST_FOREACH(CANOPY_DEVICE_UUID, char *, free) \
-    _OPTION_LIST_FOREACH(CANOPY_NOTIFY_MSG, char *, free) \
-    _OPTION_LIST_FOREACH(CANOPY_NOTIFY_PROTOCOL, CanopyProtocolEnum, _noop) \
-    _OPTION_LIST_FOREACH(CANOPY_NOTIFY_TYPE, CanopyNotifyTypeEnum, _noop) \
-    _OPTION_LIST_FOREACH(CANOPY_PROPERTY_NAME, char *, free) \
-    _OPTION_LIST_FOREACH(CANOPY_REPORT_PROTOCOL, CanopyProtocolEnum, _noop) \
-    _OPTION_LIST_FOREACH(CANOPY_VALUE_FLOAT32, float, _noop)
+    _OPTION_LIST_FOREACH(CANOPY_CLOUD_SERVER, char *, char *, free) \
+    _OPTION_LIST_FOREACH(CANOPY_CONTROL_PROTOCOL, CanopyProtocolEnum, CanopyProtocolEnum, _noop) \
+    _OPTION_LIST_FOREACH(CANOPY_DEVICE_UUID, char *, char *, free) \
+    _OPTION_LIST_FOREACH(CANOPY_NOTIFY_MSG, char *, char *, free) \
+    _OPTION_LIST_FOREACH(CANOPY_NOTIFY_PROTOCOL, CanopyProtocolEnum, CanopyProtocolEnum, _noop) \
+    _OPTION_LIST_FOREACH(CANOPY_NOTIFY_TYPE, CanopyNotifyTypeEnum, CanopyProtocolEnum, _noop) \
+    _OPTION_LIST_FOREACH(CANOPY_PROPERTY_NAME, char *, char *, free) \
+    _OPTION_LIST_FOREACH(CANOPY_REPORT_PROTOCOL, CanopyProtocolEnum, CanopyProtocolEnum, _noop) \
+    _OPTION_LIST_FOREACH(CANOPY_VALUE_FLOAT32, float, double, _noop)
 
-#define _OPTION_LIST_FOREACH(option, datatype, freefn) 
+#define _OPTION_LIST_FOREACH(option, datatype, va_datatype, freefn) 
 
 // Generate STOptions_t structure.
 // The macro causes _OPTION_LIST to eexpand to something like:
@@ -79,7 +79,7 @@
 //
 //      ...
 #undef _OPTION_LIST_FOREACH
-#define _OPTION_LIST_FOREACH(option, datatype, freefn) \
+#define _OPTION_LIST_FOREACH(option, datatype, va_datatype, freefn) \
         bool has_##option; \
         datatype val_##option;
  
@@ -113,12 +113,10 @@ void st_options_extend(STOptions dest, STOptions base, STOptions override);
 // Merge-in STOptions from varargs.
 #define st_options_extend_varargs(options, start, ap) \
     (va_start(ap, start), st_options_extend_varargs_impl(options, ap))
-
 CanopyResultEnum st_options_extend_varargs_impl(STOptions base, va_list ap);
 
 #define st_options_new_extend_varargs(newOptions, options, start, ap) \
     (va_start(ap, start), st_options_new_extend_varargs_impl(newOptions, options, ap))
-
 CanopyResultEnum st_options_new_extend_varargs_impl(STOptions *newOptions, STOptions base, va_list ap);
 
 // Free STOption object.

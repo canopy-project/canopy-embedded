@@ -18,6 +18,7 @@
 #include "red_log.h"
 #include "red_string.h"
 #include <stdlib.h>
+#include <string.h>
 
 // Create a new STOptions object with all options unset.
 STOptions st_options_new_empty()
@@ -76,17 +77,77 @@ void st_options_extend(STOptions dest, STOptions base, STOptions override)
     //      dest->has_CANOPY_CLOUD_SERVER = 
     //          base->has_CANOPY_CLOUD_SERVER || override->has_CANOPY_CLOUD_SERVER;
     #undef _OPTION_LIST_FOREACH
-    #define _OPTION_LIST_FOREACH(opt, datatype, freefn) \
+    #define _OPTION_LIST_FOREACH(opt, datatype, va_datatype, freefn) \
         dest->val_##opt = override->has_##opt ? override->val_##opt : base->val_##opt; \
         dest->has_##opt = base->has_##opt || override->has_##opt;
 
     _OPTION_LIST
 }
 
+CanopyResultEnum st_options_extend_varargs_impl(STOptions base, va_list ap)
+{
+    // TODO: Call free routines
+    // TODO: Call duplicate routine
+    //
+    // This macro causes _OPTION_LIST to expand to something like:
+    //
+    //      case CANOPY_CLOUD_SERVER:
+    //      {
+    //          base->val_CANOPY_CLOUD_SERVER = va_arg(ap, char *);
+    //          base->has_CANOPY_CLOUD_SERVER = true;
+    //          break;
+    //      }
+    #undef _OPTION_LIST_FOREACH
+    #define _OPTION_LIST_FOREACH(opt, datatype, va_datatype, freefn) \
+        case opt: \
+        { \
+            base->val_##opt = (datatype)va_arg(ap, va_datatype); \
+            base->has_##opt = true; \
+            break; \
+        }
+
+    CanopyOptEnum param;
+    while ((param = va_arg(ap, CanopyOptEnum)) != CANOPY_OPT_LIST_END)
+    {
+        switch (param)
+        {
+            _OPTION_LIST
+            default:
+            {
+                return CANOPY_ERROR_INVALID_OPT;
+            }
+        }
+    }
+    return CANOPY_ERROR_NOT_IMPLEMENTED;
+}
+
+CanopyResultEnum st_options_new_extend_varargs_impl(STOptions *newOptions, STOptions base, va_list ap)
+{
+    *newOptions = st_options_dup(base);
+    if (!*newOptions)
+    {
+        return CANOPY_ERROR_OUT_OF_MEMORY;
+    }
+    st_options_extend_varargs_impl(*newOptions, ap);
+    return CANOPY_SUCCESS;
+}
+
 // Free STOption object.
 void st_options_free(STOptions options)
 {
     free(options);
+}
+
+STOptions st_options_dup(STOptions options)
+{
+    STOptions out;
+    out = st_options_new_empty();
+    if (!out)
+    {
+        return NULL;
+    }
+    memcpy(out, options, sizeof(struct STOptions_t));
+    return out;
 }
 
 char *st_option_enum_to_string(CanopyOptEnum option)
@@ -99,7 +160,7 @@ char *st_option_enum_to_string(CanopyOptEnum option)
     //          return "CANOPY_CONTROL_PROTOCOL";
     //      ...
     #undef _OPTION_LIST_FOREACH
-    #define _OPTION_LIST_FOREACH(opt, datatype, freefn) \
+    #define _OPTION_LIST_FOREACH(opt, datatype, va_datatype, freefn) \
         case opt: \
             return #opt;
 
@@ -121,7 +182,7 @@ bool st_option_is_set(STOptions options, CanopyOptEnum option)
     //          return val_CANOPY_CONTROL_PROTOCOL;
     //      ...
     #undef _OPTION_LIST_FOREACH
-    #define _OPTION_LIST_FOREACH(opt, datatype, freefn) \
+    #define _OPTION_LIST_FOREACH(opt, datatype, va_datatype, freefn) \
         case opt: \
             return options->has_##opt;
 
