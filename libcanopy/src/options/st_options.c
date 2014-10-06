@@ -19,44 +19,6 @@
 #include "red_string.h"
 #include <stdlib.h>
 
-// _OPTION_LIST allows you to write macros that easily perform an action on all
-// configuration options.  Whenever you type _OPTION_LIST its expansion depends
-// on the currently-defined value of _OPTION_LIST_FOREACH.  So by redefining
-// _OPTION_LIST_FOREACH you can easily generate code for the whole list.
-//
-//                       ENUM VALUE,  DATATYPE,  FREE_ROUTINE
-#define _OPTION_LIST \
-    _OPTION_LIST_FOREACH(CANOPY_CLOUD_SERVER, char *, free) \
-    _OPTION_LIST_FOREACH(CANOPY_CONTROL_PROTOCOL, CanopyProtocolEnum, _noop) \
-    _OPTION_LIST_FOREACH(CANOPY_DEVICE_UUID, char *, free) \
-    _OPTION_LIST_FOREACH(CANOPY_NOTIFY_MSG, char *, free) \
-    _OPTION_LIST_FOREACH(CANOPY_NOTIFY_PROTOCOL, CanopyProtocolEnum, _noop) \
-    _OPTION_LIST_FOREACH(CANOPY_NOTIFY_TYPE, CanopyNotifyTypeEnum, _noop) \
-    _OPTION_LIST_FOREACH(CANOPY_PROPERTY_NAME, char *, free) \
-    _OPTION_LIST_FOREACH(CANOPY_REPORT_PROTOCOL, CanopyProtocolEnum, _noop)
-
-#define _OPTION_LIST_FOREACH(option, datatype, freefn) 
-
-// Generate STOptions_t structure.
-// The macro causes _OPTION_LIST to eexpand to something like:
-//
-//      bool has_CANOPY_CLOUD_SERVER;
-//      char * val_CANOPY_CLOUD_SERVER;
-//
-//      bool has_CANOPY_CONTROL_PROTOCOL;
-//      CanopyProtocolEnum val_CANOPY_CONTROL_PROTOCOL;
-//
-//      ...
-#undef _OPTION_LIST_FOREACH
-#define _OPTION_LIST_FOREACH(option, datatype, freefn) \
-        bool has_##option; \
-        datatype val_##option;
- 
-typedef struct STOptions_t
-{
-    _OPTION_LIST
-} STOptions_t;
-
 // Create a new STOptions object with all options unset.
 STOptions st_options_new_empty()
 {
