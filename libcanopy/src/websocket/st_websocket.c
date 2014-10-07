@@ -100,11 +100,13 @@ static int _ws_callback(
 
 bool st_websocket_is_connected(STWebSocket ws)
 {
+    assert(ws);
     return ws->ws != NULL;
 }
 
 bool st_websocket_is_write_ready(STWebSocket ws)
 {
+    assert(ws);
     return ws->ws_write_ready;
 }
 

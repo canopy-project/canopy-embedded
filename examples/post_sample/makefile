@@ -8,6 +8,9 @@ default: all
 run: $(TARGET)
 	LD_LIBRARY_PATH=../../libcanopy $(TARGET)
 
+dbg: $(TARGET)
+	LD_LIBRARY_PATH=../../libcanopy gdb $(TARGET)
+
 clean:
 	rm -rf build
 

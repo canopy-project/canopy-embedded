@@ -103,9 +103,17 @@ CanopyCtx canopy_create_ctx(CanopyCtx copyOptsFrom)
         goto fail;
     }
 
+    ctx->ws = st_websocket_new();
+    if (!ctx->options)
+    {
+        RedLog_Error("OOM in canopy_create_ctx");
+        goto fail;
+    }
+
     return ctx;
 fail:
-    free(ctx->options);
+    st_options_free(ctx->options);
+    st_websocket_free(ctx->ws);
     free(ctx);
     return NULL;
 }
