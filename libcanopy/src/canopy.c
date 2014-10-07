@@ -266,7 +266,7 @@ CanopyResultEnum canopy_notify_impl(void *start, ...)
     RedJsonObject_SetString(payload_json, "notify-msg", options->val_CANOPY_NOTIFY_MSG);
     RedJsonObject_SetString(payload_json, "notify-type", "email");
 
-    if (options->has_CANOPY_REPORT_PROTOCOL == CANOPY_PROTOCOL_HTTP)
+    if (options->val_CANOPY_NOTIFY_PROTOCOL == CANOPY_PROTOCOL_HTTP)
     {
         char *url;
         url = RedString_PrintfToNewChars("http://%s/di/device/%s/notify", 
