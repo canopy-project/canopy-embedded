@@ -35,12 +35,7 @@
 #include <unistd.h>
 #include <libwebsockets.h>
 
-/*
- *
- * COMPILE WITH:
- * gcc -Isrc -Iinclude -I3rdparty/libred/include -I3rdparty/libred/under_construction -c src/canopy_simple.c -Wall -Werror
- */
-
+// The global context
 static CanopyCtx gCtx=NULL;
 
 typedef struct
@@ -422,14 +417,3 @@ CanopyResultEnum canopy_service_impl(void *start, ...)
 
     return _canopy_service_opts(options);
 }
-
-/*
- * TODO:
- *
- * 1) Send actual report.
- *      - Add REPORT_POST_IMMEDIATELY
- *      - Support multiple value types
- *      - Use actual hostname & device UUID in request
- *
- *
- */

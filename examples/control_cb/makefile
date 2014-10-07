@@ -15,7 +15,7 @@ clean:
 	rm -rf build
 
 
-$(TARGET) :
+$(TARGET) : $(SOURCE_FILES)
 	mkdir -p build
 	gcc -I../../libcanopy/include $(SOURCE_FILES) -L../../libcanopy -lcanopy -lcurl -lwebsockets -Wall -Werror -g -o $(TARGET)
 
