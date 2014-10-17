@@ -17,11 +17,35 @@ running the Canopy Cloud Service.
 
 ### Example of IoT Cloud Variables in C
 
-This program demonstrates some of the ways in which Cloud Variables can be
-used, for a hypothetical "smart toaster oven".
+Using IoT Cloud Variables can be as simple as adding one line of code to your
+program:
 
 ```c
 #include <canopy.h>
+
+int main(void)
+{  
+    // Device-specific sensor reading code goes here
+    float humidity = 0.68f;
+
+    // Store the device's current humidity measurement in the cloud
+    canopy_var_set(
+        CANOPY_VAR_NAME, "humidity",
+        CANOPY_VALUE_FLOAT32, humidity,
+        CANOPY_AUTO_SYNC, true
+    );
+
+    return 0;
+}
+```
+
+Here is a more complete, annotated example.  This program demonstrates some of
+the ways in which Cloud Variables might be used in the firmware for a
+hypothetical "smart toaster":
+
+```c
+#include <canopy.h>
+#include <stdio.h>
 
 // Callback for handling changes to the "darkness" Cloud Variable.
 int handle_darkness(CanopyContext ctx, const char *varName, float value)
@@ -60,7 +84,7 @@ int main(void)
         // variable CANOPY_UUID, or in the file "~/.canopy/uuid" or lastly in
         // the file "/etc/canopy/uuid".
         CANOPY_DEVICE_UUID, "9dfe2a00-efe2-45f9-a84c-8afc69caf4e6"
-    )
+    );
 
     // Register a callback that gets triggered whenever the value of the
     // "darkness" Cloud Variable changes.
@@ -146,7 +170,65 @@ options:
  - **At runtime:** Call `canopy_global_config(CANOPY_DEVICE_UUID, "c4aa...");`
     or a similar routine.
 
-Generall
+### Canopy Context
+
+Most of the internal state used by `libcanopy` is contained in a `CanopyContext
+object`. This internal state includes:
+
+ - A local mirror of each Cloud Variable for your device.
+ - Configuration settings that guide the behaviour of `canopy_` routines.
+ - State for maintaining connections to the Canopy Cloud Service.
+
+Every `libcanopy` routine operates on a `CanopyContext`, which may be either:
+
+ - The **Global Context**: an automatically initialized Context.
+ - A **User-created Context**.
+
+Some routines only operate on the global context:
+
+```c
+    ...
+
+    // Configure the Global Context
+    canopy_global_config(CANOPY_AUTO_SYNC, true);
+```
+
+Some routines only operate on user-created Contexts:
+
+```c
+    ...
+
+    // Create a user-created context:
+    CanopyContext ctx;
+    ctx = canopy_create_ctx();
+    assert(ctx);
+
+    // Configure the user-created context:
+    canopy_ctx_config(ctx, CANOPY_AUTO_SYNC, true);
+```
+
+Some routines can operate on either the Global Context or a user-created
+Context:
+
+```c
+    // Update a Cloud Variable using the global context:
+    canopy_set_var(
+        CANOPY_VAR_NAME, "battery_level", 
+        CANOPY_VALUE_FLOAT32, 0.1f
+    );
+
+    // Update a Cloud Variable using a user-created context.
+    canopy_set_var(
+        CANOPY_CTX, ctx,
+        CANOPY_VAR_NAME, "cpu_level", 
+        CANOPY_VALUE_FLOAT32, 0.15f
+    );
+
+```
+
+In most cases, it is simplest to only use the global context.  For some
+applications, such as device simulations & testing of `libcanopy`, it is useful
+to be able to create multiple contexts within a single program.
 
 ### Cloud Synchronization
 
@@ -172,8 +254,45 @@ The **Sync Step** is performed by calling `canopy_sync()`.  Don't forget to
 call it!  If you omit the `canopy_sync()` call, your program won't actually do
 anything useful.
 
-Most other
-operations occur immediately because 
+With `CANOPY_AUTO_SYNC`, you can cause the Sync Step to automatically occur
+alongside every Local Step.  While convenient, this may result in an excessive
+amount of communication with the server, and is not recommended.
+
+
+### Asynchronous Routines & Promises
+
+Operations that perform a **Sync Step**, such as `canopy_sync()`, block your
+program's execution until communication with the server has completed.  If
+you'd rather these routines return immediately, you can use a `Canopy Promise`
+finer-grained control over synchronization:
+
+```c
+    CanopyPromise promise;
+
+    // When the CANOPY_PROMISE option is provided, the `canopy_sync` routine
+    // will return immediately after kicking off operations in another thread.
+    // A newly-allocated CanopyPromise object gets created that can be used
+    // later for synchronization.
+    canopy_sync(CANOPY_PROMISE, &promise);
+
+    // .. do stuff
+
+    // Now we can wait for the sync to complete:
+    canopy_promise_wait(promise, CANOPY_TIMEOUT, 10.0f);
+    if (canopy_promise_result(promise) == CANOPY_SUCCESS)
+    {
+        printf("Syncronized with server!\n");
+    }
+    else
+    {
+        printf("Error synchronizing with server!\n");
+        canopy_print_error();
+    }
+
+    // Don't forget to free the Promise object when done using it.
+    canopy_destroy_promise(promise);
+```
+
 
 Examples
 -------------------------------------------------------------------------------
