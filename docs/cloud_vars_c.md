@@ -113,7 +113,7 @@ int main(void)
         }
     }
 }
-`
+```
 
 ### Important Concepts
 
