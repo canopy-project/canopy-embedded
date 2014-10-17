@@ -79,26 +79,26 @@ Here are some of the options you can provide:
 This example demonstrates how to create a Canopy Cloud Variable from within
 javascript:
 
-* HTML: *
+####HTML:
 ```html
 <script src=canopy_client.js></script>
 ```
 
-* Javascript: *
+####Javascript:
 ```javascript
 canopy.device(id).var("brightness").setValue(0.5);
 ```
 
 ### Creating A Canopy Cloud Variable using REST
 
-You can also create a Canopy Cloud Variable using Canopy's REST API.
+You can also create a Canopy Cloud Variable using Canopy's REST API.  For example, to create a Cloud Variable called "brightness":
+
+`POST /api/device/&lt;ID&gt;/api`
 
 ```json
-POST /api/device/api
-
 {
     "vars" : {
-        "brightness" : 0.5;
+        "brightness" : 0.5
     }
 }
 ```
