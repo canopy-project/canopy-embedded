@@ -15,7 +15,7 @@ and deleted by making C function calls from within device firmware.
 Internally, WebSockets and/or HTTP/REST are used to communicate with a server
 running the Canopy Cloud Service.
 
-*** Example of IoT Cloud Variables in C
+### Example of IoT Cloud Variables in C
 
 This program demonstrates some of the ways in which Cloud Variables can be
 used, for a hypothetical "smart toaster oven".
@@ -95,7 +95,8 @@ int main(void)
             CANOPY_VAR_NAME, "itemp",
             CANOPY_VALUE_FLOAT32, internalTemperature);
 
-        // Synchronize with the cloud.  The
+        // Synchronize with the cloud.  This is where actual communication with
+        // the cloud happens.
         result = canopy_sync(
             // Don't return immediately.
             CANOPY_SYNC_BLOCKING, true
@@ -112,10 +113,13 @@ int main(void)
         }
     }
 }
+`
 
 ### Important Concepts
 
-While
+Canopy Cloud Variables are very easy to use.  That said, there is a lot going
+on behind the scenes that you should know about to have a complete
+understanding of how to work with them.
 
 ### Device Identity
 
@@ -123,19 +127,24 @@ The Canopy Cloud Service requires every device to have a Type-4 UUID, such as:
 
     c4aa0aa5-a752-431c-954b-4a761214e650
 
-You must generate the UUID for your device.  You can use the linux command-line
-`uuid` tool:
+If your device doesn't have a UUID, the first call to canopy_sync will generate
+a UUID for your device and store it on your filesutem (typically in
+`"~/.canopy/uuid`).
+
+Alternatively, you can generate the UUID for your device.  You can use the
+linux command-line `uuid` tool:
 
     uuid -v4
 
-After generating a UUID, you need to configure `libcanopy` to use it.  There
-are a few options:
+To configure `libcanopy` to use it the UUID you generated, there are a few
+options:
 
  - **Environment Variable:** Set the `DEVICE_UUID` environment variable.
- - **UUID config file:** Create a file ~/.canopy/uuid or /etc/canopy/uuid that
-   contains the UUID (and nothing else).
- - **Runtime:** Call `canopy_global_config(CANOPY_DEVICE_UUID, "c4aa...");` or
-   a similar routine.
+ - **UUID config file:** Create a file containing the UUID (and nothing else)
+    in the appropriate place on your file system (typically `~/.canopy/uuid` or
+    `/etc/canopy/uuid`).
+ - **At runtime:** Call `canopy_global_config(CANOPY_DEVICE_UUID, "c4aa...");`
+    or a similar routine.
 
 Generall
 
