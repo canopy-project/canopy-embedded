@@ -30,7 +30,7 @@ static size_t _curl_write_handler(void *ptr, size_t size, size_t nmemb, void *us
 
 // Implemented using libcurl's "easy" API.
 CanopyResultEnum st_http_post(
-        CanopyCtx ctx, 
+        CanopyContext ctx, 
         const char *url, 
         const char *payload, 
         CanopyPromise *outPromise)

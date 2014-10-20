@@ -661,7 +661,8 @@ CanopyResultEnum canopy_run_event_loop_impl(void *start, ...);
  *  This only performs outstanding tasks for a single context.  If CANOPY_CTX
  *  is omitted or NULL, the global context is serviced.
  */
-#define canopy_sync(...) canopy_sync_impl(NULL, __VA_ARGS__, NULL)
+#define canopy_sync(...) canopy_sync_impl_temp(NULL, ##__VA_ARGS__)
+#define canopy_sync_impl_temp(...) canopy_sync_impl(__VA_ARGS__, NULL)
 CanopyResultEnum canopy_sync_impl(void *start, ...);
 
 #endif

@@ -36,7 +36,7 @@
 #include <libwebsockets.h>
 
 // The global context
-static CanopyCtx gCtx=NULL;
+static CanopyContext gCtx=NULL;
 
 typedef struct
 {
@@ -46,7 +46,7 @@ typedef struct
 {
 } CanopyResult_t;
 
-typedef struct CanopyCtx_t
+typedef struct CanopyContext_t
 {
     STOptions options;
 
@@ -61,7 +61,7 @@ typedef struct CanopyCtx_t
     /* Has SDDL been modified since last call to canopy_service? 
      */
     bool sddl_dirty;
-} CanopyCtx_t;
+} CanopyContext_t;
 
 void _init_libcanopy_if_needed()
 {
@@ -72,11 +72,11 @@ void _init_libcanopy_if_needed()
     }
 }
 
-CanopyCtx canopy_create_ctx(CanopyCtx copyOptsFrom)
+CanopyContext canopy_create_ctx(CanopyContext copyOptsFrom)
 {
-    CanopyCtx ctx;
+    CanopyContext ctx;
 
-    ctx = calloc(1, sizeof(struct CanopyCtx_t));
+    ctx = calloc(1, sizeof(struct CanopyContext_t));
     if (!ctx)
     {
         return NULL;
@@ -113,7 +113,7 @@ fail:
     return NULL;
 }
 
-CanopyResultEnum canopy_ctx_opt_impl(CanopyCtx ctx, ...)
+CanopyResultEnum canopy_ctx_opt_impl(CanopyContext ctx, ...)
 {
     va_list ap;
     CanopyResultEnum result;
@@ -124,20 +124,20 @@ CanopyResultEnum canopy_ctx_opt_impl(CanopyCtx ctx, ...)
     return result;
 }
 
-CanopyCtx canopy_global_ctx()
+CanopyContext canopy_global_ctx()
 {
     _init_libcanopy_if_needed();
     return gCtx;
 }
 
-CanopyResultEnum canopy_on_change_impl(void *start, ...)
+CanopyResultEnum canopy_var_on_change_impl(void *start, ...)
 {
     // TODO: Free memory 
     STOptions options;
     STOptions optionsCopy;
     va_list ap;
     _init_libcanopy_if_needed();
-    CanopyCtx ctx = gCtx;
+    CanopyContext ctx = gCtx;
     CanopyResultEnum result;
     /* TODO: support other contexts */
 
@@ -180,13 +180,13 @@ CanopyResultEnum canopy_on_change_impl(void *start, ...)
     return CANOPY_SUCCESS;
 }
 
-CanopyResultEnum canopy_post_sample_impl(void * start, ...)
+CanopyResultEnum canopy_var_set_impl(void * start, ...)
 {
     /* TODO: Free memory */
     STOptions options;
     va_list ap;
     _init_libcanopy_if_needed();
-    CanopyCtx ctx = gCtx;
+    CanopyContext ctx = gCtx;
     CanopyResultEnum result;
     /* TODO: support other contexts */
 
@@ -244,7 +244,7 @@ CanopyResultEnum canopy_notify_impl(void *start, ...)
     STOptions options;
     va_list ap;
     _init_libcanopy_if_needed();
-    CanopyCtx ctx = gCtx;
+    CanopyContext ctx = gCtx;
     CanopyResultEnum result;
 
     /* Process arguments */
@@ -329,7 +329,7 @@ CanopyResultEnum canopy_promise_wait(CanopyPromise promise, ...)
 
 static CanopyResultEnum _canopy_service_opts(STOptions options)
 {
-    CanopyCtx ctx = gCtx; // TODO: Use real ctx
+    CanopyContext ctx = gCtx; // TODO: Use real ctx
 
     printf("Servicing\n");
 
@@ -378,7 +378,7 @@ CanopyResultEnum canopy_run_event_loop_impl(void *start, ...)
     STOptions options;
     va_list ap;
     _init_libcanopy_if_needed();
-    CanopyCtx ctx = gCtx;
+    CanopyContext ctx = gCtx;
     CanopyResultEnum result;
 
     result = st_options_new_extend_varargs(&options, ctx->options, start, ap);
@@ -398,12 +398,12 @@ CanopyResultEnum canopy_run_event_loop_impl(void *start, ...)
     return CANOPY_ERROR_NOT_IMPLEMENTED;
 }
 
-CanopyResultEnum canopy_service_impl(void *start, ...)
+CanopyResultEnum canopy_sync_impl(void *start, ...)
 {
     STOptions options;
     va_list ap;
     _init_libcanopy_if_needed();
-    CanopyCtx ctx = gCtx;
+    CanopyContext ctx = gCtx;
     CanopyResultEnum result;
 
     /* Process arguments */

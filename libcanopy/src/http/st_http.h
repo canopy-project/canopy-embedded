@@ -25,7 +25,7 @@
 // <outPromise>, if non-NULL, gets set to the address of a newly-allocated
 // promise object that can be used to wait for completion of the request.
 CanopyResultEnum st_http_post(
-        CanopyCtx ctx, 
+        CanopyContext ctx, 
         const char *url, 
         const char *payload, 
         CanopyPromise *outPromise);
