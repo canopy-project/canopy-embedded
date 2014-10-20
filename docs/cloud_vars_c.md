@@ -39,16 +39,21 @@ int main(void)
 }
 ```
 
-Here is a more complete, annotated example.  This program demonstrates some of
-the ways in which Cloud Variables might be used in the firmware for a
-hypothetical "smart toaster":
+When you run this program, a Cloud Variable called `humidity` is initialized
+and assigned the value `0.68f`.  This value is exposed to the web by going to:
+
+    http://canopy.link/api/device/&lt;ID&gt;/vars/humidity
+
+Here is another example.  This program demonstrates some of the ways in which
+Cloud Variables might be used in the firmware for a hypothetical "smart
+toaster":
 
 ```c
 #include <canopy.h>
 #include <stdio.h>
 
 // Callback for handling changes to the "darkness" Cloud Variable.
-int handle_darkness(CanopyContext ctx, const char *varName, float value)
+static int handle_darkness(CanopyContext ctx, const char *varName, float value)
 {
     // Your custom code for handling a change to the toast darkness level goes
     // here.
@@ -58,7 +63,7 @@ int handle_darkness(CanopyContext ctx, const char *varName, float value)
 }
 
 // Callback for handling changes to the "bagel_mode" Cloud Variable.
-int handle_darkness(CanopyContext ctx, const char *varName, float value)
+static int handle_bagel_mode(CanopyContext ctx, const char *varName, float value)
 {
     // Your device-specific code goes here.
     // ...
@@ -101,7 +106,7 @@ int main(void)
     // created the first time the program runs.
     canopy_var_on_change(
         CANOPY_VAR_NAME, "bagel_mode",
-        CANOPY_VAR_CALLBACK_BOOL, handle_darkness
+        CANOPY_VAR_CALLBACK_BOOL, handle_bagel_mode
     );
 
     // Run forever, taking sensor readings every 10 seconds.
@@ -155,13 +160,12 @@ If your device doesn't have a UUID, the first call to canopy_sync will generate
 a UUID for your device and store it on your filesutem (typically in
 `"~/.canopy/uuid`).
 
-Alternatively, you can generate the UUID for your device.  You can use the
-linux command-line `uuid` tool:
+Alternatively, you can generate the UUID for your device.  One option is to use
+the linux command-line `uuid` tool:
 
     uuid -v4
 
-To configure `libcanopy` to use it the UUID you generated, there are a few
-options:
+There are a few ways to configure `libcanopy` to use the UUID you generated:
 
  - **Environment Variable:** Set the `DEVICE_UUID` environment variable.
  - **UUID config file:** Create a file containing the UUID (and nothing else)
@@ -187,8 +191,6 @@ Every `libcanopy` routine operates on a `CanopyContext`, which may be either:
 Some routines only operate on the global context:
 
 ```c
-    ...
-
     // Configure the Global Context
     canopy_global_config(CANOPY_AUTO_SYNC, true);
 ```
@@ -196,8 +198,6 @@ Some routines only operate on the global context:
 Some routines only operate on user-created Contexts:
 
 ```c
-    ...
-
     // Create a user-created context:
     CanopyContext ctx;
     ctx = canopy_create_ctx();
@@ -263,8 +263,8 @@ amount of communication with the server, and is not recommended.
 
 Operations that perform a **Sync Step**, such as `canopy_sync()`, block your
 program's execution until communication with the server has completed.  If
-you'd rather these routines return immediately, you can use a `Canopy Promise`
-finer-grained control over synchronization:
+you would rather have these routines return immediately, you can use a `Canopy
+Promise` for finer-grained control over synchronization:
 
 ```c
     CanopyPromise promise;
@@ -297,13 +297,13 @@ finer-grained control over synchronization:
 Examples
 -------------------------------------------------------------------------------
 ### Creation
-A Canopy Cloud Variable is created by simply setting its value for the first
-time:
+A Cloud Variable is created by simply referencing its name for the first time.
 ```c
 #include <canopy.h>
 
 int main(void)
 {
+    bool on_off;
     // YOUR SENSOR-READING CODE GOES HERE
     // We'll just fake it:
     float temperature = 97.8f;
@@ -314,17 +314,123 @@ int main(void)
         CANOPY_VAR_NAME, "temperature", 
         CANOPY_VALUE_FLOAT32, temperature);
 
+    canopy_sync();
+
+    // Reading a Cloud Variable for the first time also creates it.
+    canopy_var_get(
+        CANOPY_VAR_NAME, "on_off",
+        CANOPY_VAR_ENABLE_CLOUD_CONTROL, true,
+        CANOPY_GET_VALUE_BOOL, &on_off);
+    );
+
+    canopy_sync();
+
     return 0;
 }
 ```
+
+### Configuration Options
+
+Cloud Variables have several properties that can be configured.  In this
+example, we change a Cloud Variable's datatype to FLOAT64, change the units,
+disable historical data tracking, and modify the application-side
+permissions
+
+```c
+    canopy_var_config(
+        CANOPY_VAR_NAME, "temperature",
+        CANOPY_VAR_DATATYPE, CANOPY_FLOAT64,
+        CANOPY_VAR_UNITS, "degrees_c",
+        CANOPY_VAR_APP_PERMISSIONS, CANOPY_READ_ONLY
+    );
+    canopy_sync();
+```
+
+### Reading
+You can read the current value of a CanopyCloud variable by using:
+
+```c
+    CanopyResult result;
+
+    canopy_sync();
+
+    result = canopy_var_read(
+        CANOPY_VAR_NAME, "temperature",
+        CANOPY_GET_VALUE_FLOAT32, &temperature);
+    if (result == CANOPY_SUCCESS)
+    {
+        // Cloud variable value has been stored into &temperature.
+    }
+    else if (result == CANOPY_ERROR_VAR_DOES_NOT_EXIST)
+    {
+        // This synchronization will create the cloud variable.
+        canopy_sync();
+    }
+```
+
+Note that `canopy_sync` is called twice.  The first time ensures that the
+latest value of "temperature" is fetched, as long as the "temperature" Cloud
+Variable already exists.  The second call creates the Cloud Variable if this is
+the first time it is being referenced.
+
+The same effect can be achieved with the following code:
+
+```c
+    CanopyResult result;
+
+    canopy_var_config(
+        CANOPY_VAR_NAME, "temperature",
+        CANOPY_VAR_DATATYPE, CANOPY_FLOAT32);
+
+    canopy_sync();
+
+    result = canopy_var_read(
+        CANOPY_VAR_NAME, "temperature",
+        CANOPY_GET_VALUE_FLOAT32, &temperature);
+    if (result == CANOPY_SUCCESS)
+    {
+        // Cloud variable value has been stored into &temperature.
+    }
+```
+
+In this example, the `canopy_var_config` ensures that the "temperature" Cloud
+Variable gets created if necessary.
+
+### OnChange Callback
+You can register a callback that will trigger during `canopy_sync` if the value of a Cloud
+Variable changes.
+
+```c
+
+static int handle_dimmer_level(CanopyContext ctx, const char *varName, float value)
+{
+    printf("Dimmer set to: %f\n", value);
+    return 0;
+}
+
+int main()
+{
+    canopy_var_on_change(
+        CANOPY_VAR_NAME, "dimmer_level",
+        CANOPY_VAR_CALLBACK_FLOAT32, handle_dimmer_level
+    );
+    while (1)
+    {
+        canopy_sync();
+    }
+
+    return 0;
+}
+```
+
 
 ### Existence Checking
 You can check if a Canopy Cloud Variable exists with:
 
 ``` c
-#include <canopy.h>
-
-int main(void)
-{
+    canopy_sync();
     if (canopy_var_exists(CANOPY_VAR_NAME, "temperature"))
-}
+    {
+        ...
+    }
+```
