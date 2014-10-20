@@ -14,231 +14,6 @@
  * limitations under the License.
  */
 
-/*
- *  The libcanopy library provides functionality for cloud-based monitoring,
- *  control and notifications to firmware developers.
- *
- *
- *  MONITORING:
- *
- *      The following program demonstrates how to send a sensor sample to the
- *      cloud:
- * 
- *      ----------------------------------------------------------------------
- *      #include <canopy.h>
- *
- *      int main(void) 
- *      {
- *          canopy_post_sample(
- *              CANOPY_DEVICE_UUID, "9dfe2a00-efe2-45f9-a84c-8afc69caf4e6",
- *              CANOPY_PROPERTY_NAME, "temperature",
- *              CANOPY_VALUE_FLOAT32, 98.0f
- *          );
- *          return 0;
- *      }
- *      ----------------------------------------------------------------------
- *
- *      When run, the data sample is sent using HTTP POST to the server
- *      "http://canopy.link".  The libcanopy library can be configured to use a
- *      different protocol or send the data to some other server that is
- *      running the Canopy Cloud Service.
- *
- *      Replace the UUID in the example above with a type-4 UUID specific for
- *      your device.  If your device needs a UUID, you can generate one from
- *      the linux command-line using:
- *
- *          uuid -v4
- *
- *      If you then compile and run the program, without doing anything else,
- *      you can manage this device from a web browser by going to:
- *
- *          http://canopy.link/9dfe2a00-efe2-45f9-a84c-8afc69caf4e6
- *
- *          (Of course, you must replace the UUID with your device's UUID).
- *
- *      Initially, Canopy considers the device an "Anonymous Device" since it
- *      has not been registered or associated with an account.  You can perform
- *      basic monitoring and control of an Anonymous Device simply by knowing
- *      the above access URL.  However, for greater security and functionality,
- *      you should register the device, which can be accomplished through the
- *      web interface.
- *
- *
- *  CONTROL:
- *
- *      The following example program shows how a firmware callback can be
- *      triggered based on a web UI action.
- *
- *      -----------------------------------------------------------------------
- *      #include <canopy.h>
- *
- *      int handle_brightness(const char *propname, float value) {
- *          printf("Brightness set to %f\n", value);
- *          return 0;
- *      }
- *
- *      int main(void) {
- *          canopy_on_change(
- *              CANOPY_DEVICE_UUID, "9dfe2a00-efe2-45f9-a84c-8afc69caf4e6",
- *              CANOPY_PROPERTY_NAME, "brightness",
- *              CANOPY_ON_CHANGE_FLOAT32_CALLBACK, handle_brightness
- *          );
- *          canopy_run_event_loop();
- *          return 0;
- *      }
- *      -----------------------------------------------------------------------
- *
- *      While this program is running, you can manipulate the device's
- *      "brightness" property from any web browser by going to:
- *
- *          http://canopy.link/9dfe2a00-efe2-45f9-a84c-8afc69caf4e6
- *
- *
- *  NOTIFICATIONS:
- *
- *      If the device has been registered with the Canopy Cloud Service and has
- *      been associated with an account, the firmware can send notifications to
- *      the owner of the device.  The firmware can send SMS, email, or in-app
- *      notifications.
- *
- *      -----------------------------------------------------------------------
- *      #include <canopy.h>
- *
- *      int main(void) {
- *          canopy_notify(
- *              CANOPY_DEVICE_UUID, "9dfe2a00-efe2-45f9-a84c-8afc69caf4e6",
- *              CANOPY_NOTIFY_TYPE, CANOPY_NOTIFY_SMS,
- *              CANOPY_NOTIFY_MSG, "Running low on green toner!"
- *          );
- *          return 0;
- *      }
- *      -----------------------------------------------------------------------
- *
- *
- *  LIBCANOPY OPTIONS AND CONTEXTS:
- *
- *      Typically, you will need to make several calls to libcanopy within a
- *      single application.  Instead of passing the same options every time you
- *      call a routine, many libcanopy options can be configured globally.  For
- *      example:
- *
- *      ----------------------------------------------------------------------
- *      #include <canopy.h>
- *
- *      int main(void) 
- *      {
- *          canopy_global_opt(
- *              CANOPY_DEVICE_UUID, "9dfe2a00-efe2-45f9-a84c-8afc69caf4e6",
- *              CANOPY_CLOUD_SERVER, "localhost:8080",
- *              CANOPY_REPORT_PROTOCOL, CANOPY_PROTOCOL_HTTPS,
- *              CANOPY_NOTIFY_PROTOCOL, CANOPY_PROTOCOL_HTTPS,
- *              CANOPY_NOTIFY_TYPE, CANOPY_NOTIFY_SMS
- *          );
- *
- *          canopy_post_sample(
- *              CANOPY_PROPERTY_NAME, "temperature",
- *              CANOPY_VALUE_FLOAT32, 98.0f
- *          );
- *          canopy_post_sample(
- *              CANOPY_PROPERTY_NAME, "humidity",
- *              CANOPY_VALUE_FLOAT32, 50.0f
- *          );
- *          canopy_notify(
- *              CANOPY_NOTIFY_MSG, "Running low on green toner!",
- *          );
- *          return 0;
- *      }
- *      ----------------------------------------------------------------------
- *
- *      Alternatively, you can explicitely create a Canopy Context object (or
- *      several Canopy Context objects) to hold Canopy configuration settings.
- *
- *      ----------------------------------------------------------------------
- *      #include <canopy.h>
- *      #include <assert.h>
- *
- *      int main(void) 
- *      {
- *          CanopyContext ctx;
- *          ctx = canopy_create_ctx(NULL);
- *          assert(ctx);
- *
- *          canopy_ctx_opt(ctx,
- *              CANOPY_DEVICE_UUID, "9dfe2a00-efe2-45f9-a84c-8afc69caf4e6",
- *              CANOPY_CLOUD_SERVER, "localhost:8080",
- *              CANOPY_REPORT_PROTOCOL, CANOPY_PROTOCOL_HTTPS,
- *              CANOPY_NOTIFY_PROTOCOL, CANOPY_PROTOCOL_HTTPS,
- *              CANOPY_NOTIFY_TYPE, CANOPY_NOTIFY_SMS
- *          );
- *
- *          canopy_post_sample(
- *              CANOPY_CTX, ctx,
- *              CANOPY_PROPERTY_NAME, "temperature",
- *              CANOPY_VALUE_FLOAT32, 98.0f
- *          );
- *          canopy_post_sample(
- *              CANOPY_CTX, ctx,
- *              CANOPY_PROPERTY_NAME, "humidity",
- *              CANOPY_VALUE_FLOAT32, 50.0f
- *          );
- *          canopy_notify(
- *              CANOPY_CTX, ctx,
- *              CANOPY_NOTIFY_MSG, "Running low on green toner!",
- *          );
- *
- *          canopy_ctx_destroy(ctx);
- *          return 0;
- *      }
- *      ----------------------------------------------------------------------
- *      
- *
- *  PROMISES:
- *
- *      Many operations performed by libcanopy are asynchronous.  For example,
- *      canopy_post_sample() returns immediately, but may begin an asynchronous
- *      HTTP request/response communication in another thread.
- *
- *      Promises make it easy to wait for asynchronous operations to complete
- *      and to register callbacks relating to libcanopy's asynchronous
- *      operations.
- *
- *      The following example shows how to wait for the completion of a
- *      canopy_post_sample() operation using a Promise.
- *
- *      ----------------------------------------------------------------------
- *      #include <canopy.h>
- *      #include <stdio.h>
- *
- *      int main(void)
- *      {
- *          CanopyPromise promise;
- *
- *          canopy_post_sample(
- *              CANOPY_DEVICE_UUID, "9dfe2a00-efe2-45f9-a84c-8afc69caf4e6",
- *              CANOPY_PROPERTY_NAME, "temperature",
- *              CANOPY_VALUE_FLOAT32, 98.0f,
- *              CANOPY_PROMISE, &promise
- *          );
- *
- *          canopy_promise_wait(promise, CANOPY_TIMEOUT, 10.0f);
- *          if (canopy_promise_result(promise) == CANOPY_SUCCESS)
- *          {
- *              printf("Sample successfully sent to server!\n");
- *          }
- *          else
- *          {
- *              printf("Error sending sample to server!\n");
- *              canopy_print_error();
- *          }
- *
- *          canopy_destroy_promise(promise);
- *
- *      }
- *      
- *      ----------------------------------------------------------------------
- *
- */
-
 #ifndef CANOPY_INCLUDED
 #define CANOPY_INCLUDED
 
@@ -248,21 +23,21 @@
 #include <time.h>
 
 /*
- * CanopyCtx
+ * CanopyContext
  *
- *  A CanopyCtx holds configuration options, connectivity state, and other
+ *  A CanopyContext holds configuration options, connectivity state, and other
  *  internal state used by this library.  The libcanopy library automatically
  *  creates a "global context" that can be obtained by calling:
  *
- *      CanopyCtx ctx = canopy_global_ctx();
+ *      CanopyContext ctx = canopy_global_ctx();
  *
  *  Some routines, such as canopy_global_opt() implicitely operate on the
  *  global context.  Other routines, such as canopy_ctx_opt() operate on an
- *  explicitly passed-in CanopyCtx object.  Some routines, such as
+ *  explicitly passed-in CanopyContext object.  Some routines, such as
  *  canopy_notify(), can operate either way, depending on whether or not the
  *  CANOPY_CTX option is passed to the routine.
  */
-typedef struct CanopyCtx_t * CanopyCtx;
+typedef struct CanopyContext_t * CanopyContext;
 
 /* 
  * CanopyNotifyTypeEnum
@@ -322,7 +97,7 @@ typedef enum {
 /*
  * CanopyOnChangeFloat32Callback
  */
-typedef int (*CanopyOnChangeFloat32Callback)(CanopyCtx, const char *propname, float value, void *extra);
+typedef int (*CanopyOnChangeFloat32Callback)(CanopyContext, const char *propname, float value, void *extra);
 
 
 
@@ -514,7 +289,7 @@ typedef enum {
      * CANOPY_CTX
      *
      *  Selects the Canopy context that the routine should use.  The value must
-     *  be a CanopyCtx object or NULL (in which case the implicit global
+     *  be a CanopyContext object or NULL (in which case the implicit global
      *  context will be used).  Defaults to NULL.
      */
     CANOPY_CTX,
@@ -570,7 +345,7 @@ typedef enum {
      *  Configures float32 control event callback.  The value must be a
      *  function pointer with the following type:
      *      
-     *      int (*func)(CanopyCtx, const char *propname, float value, void *extra)
+     *      int (*func)(CanopyContext, const char *propname, float value, void *extra)
      */
     CANOPY_ON_CHANGE_FLOAT32_CALLBACK,
 
@@ -644,9 +419,9 @@ typedef enum {
  *      to use library defaults for all configuration options.  To copy the
  *      global context, use:
  *
- *          CanopyCtx ctx = canopy_create_ctx(canopy_global_ctx());
+ *          CanopyContext ctx = canopy_create_ctx(canopy_global_ctx());
  */
-CanopyCtx canopy_create_ctx(CanopyCtx copyOptsFrom);
+CanopyContext canopy_create_ctx(CanopyContext copyOptsFrom);
 
 /*
  * canopy_ctx_opt -- Set configuration options for a particular context.
@@ -681,17 +456,17 @@ CanopyCtx canopy_create_ctx(CanopyCtx copyOptsFrom);
  *  sentinal NULL value, there is no need to end the argument list with NULL.
  */
 #define canopy_ctx_opt(ctx, ...) canopy_ctx_opt_impl(ctx, __VA_ARGS__, NULL)
-CanopyResultEnum canopy_ctx_opt_impl(CanopyCtx ctx, ...);
+CanopyResultEnum canopy_ctx_opt_impl(CanopyContext ctx, ...);
 
 /*
  * canopy_destroy_ctx -- Destroy a Canopy context.
  */
-void canopy_destroy_ctx(CanopyCtx ctx);
+void canopy_destroy_ctx(CanopyContext ctx);
 
 /*
  * canopy_global_ctx -- Obtain the default "global context".
  */
-CanopyCtx canopy_global_ctx();
+CanopyContext canopy_global_ctx();
 
 /*
  * canopy_global_opt -- Set global configuration defaults.
@@ -765,48 +540,17 @@ CanopyCtx canopy_global_ctx();
 CanopyResultEnum canopy_notify_impl(void * start, ...);
 
 /*
- * canopy_on_change -- Register a remote control event callback.
+ * canopy_var_on_change -- Register a remote control event callback.
  *
- *  Registers a callback that gets triggered when a control change event is
- *  recieved from the Canopy Cloud Service.  The callback gets triggered from
- *  within canopy_service() or canopy_event_loop().
- *
- *  A simple example:
- *
- *      canopy_post_sample(
- *          CANOPY_CLOUD_SERVER, "canopy.link",
- *          CANOPY_DEVICE_UUID, "16eeca6a-e8dc-4c54-b78e-6a7416803ca8",
- *          CANOPY_PROPERTY_NAME, "temperature",
- *          CANOPY_VALUE_FLOAT32, 4.0f
- *      );
- *  
+ *  Registers a callback that gets triggered when a Clouf Variable change event
+ *  is recieved from the Canopy Cloud Service.  The callback gets triggered
+ *  from within canopy_sync() or canopy_event_loop().
  */
-#define canopy_on_change(...) canopy_on_change_impl(NULL, __VA_ARGS__, NULL)
-CanopyResultEnum canopy_on_change_impl(void *start, ...);
+#define canopy_var_on_change(...) canopy_var_on_change_impl(NULL, __VA_ARGS__, NULL)
+CanopyResultEnum canopy_var_on_change_impl(void *start, ...);
 
 /*
- * canopy_post_sample -- Post sensor data sample to the Canopy Cloud Service.
- *
- *  Provides a convenient and flexible routine for posting data samples to the
- *  Canopy Cloud Service.  It takes a variable number of arguments that must
- *  alternate between parameter identifiers and values.
- *
- *  A simple example:
- *
- *      canopy_post_sample(
- *          CANOPY_CLOUD_SERVER, "canopy.link",
- *          CANOPY_DEVICE_UUID, "16eeca6a-e8dc-4c54-b78e-6a7416803ca8",
- *          CANOPY_PROPERTY_NAME, "temperature",
- *          CANOPY_VALUE_FLOAT32, 4.0f
- *      );
- *
- *  In your web browser, you can see the posted data by going to:
- *
- *      http://canopy.link/16eeca6a-e8dc-4c54-b78e-6a7416803ca8
- *
- *      (Of course, replace the UUID with the UUID of your device).
- *
- *  This routine accepts the following parameters:
+ * canopy_var_set -- Set the value of a Cloud Variable.
  *
  *      CANOPY_CLOUD_SERVER
  *      CANOPY_REPORT_PROTOCOL
@@ -829,8 +573,8 @@ CanopyResultEnum canopy_on_change_impl(void *start, ...);
  *  Since canopy_post_sample is implemented as a macro that automatically adds
  *  a sentinal NULL value, there is no need to end the argument list with NULL.
  */
-#define canopy_post_sample(...) canopy_post_sample_impl(NULL, __VA_ARGS__, NULL)
-CanopyResultEnum canopy_post_sample_impl(void * start, ...);
+#define canopy_var_set(...) canopy_var_set_impl(NULL, __VA_ARGS__, NULL)
+CanopyResultEnum canopy_var_set_impl(void * start, ...);
 
 
 /*
@@ -906,7 +650,7 @@ CanopyResultEnum canopy_promise_wait(CanopyPromise promise, ...);
 CanopyResultEnum canopy_run_event_loop_impl(void *start, ...);
 
 /*
- * canopy_service -- Perform outstanding tasks and triggers callbacks.
+ * canopy_sync -- Perform outstanding tasks and triggers callbacks.
  *
  *  This routine instructs libcanopy to perform any outstanding tasks.  These
  *  tasks may include:
@@ -917,121 +661,7 @@ CanopyResultEnum canopy_run_event_loop_impl(void *start, ...);
  *  This only performs outstanding tasks for a single context.  If CANOPY_CTX
  *  is omitted or NULL, the global context is serviced.
  */
-#define canopy_service(...) canopy_service_impl(NULL, __VA_ARGS__, NULL)
-CanopyResultEnum canopy_service_impl(void *start, ...);
-
-
-
-
-
-
-
-
-
-
-
-
-/*****************************************************************************
- * OLD INTERFACE -- Deprecated
- ******************************************************************************/
-
-typedef struct CanopyContext_t * CanopyContext;
-typedef struct CanopyReport_t * CanopyReport;
-typedef struct CanopyEventDetails_t * CanopyEventDetails;
-typedef struct CanopyProvisionResults_t * CanopyProvisionResults;
-
-typedef enum
-{
-    CANOPY_EVENT_INVALID,
-    CANOPY_EVENT_CONNECTION_ESTABLISHED,
-    CANOPY_EVENT_CONNECTION_LOST,
-    CANOPY_EVENT_REPORT_REQUESTED,
-    CANOPY_EVENT_CONTROL_CHANGE,
-    CANOPY_EVENT_CONTROL_TRIGGER
-} CanopyEventEnum;
-
-typedef bool (*CanopyEventCallbackRoutine)(CanopyContext, CanopyEventDetails);
-
-CanopyContext canopy_init();
-
-bool canopy_set_cloud_host(CanopyContext canopy, const char *hostname);
-bool canopy_set_cloud_port(CanopyContext canopy, uint16_t port);
-bool canopy_set_auto_reconnect(CanopyContext canopy, bool enabled);
-bool canopy_set_device_id(CanopyContext canopy, const char *uuid);
-bool canopy_set_device_id_filename(CanopyContext canopy, const char *filename);
-
-CanopyProvisionResults canopy_provision(CanopyContext canopy, const char *cloudUsername, const char *cloudPassword);
-/* Returned ptr is only valid until canopy_free_provision_results is called */
-const char * canopy_provision_get_uuid(CanopyProvisionResults results);
-void canopy_free_provision_results(CanopyProvisionResults results);
-
-bool canopy_connect(CanopyContext canopy);
-
-bool canopy_register_event_callback(CanopyContext canopy, CanopyEventCallbackRoutine fn, void *extra);
-
-bool canopy_load_sddl(CanopyContext canopy, const char *filename, const char *className);
-bool canopy_load_sddl_file(CanopyContext canopy, FILE *file, const char *className);
-bool canopy_load_sddl_string(CanopyContext canopy, const char *sddl, const char *className);
-
-CanopyEventEnum canopy_get_event_type(CanopyEventDetails event);
-bool canopy_event_control_name_matches(CanopyEventDetails event, const char *name);
-bool canopy_event_get_control_value_string(CanopyEventDetails event, const char **outValue);
-bool canopy_event_get_control_value_bool(CanopyEventDetails event, bool *outValue);
-bool canopy_event_get_control_value_i8(CanopyEventDetails event, int8_t *outValue);
-bool canopy_event_get_control_value_u8(CanopyEventDetails event, uint8_t *outValue);
-bool canopy_event_get_control_value_i16(CanopyEventDetails event, int16_t *outValue);
-bool canopy_event_get_control_value_u16(CanopyEventDetails event, uint16_t *outValue);
-bool canopy_event_get_control_value_i32(CanopyEventDetails event, int32_t *outValue);
-bool canopy_event_get_control_value_u32(CanopyEventDetails event, uint32_t *outValue);
-bool canopy_event_get_control_value_float32(CanopyEventDetails event, float *outValue);
-bool canopy_event_get_control_value_float64(CanopyEventDetails event, double *outValue);
-bool canopy_event_get_control_value_datetime(CanopyEventDetails event, struct tm *outValue);
-CanopyContext canopy_event_context(CanopyEventDetails event);
-
-CanopyReport canopy_begin_report(CanopyContext canopy);
-bool canopy_report_void(CanopyReport report, const char *parameter);
-bool canopy_report_string(CanopyReport report, const char *parameter, const char *value);
-bool canopy_report_bool(CanopyReport report, const char *parameter, bool value);
-bool canopy_report_i8(CanopyReport report, const char *parameter, int8_t value);
-bool canopy_report_u8(CanopyReport report, const char *parameter, uint8_t value);
-bool canopy_report_i16(CanopyReport report, const char *parameter, int16_t value);
-bool canopy_report_u16(CanopyReport report, const char *parameter, uint16_t value);
-bool canopy_report_i32(CanopyReport report, const char *parameter, int32_t value);
-bool canopy_report_u32(CanopyReport report, const char *parameter, uint32_t value);
-bool canopy_report_float32(CanopyReport report, const char *parameter, float value);
-bool canopy_report_float64(CanopyReport report, const char *parameter, double value);
-bool canopy_report_datetime(CanopyReport report, const char *parameter, const struct tm *value);
-
-bool canopy_send_report(CanopyReport report);
-
-bool canopy_event_loop(CanopyContext canopy);
-
-void canopy_quit(CanopyContext canopy);
-
-void canopy_shutdown(CanopyContext canopy);
-
-/*
- * On Unix, Linux, and MacOSX, looks for file, in this order:
- *
- * $CANOPY_HOME/<filename>
- * ~/.canopy/<filename>
- * SYSCONFDIR/<filename>
- * /etc/canopy/<filename>
- */
-FILE * canopy_open_config_file(const char* filename);
-
-/*
- * Uses CANOPY_UUID env var, or, if not set, then config file "uuid".
- *
- * Caller must free returned string.
- */
-char * canopy_read_system_uuid();
-
-/* returns "https" or "http" */
-const char * canopy_get_web_protocol(CanopyContext ctx);
-const char * canopy_get_cloud_host(CanopyContext ctx);
-uint16_t canopy_get_cloud_port(CanopyContext ctx);
-
-const char * canopy_get_sysconfigdir();
+#define canopy_sync(...) canopy_sync_impl(NULL, __VA_ARGS__, NULL)
+CanopyResultEnum canopy_sync_impl(void *start, ...);
 
 #endif
