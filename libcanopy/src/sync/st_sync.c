@@ -97,6 +97,11 @@ CanopyResultEnum st_sync(CanopyContext ctx, STOptions options, STWebSocket ws, S
 {
     CanopyResultEnum result;
 
+    if (!st_option_is_set(options, CANOPY_CLOUD_SERVER))
+    {
+        return CANOPY_ERROR_MISSING_REQUIRED_OPTION;
+    }
+
     // Initiate websocket connection if necessary:
     if (!st_websocket_is_connected(ws))
     {
