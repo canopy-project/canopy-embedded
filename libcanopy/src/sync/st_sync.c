@@ -97,6 +97,23 @@ CanopyResultEnum st_sync(CanopyContext ctx, STOptions options, STWebSocket ws, S
 {
     CanopyResultEnum result;
 
+    // Initiate websocket connection if necessary:
+    if (!st_websocket_is_connected(ws))
+    {
+        CanopyResultEnum result;
+        result = st_websocket_connect(
+                ws,
+                options->val_CANOPY_CLOUD_SERVER,
+                80, // TODO: don't hardcode
+                false, // TODO: don't hardcode
+                "/echo"); // TODO: rename
+        if (result != CANOPY_SUCCESS)
+            return result;
+
+        // Service websocket for first time
+        st_websocket_service(ws, 100);
+    }
+
     // Check if local copy of any Cloud Variables have changed since last sync.
     if (st_cloudvar_system_is_dirty(cloudvars))
     {
@@ -106,9 +123,7 @@ CanopyResultEnum st_sync(CanopyContext ctx, STOptions options, STWebSocket ws, S
         result = _send_payload(ctx, options, ws, payload);
         free(payload);
         if (result != CANOPY_SUCCESS)
-        {
             return result;
-        }
     }
 
     // Service websockets

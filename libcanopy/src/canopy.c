@@ -24,6 +24,7 @@
 #include "cloudvar/st_cloudvar.h"
 #include "http/st_http.h"
 #include "options/st_options.h"
+#include "sync/st_sync.h"
 #include "websocket/st_websocket.h"
 #include "red_json.h"
 #include "red_string.h"
@@ -368,6 +369,7 @@ CanopyResultEnum canopy_promise_wait(CanopyPromise promise, ...)
 }
 
 
+#if 0
 static CanopyResultEnum _canopy_service_opts(STOptions options)
 {
     CanopyContext ctx = gCtx; // TODO: Use real ctx
@@ -412,6 +414,7 @@ static CanopyResultEnum _canopy_service_opts(STOptions options)
 
     return CANOPY_SUCCESS;
 }
+#endif
 
 
 CanopyResultEnum canopy_run_event_loop_impl(void *start, ...)
@@ -432,7 +435,7 @@ CanopyResultEnum canopy_run_event_loop_impl(void *start, ...)
 
     while (1)
     {
-        _canopy_service_opts(options);
+        st_sync(ctx, ctx->options, ctx->ws, ctx->cloudvars);
         sleep(1); /* TODO: No sleeping! */
     }
     /* TODO: Implement */
@@ -456,5 +459,8 @@ CanopyResultEnum canopy_sync_impl(void *start, ...)
         return result;
     }
 
-    return _canopy_service_opts(options);
+
+    return st_sync(ctx, ctx->options, ctx->ws, ctx->cloudvars);
+
+    //return _canopy_service_opts(options);
 }
