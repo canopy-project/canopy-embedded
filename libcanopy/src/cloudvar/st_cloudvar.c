@@ -15,10 +15,12 @@
 #include "cloudvar/st_cloudvar.h"
 #include "red_hash.h"
 #include <sddl.h>
+#include <assert.h>
 
 struct STCloudVarSystem_t {
     bool dirty;
     RedHash vars; // maps (char *varname) -> (STCloudVar var)
+    RedHash dirtyVars; // maps (char *varname) -> void 
 };
 
 struct STCloudVarValue_t {
@@ -71,6 +73,35 @@ CanopyResultEnum st_cloudvar_system_add(STCloudVarSystem sys, const char *varnam
     return CANOPY_SUCCESS;
 }
 
+bool st_cloudvar_system_is_dirty(STCloudVarSystem sys)
+{
+    return sys->dirty;
+}
+
+uint32_t st_cloudvar_system_num_dirty(STCloudVarSystem sys)
+{
+    return RedHash_NumItems(sys->dirtyVars);
+}
+
+STCloudVar st_cloudvar_system_dirty_var(STCloudVarSystem sys, uint32_t idx)
+{
+    // TODO: Inefficient!
+    RedHashIterator_t iter;
+    const void *key;
+    size_t keySize;
+    uint32_t i = 0;
+    RED_HASH_FOREACH(iter, sys->dirtyVars, &key, &keySize, NULL)
+    {
+        const char *varname = (const char *)key;
+        if (i == idx)
+        {
+            return RedHash_GetWithDefaultS(sys->vars, varname, NULL);
+        }
+        i++;
+    }
+    return NULL;
+}
+
 STCloudVar st_cloudvar_system_get_var(STCloudVarSystem sys, const char *varname)
 {
     return RedHash_GetWithDefaultS(sys->vars, varname, NULL);
@@ -82,4 +113,15 @@ CanopyResultEnum st_cloudvar_set_local_value_float32(STCloudVar var, float value
     var->dirty = true;
     var->sys->dirty = true;
     return CANOPY_SUCCESS;
+}
+
+const char * st_cloudvar_name(STCloudVar var)
+{
+    return var->name;
+}
+
+float st_cloudvar_local_value_float32(STCloudVar var)
+{
+    assert(var->value.datatype == SDDL_DATATYPE_FLOAT32);
+    return var->value.val.val_float32;
 }
