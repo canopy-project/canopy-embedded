@@ -272,6 +272,15 @@ unsigned RedHash_NumItems(const RedHash hash)
     return hash->numEntries;
 }
 
+void RedHash_Clear(RedHash hash)
+{
+    hash->numEntries = 0;
+    hash->numBuckets = _RedHashValidBucketCounts[0];
+    // TODO: major mem leak!
+    hash->buckets = calloc(hash->numBuckets, sizeof(RedHashNodeHeader *));
+}
+
+
 bool RedHash_IsEmpty(const RedHash hash)
 {
     return (hash->numEntries == 0);

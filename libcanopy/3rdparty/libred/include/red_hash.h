@@ -401,7 +401,7 @@ bool RedHash_IsEmpty(const RedHash hash);
  *
  *      <pMap> is the hash table to clear.
  */
-bool RedHash_Clear(const RedHash hash);
+void RedHash_Clear(RedHash hash);
 
 /* TODO: document */
 void RedHashIterator_Init(RedHashIterator_t *pIter, RedHash hash);

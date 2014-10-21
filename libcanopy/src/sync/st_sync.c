@@ -129,6 +129,8 @@ CanopyResultEnum st_sync(CanopyContext ctx, STOptions options, STWebSocket ws, S
         free(payload);
         if (result != CANOPY_SUCCESS)
             return result;
+
+        st_cloudvar_system_clear_dirty(cloudvars);
     }
 
     // Service websockets

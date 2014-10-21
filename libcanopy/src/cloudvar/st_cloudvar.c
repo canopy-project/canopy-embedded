@@ -53,7 +53,7 @@ STCloudVarSystem st_cloudvar_system_new()
     STCloudVarSystem sys;
 
     sys = calloc(1, sizeof(struct STCloudVarSystem_t));
-    sys->dirty = false;
+    sys->dirty = true;
     sys->vars = RedHash_New(0);
     sys->dirty_vars = RedHash_New(0);
     return sys;
@@ -75,9 +75,16 @@ bool st_cloudvar_system_contains(STCloudVarSystem sys, const char *varname)
     return RedHash_HasKeyS(sys->vars, varname);
 }
 
-static void _mark_dirty()
+void st_cloudvar_system_clear_dirty(STCloudVarSystem sys)
+{
+    sys->dirty = false;
+    RedHash_Clear(sys->dirty_vars);
+}
+
+static void _mark_dirty(STCloudVarSystem sys, const char *varname)
 {
     RedHash_InsertS(sys->dirty_vars, varname, (void *)true);
+    sys->dirty = true;
 }
 
 CanopyResultEnum st_cloudvar_system_add(STCloudVarSystem sys, const char *varname)
@@ -88,7 +95,7 @@ CanopyResultEnum st_cloudvar_system_add(STCloudVarSystem sys, const char *varnam
     var->sys = sys;
 
     RedHash_InsertS(sys->vars, varname, var);
-    _mark_dirty(sys->vars, varname);
+    _mark_dirty(sys, varname);
 
     return CANOPY_SUCCESS;
 }

@@ -28,6 +28,7 @@ bool st_cloudvar_system_contains(STCloudVarSystem sys, const char *varname);
 CanopyResultEnum st_cloudvar_system_add(STCloudVarSystem sys, const char *varname);
 bool st_cloudvar_system_is_dirty(STCloudVarSystem sys);
 STCloudVar st_cloudvar_system_get_var(STCloudVarSystem sys, const char *varname);
+void st_cloudvar_system_clear_dirty(STCloudVarSystem sys);
 void st_cloudvar_system_free(STCloudVarSystem sys);
 
 uint32_t st_cloudvar_system_num_dirty(STCloudVarSystem sys);
