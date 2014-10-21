@@ -20,7 +20,7 @@
 struct STCloudVarSystem_t {
     bool dirty;
     RedHash vars; // maps (char *varname) -> (STCloudVar var)
-    RedHash dirtyVars; // maps (char *varname) -> void 
+    RedHash dirty_vars; // maps (char *varname) -> void 
 };
 
 struct STCloudVarValue_t {
@@ -54,7 +54,20 @@ STCloudVarSystem st_cloudvar_system_new()
 
     sys = calloc(1, sizeof(struct STCloudVarSystem_t));
     sys->dirty = true;
+    sys->vars = RedHash_New(0);
+    sys->dirty_vars = RedHash_New(0);
     return sys;
+}
+
+void st_cloudvar_system_free(STCloudVarSystem sys)
+{
+    if (sys)
+    {
+        // TODO: free all entries in hash table
+        //RedHash_Free(sys->vars);
+        //RedHash_Free(sys->dirty_vars);
+        free(sys);
+    }
 }
 
 bool st_cloudvar_system_contains(STCloudVarSystem sys, const char *varname)
@@ -80,7 +93,7 @@ bool st_cloudvar_system_is_dirty(STCloudVarSystem sys)
 
 uint32_t st_cloudvar_system_num_dirty(STCloudVarSystem sys)
 {
-    return RedHash_NumItems(sys->dirtyVars);
+    return RedHash_NumItems(sys->dirty_vars);
 }
 
 STCloudVar st_cloudvar_system_dirty_var(STCloudVarSystem sys, uint32_t idx)
@@ -90,7 +103,7 @@ STCloudVar st_cloudvar_system_dirty_var(STCloudVarSystem sys, uint32_t idx)
     const void *key;
     size_t keySize;
     uint32_t i = 0;
-    RED_HASH_FOREACH(iter, sys->dirtyVars, &key, &keySize, NULL)
+    RED_HASH_FOREACH(iter, sys->dirty_vars, &key, &keySize, NULL)
     {
         const char *varname = (const char *)key;
         if (i == idx)

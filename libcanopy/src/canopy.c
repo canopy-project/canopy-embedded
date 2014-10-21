@@ -109,10 +109,18 @@ CanopyContext canopy_create_ctx(CanopyContext copyOptsFrom)
         goto fail;
     }
 
+    ctx->cloudvars = st_cloudvar_system_new();
+    if (!ctx->cloudvars)
+    {
+        RedLog_Error("OOM in canopy_create_ctx");
+        goto fail;
+    }
+
     return ctx;
 fail:
     st_options_free(ctx->options);
     st_websocket_free(ctx->ws);
+    st_cloudvar_system_free(ctx->cloudvars);
     free(ctx);
     return NULL;
 }
@@ -455,12 +463,9 @@ CanopyResultEnum canopy_sync_impl(void *start, ...)
     if (result != CANOPY_SUCCESS)
     {
         // TODO: Error details
-        fprintf(stderr, "Error processing arguments in canopy_service\n");
+        fprintf(stderr, "Error processing arguments in canopy_sync\n");
         return result;
     }
 
-
-    return st_sync(ctx, ctx->options, ctx->ws, ctx->cloudvars);
-
-    //return _canopy_service_opts(options);
+    return st_sync(ctx, options, ctx->ws, ctx->cloudvars);
 }
