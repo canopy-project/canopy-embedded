@@ -118,7 +118,7 @@ CanopyResultEnum st_options_extend_varargs_impl(STOptions base, va_list ap)
             }
         }
     }
-    return CANOPY_ERROR_NOT_IMPLEMENTED;
+    return CANOPY_SUCCESS;
 }
 
 CanopyResultEnum st_options_new_extend_varargs_impl(STOptions *newOptions, STOptions base, va_list ap)
