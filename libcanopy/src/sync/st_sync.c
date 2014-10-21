@@ -73,21 +73,25 @@ static char * _gen_outbound_payload(STCloudVarSystem cloudvars)
     // construct payload:
     RedJsonObject json = RedJsonObject_New();
     RedJsonObject json_vars = RedJsonObject_New();
-    RedJsonObject_SetObject(json, "vars", json_vars);
-
-    // For each dirty cloud variable, add to the payload "vars" object:
-    // TODO: race condition?
     num_dirty = st_cloudvar_system_num_dirty(cloudvars);
-    for (i = 0; i < num_dirty; i++)
+
+    if (num_dirty > 0)
     {
-        STCloudVar var = st_cloudvar_system_dirty_var(cloudvars, i);
-        // TODO:
-        //   - timestamp for better synchronization?
-        //   - post var configuration?
-        RedJsonObject_SetNumber(
-                json_vars, 
-                st_cloudvar_name(var), 
-                st_cloudvar_local_value_float32(var));
+        RedJsonObject_SetObject(json, "vars", json_vars);
+
+        // For each dirty cloud variable, add to the payload "vars" object:
+        // TODO: race condition?
+        for (i = 0; i < num_dirty; i++)
+        {
+            STCloudVar var = st_cloudvar_system_dirty_var(cloudvars, i);
+            // TODO:
+            //   - timestamp for better synchronization?
+            //   - post var configuration?
+            RedJsonObject_SetNumber(
+                    json_vars, 
+                    st_cloudvar_name(var), 
+                    st_cloudvar_local_value_float32(var));
+        }
     }
 
     return RedJsonObject_ToJsonString(json);
