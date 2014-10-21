@@ -264,6 +264,10 @@ typedef enum {
     CANOPY_OPT_LIST_END=0,
 
     /*
+     * CANOPY_AUTO_SYNC
+     */
+    CANOPY_AUTO_SYNC,
+    /*
      * CANOPY_CLOUD_SERVER
      * 
      *  Configures the hostname and port of the Canopy Cloud Service to
@@ -365,15 +369,6 @@ typedef enum {
     CANOPY_PROMISE,
 
     /*
-     * CANOPY_PROPERTY_NAME
-     *
-     *  Configures the property name to use for subsequent sensor sample
-     *  reporting and control callback registration.  The value must be a
-     *  string, or NULL (if unconfigured).  Defaults to NULL.
-     */
-    CANOPY_PROPERTY_NAME,
-
-    /*
      * CANOPY_REPORT_POST_IMMEDIATELY
      *
      *  Configures when reports will be posted to the Canopy Cloud Service.
@@ -409,7 +404,17 @@ typedef enum {
      *  Configures a 32-bit floating-point value.
      *  Used by canopy_post_sample().
      */
-    CANOPY_VALUE_FLOAT32
+    CANOPY_VALUE_FLOAT32,
+
+    /*
+     * CANOPY_VAR_NAME
+     *
+     *  Configures the property name to use for subsequent sensor sample
+     *  reporting and control callback registration.  The value must be a
+     *  string, or NULL (if unconfigured).  Defaults to NULL.
+     */
+    CANOPY_VAR_NAME,
+
 } CanopyOptEnum;
 
 /*

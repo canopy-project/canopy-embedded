@@ -56,13 +56,14 @@
 //
 //                       ENUM VALUE,  DATATYPE,  VARARG_DATATYPE, FREE_ROUTINE
 #define _OPTION_LIST \
+    _OPTION_LIST_FOREACH(CANOPY_AUTO_SYNC, bool, int, _noop) \
     _OPTION_LIST_FOREACH(CANOPY_CLOUD_SERVER, char *, char *, free) \
     _OPTION_LIST_FOREACH(CANOPY_CONTROL_PROTOCOL, CanopyProtocolEnum, CanopyProtocolEnum, _noop) \
     _OPTION_LIST_FOREACH(CANOPY_DEVICE_UUID, char *, char *, free) \
     _OPTION_LIST_FOREACH(CANOPY_NOTIFY_MSG, char *, char *, free) \
     _OPTION_LIST_FOREACH(CANOPY_NOTIFY_PROTOCOL, CanopyProtocolEnum, CanopyProtocolEnum, _noop) \
     _OPTION_LIST_FOREACH(CANOPY_NOTIFY_TYPE, CanopyNotifyTypeEnum, CanopyProtocolEnum, _noop) \
-    _OPTION_LIST_FOREACH(CANOPY_PROPERTY_NAME, char *, char *, free) \
+    _OPTION_LIST_FOREACH(CANOPY_VAR_NAME, char *, char *, free) \
     _OPTION_LIST_FOREACH(CANOPY_REPORT_PROTOCOL, CanopyProtocolEnum, CanopyProtocolEnum, _noop) \
     _OPTION_LIST_FOREACH(CANOPY_VALUE_FLOAT32, float, double, _noop)
 

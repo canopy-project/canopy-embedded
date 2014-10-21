@@ -434,3 +434,22 @@ You can check if a Canopy Cloud Variable exists with:
         ...
     }
 ```
+
+
+API Reference
+-------------------------------------------------------------------------------
+
+### canopy_var_set
+
+The `canopy_var_set` function:
+
+ - Creates a local Cloud Variable using the provided name, if none already
+   exists.
+ - Sets the Cloud Variable's local value.
+ - Performs cloud synchronization if CANOPY_AUTO_SYNC is true.
+
+The next time cloud synchronization occurs:
+
+ - Creates a remote Cloud Variable using the provided name, if none already
+ exists.
+ - Sends the most recent local value to the Cloud.

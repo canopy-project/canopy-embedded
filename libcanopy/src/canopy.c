@@ -21,6 +21,7 @@
  */
 
 #include <canopy.h>
+#include "cloudvar/st_cloudvar.h"
 #include "http/st_http.h"
 #include "options/st_options.h"
 #include "websocket/st_websocket.h"
@@ -49,6 +50,8 @@ typedef struct
 typedef struct CanopyContext_t
 {
     STOptions options;
+
+    STCloudVarSystem cloudvars;
 
     STWebSocket ws;
 
@@ -158,7 +161,7 @@ CanopyResultEnum canopy_var_on_change_impl(void *start, ...)
 
     /* Register callback by adding to hash table. 
      */
-    if (!st_option_is_set(options, CANOPY_PROPERTY_NAME))
+    if (!st_option_is_set(options, CANOPY_VAR_NAME))
     {
         /* Property name required */
         return CANOPY_ERROR_MISSING_REQUIRED_OPTION;
@@ -168,7 +171,7 @@ CanopyResultEnum canopy_var_on_change_impl(void *start, ...)
      * Should we override/replace or trigger both callbacks?
      * TODO: RedHash_Insert should return error code
      */
-    RedHash_InsertS(ctx->control_cb_hash, options->val_CANOPY_PROPERTY_NAME, optionsCopy);
+    RedHash_InsertS(ctx->control_cb_hash, options->val_CANOPY_VAR_NAME, optionsCopy);
 
     /* TODO: Promises */
 
@@ -182,22 +185,59 @@ CanopyResultEnum canopy_var_on_change_impl(void *start, ...)
 
 CanopyResultEnum canopy_var_set_impl(void * start, ...)
 {
-    /* TODO: Free memory */
     STOptions options;
     va_list ap;
     _init_libcanopy_if_needed();
     CanopyContext ctx = gCtx;
     CanopyResultEnum result;
+    STCloudVar var;
     /* TODO: support other contexts */
 
-    /* Process arguments */
+    // Process arguments
     result = st_options_new_extend_varargs(&options, ctx->options, start, ap);
     if (result != CANOPY_SUCCESS)
     {
         // TODO: Error details
         return result;
     }
+    if (!st_option_is_set(options, CANOPY_VAR_NAME))
+    {
+        // Property name required
+        return CANOPY_ERROR_MISSING_REQUIRED_OPTION;
+    }
 
+    // Create a local variable using the provided name, if none already exists.
+    if (!st_cloudvar_system_contains(ctx->cloudvars, options->val_CANOPY_VAR_NAME))
+    {
+        // TODO: race condition?
+        result = st_cloudvar_system_add(ctx->cloudvars, options->val_CANOPY_VAR_NAME);
+        if (result != CANOPY_SUCCESS)
+        {
+            // TODO: cleanup & full error details
+            return result;
+        }
+    }
+
+    // Set cloud variable's local value
+    var = st_cloudvar_system_get_var(ctx->cloudvars, options->val_CANOPY_VAR_NAME);
+    assert(var);
+    // TODO: handle all datatypes
+    result = st_cloudvar_set_local_value_float32(var, options->val_CANOPY_VALUE_FLOAT32);
+    if (result != CANOPY_SUCCESS)
+    {
+        // TODO: cleanup & full error details
+        return result;
+    }
+   
+    // syncrhonize w/ cloud if AUTO_SYNC is enabled
+    if (st_option_is_set(options, CANOPY_AUTO_SYNC)
+            && options->val_CANOPY_AUTO_SYNC == true)
+    {
+        canopy_sync();
+    }
+    
+
+#if 0
     /* Construct payload  */
     RedJsonObject payload_json = RedJsonObject_New();
     if (!st_option_is_set(options, CANOPY_PROPERTY_NAME))
@@ -235,6 +275,7 @@ CanopyResultEnum canopy_var_set_impl(void * start, ...)
     {
         return CANOPY_ERROR_PROTOCOL_NOT_SUPPORTED;
     }
+#endif
 
     return CANOPY_SUCCESS;
 }
