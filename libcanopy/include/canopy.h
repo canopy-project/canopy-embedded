@@ -385,20 +385,6 @@ typedef enum {
     CANOPY_REPORT_POST_IMMEDIATELY,
 
     /*
-     * CANOPY_REPORT_PROTOCOL
-     *
-     *  Configures the protocol to use for reporting sensor data to the Canopy
-     *  Cloud Service.  The value must be a CanopyProtocolEnum value.
-     *  Currently, the following protocols are supported:
-     *
-     *      CANOPY_PROTOCOL_HTTP
-     *      CANOPY_PROTOCOL_WS
-     *
-     *  Defaults to CANOPY_PROTOCOL_HTTP.
-     */
-    CANOPY_REPORT_PROTOCOL,
-
-    /*
      * CANOPY_VALUE_FLOAT32
      *
      *  Configures a 32-bit floating-point value.
@@ -414,6 +400,20 @@ typedef enum {
      *  string, or NULL (if unconfigured).  Defaults to NULL.
      */
     CANOPY_VAR_NAME,
+
+    /*
+     * CANOPY_VAR_PUSH_PROTOCOL
+     *
+     *  Configures the protocol to use for reporting sensor data to the Canopy
+     *  Cloud Service.  The value must be a CanopyProtocolEnum value.
+     *  Currently, the following protocols are supported:
+     *
+     *      CANOPY_PROTOCOL_HTTP
+     *      CANOPY_PROTOCOL_WS
+     *
+     *  Defaults to CANOPY_PROTOCOL_HTTP.
+     */
+    CANOPY_VAR_PUSH_PROTOCOL,
 
 } CanopyOptEnum;
 

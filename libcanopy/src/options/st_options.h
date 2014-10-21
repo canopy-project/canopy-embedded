@@ -64,7 +64,7 @@
     _OPTION_LIST_FOREACH(CANOPY_NOTIFY_PROTOCOL, CanopyProtocolEnum, CanopyProtocolEnum, _noop) \
     _OPTION_LIST_FOREACH(CANOPY_NOTIFY_TYPE, CanopyNotifyTypeEnum, CanopyProtocolEnum, _noop) \
     _OPTION_LIST_FOREACH(CANOPY_VAR_NAME, char *, char *, free) \
-    _OPTION_LIST_FOREACH(CANOPY_REPORT_PROTOCOL, CanopyProtocolEnum, CanopyProtocolEnum, _noop) \
+    _OPTION_LIST_FOREACH(CANOPY_VAR_PUSH_PROTOCOL, CanopyProtocolEnum, CanopyProtocolEnum, _noop) \
     _OPTION_LIST_FOREACH(CANOPY_VALUE_FLOAT32, float, double, _noop)
 
 #define _OPTION_LIST_FOREACH(option, datatype, va_datatype, freefn) 

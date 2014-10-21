@@ -26,10 +26,15 @@ STCloudVarSystem st_cloudvar_system_new();
 STCloudVar st_cloudvar_new();
 bool st_cloudvar_system_contains(STCloudVarSystem sys, const char *varname);
 CanopyResultEnum st_cloudvar_system_add(STCloudVarSystem sys, const char *varname);
+bool st_cloudvar_system_is_dirty(STCloudVarSystem sys);
 STCloudVar st_cloudvar_system_get_var(STCloudVarSystem sys, const char *varname);
 
+uint32_t st_cloudvar_system_num_dirty(STCloudVarSystem sys);
+STCloudVar st_cloudvar_system_dirty_var(STCloudVarSystem sys, uint32_t idx);
 
 CanopyResultEnum st_cloudvar_set_local_value_float32(STCloudVar var, float value);
+float st_cloudvar_local_value_float32(STCloudVar var);
+const char * st_cloudvar_name(STCloudVar var);
 
 #endif // ST_VARS_INCLUDED
 

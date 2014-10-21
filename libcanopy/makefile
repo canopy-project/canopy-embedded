@@ -10,10 +10,11 @@ INCLUDE_FLAGS := -Isrc -Iinclude -I$(LIBRED_DIR)/include -I$(LIBRED_DIR)/under_c
 SOURCE_FILES = \
     src/canopy.c \
     src/cloudvar/st_cloudvar.c \
-    src/sddl.c \
     src/http/st_http_curl.c \
-    src/websocket/st_websocket.c \
     src/options/st_options.c \
+    src/sync/st_sync.c \
+    src/sddl.c \
+    src/websocket/st_websocket.c \
     $(LIBRED_DIR)/src/red_hash.c \
     $(LIBRED_DIR)/src/red_test.c \
     $(LIBRED_DIR)/src/red_json.c \
