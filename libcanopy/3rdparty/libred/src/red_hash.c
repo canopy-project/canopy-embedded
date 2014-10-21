@@ -333,9 +333,12 @@ bool RedHashIterator_Advance(RedHashIterator_t *pIter, const void **ppOutKey, si
     {
         return false;
     }
-    *ppOutKey = &node->keyStart;
-    *pOutKeySize = node->keySize;
-    *ppOutValue = node->value;
+    if (ppOutKey)
+        *ppOutKey = &node->keyStart;
+    if (pOutKeySize)
+        *pOutKeySize = node->keySize;
+    if (ppOutValue)
+        *ppOutValue = node->value;
 
     _RedHashIterator_Advance(pIter);
     return true;

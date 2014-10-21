@@ -242,7 +242,11 @@ CanopyResultEnum canopy_var_set_impl(void * start, ...)
     if (st_option_is_set(options, CANOPY_AUTO_SYNC)
             && options->val_CANOPY_AUTO_SYNC == true)
     {
-        canopy_sync();
+        result = st_sync(ctx, options, ctx->ws, ctx->cloudvars);
+        if (result != CANOPY_SUCCESS)
+        {
+            return result;
+        }
     }
     
 

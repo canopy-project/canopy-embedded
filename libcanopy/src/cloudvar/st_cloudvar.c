@@ -14,6 +14,7 @@
 
 #include "cloudvar/st_cloudvar.h"
 #include "red_hash.h"
+#include "red_string.h"
 #include <sddl.h>
 #include <assert.h>
 
@@ -92,7 +93,10 @@ CanopyResultEnum st_cloudvar_system_add(STCloudVarSystem sys, const char *varnam
     STCloudVar var;
     var = calloc(1, sizeof(struct STCloudVar_t));
 
+    // Create new Cloud Variable (default configuration)
     var->sys = sys;
+    var->name = RedString_strdup(varname);
+    var->value.datatype = SDDL_DATATYPE_FLOAT32;
 
     RedHash_InsertS(sys->vars, varname, var);
     _mark_dirty(sys, varname);
