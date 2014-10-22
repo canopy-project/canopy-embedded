@@ -351,14 +351,14 @@ typedef enum {
     CANOPY_NOTIFY_TYPE,
 
     /*
-     * CANOPY_ON_CHANGE_FLOAT32_CALLBACK
+     * CANOPY_VAR_CALLBACK_FLOAT32
      *
      *  Configures float32 control event callback.  The value must be a
      *  function pointer with the following type:
      *      
      *      int (*func)(CanopyContext, const char *propname, float value, void *extra)
      */
-    CANOPY_ON_CHANGE_FLOAT32_CALLBACK,
+    CANOPY_VAR_CALLBACK_FLOAT32,
 
     /*
      * CANOPY_PROMISE
@@ -400,6 +400,7 @@ typedef enum {
     CANOPY_VALUE_FLOAT32,
 
     CANOPY_STORE_VALUE_FLOAT32,
+    CANOPY_SYNC_DURATION_MS,
 
     /*
      * CANOPY_VAR_DATATYPE

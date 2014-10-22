@@ -53,7 +53,7 @@ toaster":
 #include <stdio.h>
 
 // Callback for handling changes to the "darkness" Cloud Variable.
-static int handle_darkness(CanopyContext ctx, const char *varName, float value)
+static int handle_darkness(CanopyContext ctx, const char *varName, float value, void *extra)
 {
     // Your custom code for handling a change to the toast darkness level goes
     // here.
@@ -63,7 +63,7 @@ static int handle_darkness(CanopyContext ctx, const char *varName, float value)
 }
 
 // Callback for handling changes to the "bagel_mode" Cloud Variable.
-static int handle_bagel_mode(CanopyContext ctx, const char *varName, float value)
+static int handle_bagel_mode(CanopyContext ctx, const char *varName, float value, void *extra)
 {
     // Your device-specific code goes here.
     // ...
