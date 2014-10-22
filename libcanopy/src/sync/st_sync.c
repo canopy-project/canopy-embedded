@@ -138,6 +138,7 @@ CanopyResultEnum st_sync(CanopyContext ctx, STOptions options, STWebSocket ws, S
     }
 
     // Service websockets
+    // TODO: don't hardcode timeout
     st_websocket_service(ws, 1000);
 
     return CANOPY_SUCCESS;
