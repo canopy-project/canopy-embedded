@@ -56,15 +56,6 @@ typedef struct CanopyContext_t
 
     STWebSocket ws;
 
-    /* 
-     * Hash table storing registered callbacks.
-     *      (char *)propertyName ==> (_ConfigOpts_t *)
-     */
-    RedHash control_cb_hash;
-
-    /* Has SDDL been modified since last call to canopy_service? 
-     */
-    bool sddl_dirty;
 } CanopyContext_t;
 
 void _init_libcanopy_if_needed()
@@ -85,8 +76,6 @@ CanopyContext canopy_create_ctx(CanopyContext copyOptsFrom)
     {
         return NULL;
     }
-
-    ctx->control_cb_hash = RedHash_New(0);
 
     if (copyOptsFrom == NULL)
     {
@@ -146,7 +135,7 @@ CanopyResultEnum canopy_var_on_change_impl(void *start, ...)
 {
     // TODO: Free memory 
     STOptions options;
-    STOptions optionsCopy;
+    STCloudVar var;
     va_list ap;
     _init_libcanopy_if_needed();
     CanopyContext ctx = gCtx;
@@ -160,35 +149,43 @@ CanopyResultEnum canopy_var_on_change_impl(void *start, ...)
         // TODO: Error details
         return result;
     }
-
-    /* Copy options */
-    optionsCopy = st_options_dup(options);
-    if (!optionsCopy)
-    {
-        return CANOPY_ERROR_OUT_OF_MEMORY;
-    }
-
-    /* Register callback by adding to hash table. 
-     */
     if (!st_option_is_set(options, CANOPY_VAR_NAME))
     {
-        /* Property name required */
+        // Property name required
         return CANOPY_ERROR_MISSING_REQUIRED_OPTION;
     }
 
-    /* TODO: How to handle mutliple callbacks for single property name?
-     * Should we override/replace or trigger both callbacks?
-     * TODO: RedHash_Insert should return error code
-     */
-    RedHash_InsertS(ctx->control_cb_hash, options->val_CANOPY_VAR_NAME, optionsCopy);
+    // Lookup Cloud Variable.  Create it if necessary.
+    if (!st_cloudvar_system_contains(ctx->cloudvars, options->val_CANOPY_VAR_NAME))
+    {
+        // TODO: race condition?
+        result = st_cloudvar_system_add(ctx->cloudvars, options->val_CANOPY_VAR_NAME);
+        if (result != CANOPY_SUCCESS)
+        {
+            // TODO: cleanup & full error details
+            return result;
+        }
+    }
+    var = st_cloudvar_system_get_var(ctx->cloudvars, options->val_CANOPY_VAR_NAME);
+    assert(var);
 
-    /* TODO: Promises */
+    // Register callback
+    result = st_cloudvar_register_on_change_callback(var, options);
+    if (result != CANOPY_SUCCESS)
+    {
+        return result;
+    }
 
-    /* Mark SDDL as dirty, so that details about this control get sent to the
-     * Cloud Service next time canopy_service() is called
-     */
-    ctx->sddl_dirty = true;
-
+    // syncrhonize w/ cloud if AUTO_SYNC is enabled
+    if (st_option_is_set(options, CANOPY_AUTO_SYNC)
+            && options->val_CANOPY_AUTO_SYNC == true)
+    {
+        result = st_sync(ctx, options, ctx->ws, ctx->cloudvars);
+        if (result != CANOPY_SUCCESS)
+        {
+            return result;
+        }
+    }
     return CANOPY_SUCCESS;
 }
 

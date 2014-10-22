@@ -17,6 +17,7 @@
 
 #include <canopy.h>
 #include <stdbool.h>
+#include "options/st_options.h"
 
 typedef struct STCloudVar_t * STCloudVar;
 typedef struct STCloudVarSystem_t * STCloudVarSystem;
@@ -30,6 +31,9 @@ bool st_cloudvar_system_is_dirty(STCloudVarSystem sys);
 STCloudVar st_cloudvar_system_get_var(STCloudVarSystem sys, const char *varname);
 void st_cloudvar_system_clear_dirty(STCloudVarSystem sys);
 void st_cloudvar_system_free(STCloudVarSystem sys);
+
+// TODO: What if multiple callbakcs are registered for single variable?
+CanopyResultEnum st_cloudvar_register_on_change_callback(STCloudVar var, STOptions options);
 
 uint32_t st_cloudvar_system_num_dirty(STCloudVarSystem sys);
 STCloudVar st_cloudvar_system_dirty_var(STCloudVarSystem sys, uint32_t idx);

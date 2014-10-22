@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "cloudvar/st_cloudvar.h"
+#include "options/st_options.h"
 #include "red_hash.h"
 #include "red_string.h"
 #include <sddl.h>
@@ -22,6 +23,7 @@ struct STCloudVarSystem_t {
     bool dirty;
     RedHash vars; // maps (char *varname) -> (STCloudVar var)
     RedHash dirty_vars; // maps (char *varname) -> void 
+    RedHash callbacks; // maps (char *varname) -> (STOptions)
 };
 
 struct STCloudVarValue_t {
@@ -57,6 +59,7 @@ STCloudVarSystem st_cloudvar_system_new()
     sys->dirty = true;
     sys->vars = RedHash_New(0);
     sys->dirty_vars = RedHash_New(0);
+    sys->callbacks = RedHash_New(0);
     return sys;
 }
 
@@ -155,4 +158,16 @@ float st_cloudvar_local_value_float32(STCloudVar var)
 {
     assert(var->value.datatype == SDDL_DATATYPE_FLOAT32);
     return var->value.val.val_float32;
+}
+
+CanopyResultEnum st_cloudvar_register_on_change_callback(STCloudVar var, STOptions options)
+{
+    STOptions optionsCopy = st_options_dup(options);
+    RedHash_InsertS(var->sys->callbacks, var->name, optionsCopy);
+    var->dirty = true;
+    var->sys->dirty = true;
+
+    // TODO: trigger callback when value changes locally
+    // TODO: trigger callback when value changes remotely
+    return CANOPY_SUCCESS;
 }
