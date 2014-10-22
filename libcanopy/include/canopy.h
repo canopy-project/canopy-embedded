@@ -240,6 +240,13 @@ typedef enum {
      */
     CANOPY_ERROR_OUT_OF_MEMORY,
 
+    /* 
+     * CANOPY_ERROR_VARIABLE_NOT_SET
+     *
+     *  A Cloud Variable exists but its value could not be read because it has
+     *  never been set.
+     */
+    CANOPY_ERROR_VARIABLE_NOT_SET,
 } CanopyResultEnum;
 
 /*
@@ -391,6 +398,13 @@ typedef enum {
      *  Used by canopy_post_sample().
      */
     CANOPY_VALUE_FLOAT32,
+
+    CANOPY_STORE_VALUE_FLOAT32,
+
+    /*
+     * CANOPY_VAR_DATATYPE
+     */
+    CANOPY_VAR_DATATYPE,
 
     /*
      * CANOPY_VAR_NAME
@@ -553,6 +567,38 @@ CanopyResultEnum canopy_notify_impl(void * start, ...);
  */
 #define canopy_var_on_change(...) canopy_var_on_change_impl(NULL, __VA_ARGS__, NULL)
 CanopyResultEnum canopy_var_on_change_impl(void *start, ...);
+
+/*
+ * canopy_var_read -- Read the local value of a Cloud Variable
+ */
+#define canopy_var_read(...) canopy_var_read_impl(NULL, __VA_ARGS__, NULL)
+CanopyResultEnum canopy_var_read_impl(void * start, ...);
+
+/*
+ * canopy_var_config - Configure a Cloud Variable.
+ *
+ *  This routine behaves identically to canopy_var_set, except that
+ *  CANOPY_VALUE_* parameters are not allowed.
+ */
+#define canopy_var_config(...) canopy_var_config_impl(NULL, __VA_ARGS__, NULL)
+CanopyResultEnum canopy_var_config_impl(void * start, ...);
+
+typedef enum
+{
+    CANOPY_INVALID_DATATYPE,
+    CANOPY_VOID,
+    CANOPY_STRING,
+    CANOPY_BOOL,
+    CANOPY_INT8,
+    CANOPY_UINT8,
+    CANOPY_INT16,
+    CANOPY_UINT16,
+    CANOPY_INT32,
+    CANOPY_UINT32,
+    CANOPY_FLOAT32,
+    CANOPY_FLOAT64,
+    CANOPY_DATETIME
+} CanopyDatatypeEnum;
 
 /*
  * canopy_var_set -- Set the value of a Cloud Variable.

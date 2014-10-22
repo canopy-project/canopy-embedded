@@ -192,6 +192,121 @@ CanopyResultEnum canopy_var_on_change_impl(void *start, ...)
     return CANOPY_SUCCESS;
 }
 
+CanopyResultEnum canopy_var_read_impl(void * start, ...)
+{
+    // TODO: combine w/ canopy_var_set_impl
+    STOptions options;
+    va_list ap;
+    _init_libcanopy_if_needed();
+    CanopyContext ctx = gCtx;
+    CanopyResultEnum result;
+    STCloudVar var;
+    /* TODO: support other contexts */
+
+    // Process arguments
+    result = st_options_new_extend_varargs(&options, ctx->options, start, ap);
+    if (result != CANOPY_SUCCESS)
+    {
+        // TODO: Error details
+        return result;
+    }
+    if (!st_option_is_set(options, CANOPY_VAR_NAME))
+    {
+        // Property name required
+        return CANOPY_ERROR_MISSING_REQUIRED_OPTION;
+    }
+    if (!st_option_is_set(options, CANOPY_STORE_VALUE_FLOAT32))
+    {
+        // Storage location required
+        // TODO: Support other datatypes
+        return CANOPY_ERROR_MISSING_REQUIRED_OPTION;
+    }
+
+    // syncrhonize w/ cloud if AUTO_SYNC is enabled
+    if (st_option_is_set(options, CANOPY_AUTO_SYNC)
+            && options->val_CANOPY_AUTO_SYNC == true)
+    {
+        result = st_sync(ctx, options, ctx->ws, ctx->cloudvars);
+        if (result != CANOPY_SUCCESS)
+        {
+            return result;
+        }
+    }
+
+    // Create a local variable using the provided name, if none already exists.
+    if (!st_cloudvar_system_contains(ctx->cloudvars, options->val_CANOPY_VAR_NAME))
+    {
+        // TODO: race condition?
+        result = st_cloudvar_system_add(ctx->cloudvars, options->val_CANOPY_VAR_NAME);
+        if (result != CANOPY_SUCCESS)
+        {
+            // TODO: cleanup & full error details
+            return result;
+        }
+        return CANOPY_ERROR_VARIABLE_NOT_SET;
+    }
+
+    // Read variable's value
+    var = st_cloudvar_system_get_var(ctx->cloudvars, options->val_CANOPY_VAR_NAME);
+    assert(var);
+    *options->val_CANOPY_STORE_VALUE_FLOAT32 = st_cloudvar_local_value_float32(var);
+   
+    return CANOPY_SUCCESS;
+}
+
+CanopyResultEnum canopy_var_config_impl(void * start, ...)
+{
+    // TODO: combine w/ canopy_var_set_impl
+    STOptions options;
+    va_list ap;
+    _init_libcanopy_if_needed();
+    CanopyContext ctx = gCtx;
+    CanopyResultEnum result;
+    STCloudVar var;
+    /* TODO: support other contexts */
+
+    // Process arguments
+    result = st_options_new_extend_varargs(&options, ctx->options, start, ap);
+    if (result != CANOPY_SUCCESS)
+    {
+        // TODO: Error details
+        return result;
+    }
+    if (!st_option_is_set(options, CANOPY_VAR_NAME))
+    {
+        // Property name required
+        return CANOPY_ERROR_MISSING_REQUIRED_OPTION;
+    }
+
+    // Create a local variable using the provided name, if none already exists.
+    if (!st_cloudvar_system_contains(ctx->cloudvars, options->val_CANOPY_VAR_NAME))
+    {
+        // TODO: race condition?
+        result = st_cloudvar_system_add(ctx->cloudvars, options->val_CANOPY_VAR_NAME);
+        if (result != CANOPY_SUCCESS)
+        {
+            // TODO: cleanup & full error details
+            return result;
+        }
+    }
+
+    // Set cloud variable's local configuration
+    var = st_cloudvar_system_get_var(ctx->cloudvars, options->val_CANOPY_VAR_NAME);
+    assert(var);
+   
+    // syncrhonize w/ cloud if AUTO_SYNC is enabled
+    if (st_option_is_set(options, CANOPY_AUTO_SYNC)
+            && options->val_CANOPY_AUTO_SYNC == true)
+    {
+        result = st_sync(ctx, options, ctx->ws, ctx->cloudvars);
+        if (result != CANOPY_SUCCESS)
+        {
+            return result;
+        }
+    }
+    return CANOPY_SUCCESS;
+}
+
 CanopyResultEnum canopy_var_set_impl(void * start, ...)
 {
     STOptions options;
