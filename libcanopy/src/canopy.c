@@ -114,7 +114,7 @@ fail:
     return NULL;
 }
 
-CanopyResultEnum canopy_ctx_config_impl(CanopyContext ctx, ...)
+CanopyResultEnum canopy_ctx_opt_impl(CanopyContext ctx, ...)
 {
     va_list ap;
     CanopyResultEnum result;

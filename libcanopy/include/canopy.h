@@ -444,7 +444,7 @@ typedef enum {
 CanopyContext canopy_create_ctx(CanopyContext copyOptsFrom);
 
 /*
- * canopy_ctx_config -- Set configuration options for a particular context.
+ * canopy_ctx_opt -- Set configuration options for a particular context.
  *
  *  The <ctx> parameter specifies the context to change configuration options
  *  for.  After that, the canopy_ctx_opt() function takes an even number of
@@ -475,8 +475,8 @@ CanopyContext canopy_create_ctx(CanopyContext copyOptsFrom);
  *  Since canopy_ctx_opt() is implemented as a macro that automatically adds a
  *  sentinal NULL value, there is no need to end the argument list with NULL.
  */
-#define canopy_ctx_config(ctx, ...) canopy_ctx_config_impl(ctx, __VA_ARGS__, NULL)
-CanopyResultEnum canopy_ctx_config_impl(CanopyContext ctx, ...);
+#define canopy_ctx_opt(ctx, ...) canopy_ctx_opt_impl(ctx, __VA_ARGS__, NULL)
+CanopyResultEnum canopy_ctx_opt_impl(CanopyContext ctx, ...);
 
 /*
  * canopy_destroy_ctx -- Destroy a Canopy context.
@@ -495,7 +495,7 @@ CanopyContext canopy_global_ctx();
  *      
  *      canopy_ctx_opt(canopy_global_ctx(), ...)
  *
- *  The canopy_global_config() function takes an even number of arguments that
+ *  The canopy_global_opt() function takes an even number of arguments that
  *  must alternate between parameter identifiers and values.
  *
  *      canopy_global_opt(
@@ -512,14 +512,14 @@ CanopyContext canopy_global_ctx();
  *      canopy_on_change()
  *      canopy_notify()
  *
- *  The canopy_global_config() function takes an all-or-nothing approach.  If
+ *  The canopy_global_opt() function takes an all-or-nothing approach.  If
  *  any of the configuration defaults could not be set, then the function does
  *  not set any of them and returns an error.
  *
  *  Since canopy_global_opt() is implemented as a macro that automatically adds
  *  a sentinal NULL value, there is no need to end the argument list with NULL.
  */
-#define canopy_global_config(...) canopy_ctx_config_impl(canopy_global_ctx(), __VA_ARGS__, NULL)
+#define canopy_global_opt(...) canopy_ctx_opt_impl(canopy_global_ctx(), __VA_ARGS__, NULL)
 
 /*
  * canopy_notify -- Send a notification to the device owner.
