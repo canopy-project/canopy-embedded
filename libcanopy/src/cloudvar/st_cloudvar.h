@@ -38,7 +38,16 @@ CanopyResultEnum st_cloudvar_register_on_change_callback(STCloudVar var, STOptio
 uint32_t st_cloudvar_system_num_dirty(STCloudVarSystem sys);
 STCloudVar st_cloudvar_system_dirty_var(STCloudVarSystem sys, uint32_t idx);
 
+CanopyResultEnum st_cloudvar_set_local_value_bool(STCloudVar var, bool value);
+CanopyResultEnum st_cloudvar_set_local_value_int8(STCloudVar var, int8_t value);
+CanopyResultEnum st_cloudvar_set_local_value_uint8(STCloudVar var, uint8_t value);
+CanopyResultEnum st_cloudvar_set_local_value_int16(STCloudVar var, int16_t value);
+CanopyResultEnum st_cloudvar_set_local_value_uint16(STCloudVar var, uint16_t value);
+CanopyResultEnum st_cloudvar_set_local_value_int32(STCloudVar var, int32_t value);
+CanopyResultEnum st_cloudvar_set_local_value_uint32(STCloudVar var, uint32_t value);
+CanopyResultEnum st_cloudvar_set_local_value_uint32(STCloudVar var, uint32_t value);
 CanopyResultEnum st_cloudvar_set_local_value_float32(STCloudVar var, float value);
+
 float st_cloudvar_local_value_float32(STCloudVar var);
 const char * st_cloudvar_name(STCloudVar var);
 

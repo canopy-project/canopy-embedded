@@ -117,6 +117,14 @@ typedef struct CanopyPromise_t * CanopyPromise;
  */
 typedef enum {
     /*
+     * CANOPY_PROTOCOL_NOOP
+     *
+     *  Don't actually communicate with the server.  This is sometimes useful
+     *  for testing/debugging.
+     */
+    CANOPY_PROTOCOL_NOOP,
+
+    /*
      * CANOPY_PROTOCOL_HTTP
      *
      *  Communicate with Canopy Cloud Service using HTTP-based protocol.
@@ -430,6 +438,7 @@ typedef enum {
      */
     CANOPY_VAR_PUSH_PROTOCOL,
 
+    CANOPY_VAR_PULL_PROTOCOL, // TODO: Rename?
 } CanopyOptEnum;
 
 /*

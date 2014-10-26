@@ -141,12 +141,59 @@ STCloudVar st_cloudvar_system_get_var(STCloudVarSystem sys, const char *varname)
     return RedHash_GetWithDefaultS(sys->vars, varname, NULL);
 }
 
-CanopyResultEnum st_cloudvar_set_local_value_float32(STCloudVar var, float value)
+static CanopyResultEnum _mark_dirty(STCloudVar var)
 {
-    var->value.val.val_float32 = value;
     var->dirty = true;
     var->sys->dirty = true;
     return CANOPY_SUCCESS;
+}
+CanopyResultEnum st_cloudvar_set_local_value_int8(STCloudVar var, int8_t value)
+{
+    assert(var->datatype == CANOPY_INT8);
+    var->value.val.val_int8 = value;
+    return _mark_dirty(var);
+}
+CanopyResultEnum st_cloudvar_set_local_value_int16(STCloudVar var, int16_t value)
+{
+    assert(var->datatype == CANOPY_INT16);
+    var->value.val.val_int16 = value;
+    return _mark_dirty(var);
+}
+CanopyResultEnum st_cloudvar_set_local_value_int32(STCloudVar var, int32_t value)
+{
+    assert(var->datatype == CANOPY_INT32);
+    var->value.val.val_int32 = value;
+    return _mark_dirty(var);
+}
+CanopyResultEnum st_cloudvar_set_local_value_uint8(STCloudVar var, uint8_t value)
+{
+    assert(var->datatype == CANOPY_INT8);
+    var->value.val.val_uint8 = value;
+    return _mark_dirty(var);
+}
+CanopyResultEnum st_cloudvar_set_local_value_uint16(STCloudVar var, uint16_t value)
+{
+    assert(var->datatype == CANOPY_INT16);
+    var->value.val.val_uint16 = value;
+    return _mark_dirty(var);
+}
+CanopyResultEnum st_cloudvar_set_local_value_uint32(STCloudVar var, uint32_t value)
+{
+    assert(var->datatype == CANOPY_INT32);
+    var->value.val.val_uint32 = value;
+    return _mark_dirty(var);
+}
+CanopyResultEnum st_cloudvar_set_local_value_float32(STCloudVar var, float value)
+{
+    assert(var->datatype == CANOPY_FLOAT32);
+    var->value.val.val_float32 = value;
+    return _mark_dirty(var);
+}
+CanopyResultEnum st_cloudvar_set_local_value_float64(STCloudVar var, float value)
+{
+    assert(var->datatype == CANOPY_FLOAT64);
+    var->value.val.val_float64 = value;
+    return _mark_dirty(var);
 }
 
 const char * st_cloudvar_name(STCloudVar var)

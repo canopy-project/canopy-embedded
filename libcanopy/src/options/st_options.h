@@ -65,6 +65,7 @@
     _OPTION_LIST_FOREACH(CANOPY_NOTIFY_TYPE, CanopyNotifyTypeEnum, CanopyProtocolEnum, _noop) \
     _OPTION_LIST_FOREACH(CANOPY_VAR_NAME, char *, char *, free) \
     _OPTION_LIST_FOREACH(CANOPY_VAR_PUSH_PROTOCOL, CanopyProtocolEnum, CanopyProtocolEnum, _noop) \
+    _OPTION_LIST_FOREACH(CANOPY_VAR_PULL_PROTOCOL, CanopyProtocolEnum, CanopyProtocolEnum, _noop) \
     _OPTION_LIST_FOREACH(CANOPY_VALUE_FLOAT32, float, double, _noop) \
     _OPTION_LIST_FOREACH(CANOPY_STORE_VALUE_FLOAT32, float *, float *, _noop)
 

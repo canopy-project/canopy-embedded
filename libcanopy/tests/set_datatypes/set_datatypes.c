@@ -1,7 +1,7 @@
 #include <canopy.h>
 
 #define CHECK_RESULT(result) \
-    if (!result) \
+    if (result) \
     { \
         fprintf(stderr, "error\n"); \
         return -1; \
@@ -13,7 +13,15 @@ int main(void)
 
     result = canopy_global_opt(
         CANOPY_CLOUD_SERVER, "dev02.canopy.link",
-        CANOPY_DEVICE_UUID, "c31a8ced-b9f1-4b0c-afe9-1afed3b0c21f"
+        CANOPY_DEVICE_UUID, "c31a8ced-b9f1-4b0c-afe9-1afed3b0c21f",
+        CANOPY_VAR_PUSH_PROTOCOL, CANOPY_PROTOCOL_NOOP,
+        CANOPY_VAR_PULL_PROTOCOL, CANOPY_PROTOCOL_NOOP
+    );
+    CHECK_RESULT(result);
+
+    result = canopy_var_set(
+        CANOPY_VAR_NAME, "var_bool",
+        CANOPY_BOOL, true
     );
     CHECK_RESULT(result);
 

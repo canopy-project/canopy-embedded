@@ -61,6 +61,12 @@ static CanopyResultEnum _send_payload(
         // TODO: need a different payload for WS as for HTTP?
         st_websocket_write(ws, payload);
     }
+    else if (options->val_CANOPY_VAR_PUSH_PROTOCOL == CANOPY_PROTOCOL_NOOP)
+    {
+        // Push: NOOP implementation
+        // Just log the payload
+        printf("NOOP PUSH:\n%s\n", payload);
+    }
     else {
         return CANOPY_ERROR_PROTOCOL_NOT_SUPPORTED;
     }
@@ -106,21 +112,29 @@ CanopyResultEnum st_sync(CanopyContext ctx, STOptions options, STWebSocket ws, S
         return CANOPY_ERROR_MISSING_REQUIRED_OPTION;
     }
 
-    // Initiate websocket connection if necessary:
-    if (!st_websocket_is_connected(ws))
+    if (options->val_CANOPY_VAR_PULL_PROTOCOL == CANOPY_PROTOCOL_NOOP)
     {
-        CanopyResultEnum result;
-        result = st_websocket_connect(
-                ws,
-                options->val_CANOPY_CLOUD_SERVER,
-                80, // TODO: don't hardcode
-                false, // TODO: don't hardcode
-                "/echo"); // TODO: rename
-        if (result != CANOPY_SUCCESS)
-            return result;
+        // Noop Pull: 
+    }
+    else if (options->val_CANOPY_VAR_PULL_PROTOCOL == CANOPY_PROTOCOL_WS)
+    {
+        // WS Pull:
+        // Initiate websocket connection if necessary:
+        if (!st_websocket_is_connected(ws))
+        {
+            CanopyResultEnum result;
+            result = st_websocket_connect(
+                    ws,
+                    options->val_CANOPY_CLOUD_SERVER,
+                    80, // TODO: don't hardcode
+                    false, // TODO: don't hardcode
+                    "/echo"); // TODO: rename
+            if (result != CANOPY_SUCCESS)
+                return result;
 
-        // Service websocket for first time
-        st_websocket_service(ws, 100);
+            // Service websocket for first time
+            st_websocket_service(ws, 100);
+        }
     }
 
     // Check if local copy of any Cloud Variables have changed since last sync.
@@ -137,9 +151,12 @@ CanopyResultEnum st_sync(CanopyContext ctx, STOptions options, STWebSocket ws, S
         st_cloudvar_system_clear_dirty(cloudvars);
     }
 
-    // Service websockets
-    // TODO: don't hardcode timeout
-    st_websocket_service(ws, 1000);
+    if (options->val_CANOPY_VAR_PULL_PROTOCOL == CANOPY_PROTOCOL_WS)
+    {
+        // Service websockets
+        // TODO: don't hardcode timeout
+        st_websocket_service(ws, 1000);
+    }
 
     return CANOPY_SUCCESS;
 }
