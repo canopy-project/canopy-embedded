@@ -13,7 +13,6 @@ SOURCE_FILES = \
     src/http/st_http_curl.c \
     src/options/st_options.c \
     src/sync/st_sync.c \
-    src/sddl.c \
     src/websocket/st_websocket.c \
     $(LIBRED_DIR)/src/red_hash.c \
     $(LIBRED_DIR)/src/red_test.c \

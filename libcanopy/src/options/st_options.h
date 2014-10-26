@@ -48,6 +48,7 @@
 
 #include <stdbool.h>
 #include <canopy.h>
+#include <stdarg.h>
 
 // _OPTION_LIST allows you to write macros that easily perform an action on all
 // configuration options.  Whenever you type _OPTION_LIST its expansion depends
@@ -56,18 +57,10 @@
 //
 //                       ENUM VALUE,  DATATYPE,  VARARG_DATATYPE, FREE_ROUTINE
 #define _OPTION_LIST \
-    _OPTION_LIST_FOREACH(CANOPY_AUTO_SYNC, bool, int, _noop) \
     _OPTION_LIST_FOREACH(CANOPY_CLOUD_SERVER, char *, char *, free) \
-    _OPTION_LIST_FOREACH(CANOPY_CONTROL_PROTOCOL, CanopyProtocolEnum, CanopyProtocolEnum, _noop) \
     _OPTION_LIST_FOREACH(CANOPY_DEVICE_UUID, char *, char *, free) \
-    _OPTION_LIST_FOREACH(CANOPY_NOTIFY_MSG, char *, char *, free) \
-    _OPTION_LIST_FOREACH(CANOPY_NOTIFY_PROTOCOL, CanopyProtocolEnum, CanopyProtocolEnum, _noop) \
-    _OPTION_LIST_FOREACH(CANOPY_NOTIFY_TYPE, CanopyNotifyTypeEnum, CanopyProtocolEnum, _noop) \
-    _OPTION_LIST_FOREACH(CANOPY_VAR_NAME, char *, char *, free) \
-    _OPTION_LIST_FOREACH(CANOPY_VAR_PUSH_PROTOCOL, CanopyProtocolEnum, CanopyProtocolEnum, _noop) \
-    _OPTION_LIST_FOREACH(CANOPY_VAR_PULL_PROTOCOL, CanopyProtocolEnum, CanopyProtocolEnum, _noop) \
-    _OPTION_LIST_FOREACH(CANOPY_VALUE_FLOAT32, float, double, _noop) \
-    _OPTION_LIST_FOREACH(CANOPY_STORE_VALUE_FLOAT32, float *, float *, _noop)
+    _OPTION_LIST_FOREACH(CANOPY_VAR_SEND_PROTOCOL, CanopyProtocolEnum, CanopyProtocolEnum, _noop) \
+    _OPTION_LIST_FOREACH(CANOPY_VAR_RECV_PROTOCOL, CanopyProtocolEnum, CanopyProtocolEnum, _noop)
 
 #define _OPTION_LIST_FOREACH(option, datatype, va_datatype, freefn) 
 

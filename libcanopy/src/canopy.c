@@ -12,7 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "canopy_new.h"
+// canopy.c
+// This file implements the API entrypoints declared in canopy.h
+
+#include <canopy.h>
+#include <assert.h>
+#include "cloudvar/st_cloudvar.h"
+#include "http/st_http.h"
+#include "options/st_options.h"
+#include "sync/st_sync.h"
+#include "websocket/st_websocket.h"
+#include "red_json.h"
+#include "red_string.h"
+#include "red_hash.h"
+#include "red_log.h"
+#include <stdarg.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 
 typedef struct CanopyContext_t
 {
@@ -36,7 +54,7 @@ typedef struct CanopyVarValue_t
     {
         float val_float32;
         char *val_string;
-        CanopyVarStruct_t strct;
+        CanopyVarStruct_t val_strct;
     } val;
 } CanopyVarValue_t;
 
@@ -85,21 +103,10 @@ CanopyResultEnum canopy_destroy_context(CanopyContext ctx)
     return CANOPY_ERROR_NOT_IMPLEMENTED;
 }
 
-CanopyResultEnum canopy_set_opt_impl(CanopyContext ctx, CanopyOptEnum option, ...);
+CanopyResultEnum canopy_set_opt_impl(CanopyContext ctx, CanopyOptEnum option, ...)
 {
     va_list ap;
-    CanopyResultEnum result;
-    _init_libcanopy_if_needed();
-
-    result = st_options_extend_varargs(ctx->options, ctx, ap);
-
-    return result;
-}
-
-CanopyVarValue CANOPY_FLOAT32(float x)
-{
-    CanopyVarValue out;
-    out = malloc(sizeof(CanopyVarValue
+    return st_options_extend_varargs(ctx->options, option, ap);
 }
 
 CanopyVarValue CANOPY_FLOAT32(float x)
@@ -110,8 +117,8 @@ CanopyVarValue CANOPY_FLOAT32(float x)
     {
         return NULL;
     }
-    out.datatype = CANOPY_DATATYPE_FLOAT32;
-    out.val.val_float32 = x;
+    out->datatype = CANOPY_DATATYPE_FLOAT32;
+    out->val.val_float32 = x;
     return out;
 }
 
@@ -123,9 +130,9 @@ CanopyVarValue CANOPY_STRING(const char *sz)
     {
         return NULL;
     }
-    out.datatype = CANOPY_DATATYPE_STRING;
-    out.val.val_string = RedString_strdup(sz);
-    if (!out.val.val_string)
+    out->datatype = CANOPY_DATATYPE_STRING;
+    out->val.val_string = RedString_strdup(sz);
+    if (!out->val.val_string)
     {
         free(out);
         return NULL;
@@ -133,9 +140,10 @@ CanopyVarValue CANOPY_STRING(const char *sz)
     return out;
 }
 
-CanopyVarValue CANOPY_STRUCT(start, ...)
+CanopyVarValue CANOPY_STRUCT(void * dummy, ...)
 {
     CanopyVarValue out;
+    char *fieldname;
     out = malloc(sizeof(CanopyVarValue_t));
     if (!out)
     {
@@ -151,13 +159,13 @@ CanopyVarValue CANOPY_STRUCT(start, ...)
 
     // Process each parameter
     va_list ap;
-    ap = va_start(start);
-    while (fieldname = va_arg(ap, char *))
+    va_start(ap, dummy);
+    while ((fieldname = va_arg(ap, char *)) != NULL)
     {
         CanopyVarValue val = va_arg(ap, CanopyVarValue);
-        RedHash_Add(fieldname, val);
+        RedHash_InsertS(out->val.val_strct.hash, fieldname, val);
     }
-    va_end();
+    va_end(ap);
 
     return out;
 }
@@ -186,7 +194,7 @@ CanopyResultEnum canopy_var_set(CanopyContext ctx, const char *varname, CanopyVa
 
 CanopyResultEnum canopy_var_get(CanopyContext ctx, const char *varname, CanopyVarReader dest)
 {
-    return st_cloudvar_get_local_value(ctx->cloudvars, varname, value);
+    return st_cloudvar_get_local_value(ctx->cloudvars, varname, dest);
 }
 
 CanopyResultEnum canopy_var_on_change(CanopyContext ctx, const char *varname, CanopyOnChangeCallback cb, void *userdata)
@@ -199,7 +207,7 @@ CanopyResultEnum canopy_var_config(CanopyContext ctx, const char *varname, ...)
     return CANOPY_ERROR_NOT_IMPLEMENTED;
 }
 
-CanopyResultEnum canopy_sync(CanopyContext ctx, CanopyPromise &promise)
+CanopyResultEnum canopy_sync(CanopyContext ctx, CanopyPromise promise)
 {
     return st_sync(ctx, ctx->options, ctx->ws, ctx->cloudvars);
 }

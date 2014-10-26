@@ -22,6 +22,7 @@
 #include "red_json.h"
 #include "red_string.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 static CanopyResultEnum _send_payload(
         CanopyContext ctx, 
@@ -30,12 +31,12 @@ static CanopyResultEnum _send_payload(
         const char *payload)
 {
     // Send payload to cloud
-    if (!st_option_is_set(options, CANOPY_VAR_PUSH_PROTOCOL))
+    if (!st_option_is_set(options, CANOPY_VAR_SEND_PROTOCOL))
     {
         return CANOPY_ERROR_MISSING_REQUIRED_OPTION;
     }
 
-    if (options->val_CANOPY_VAR_PUSH_PROTOCOL == CANOPY_PROTOCOL_HTTP)
+    if (options->val_CANOPY_VAR_SEND_PROTOCOL == CANOPY_PROTOCOL_HTTP)
     {
         // Push: HTTP implementation
         char *url;
@@ -51,7 +52,7 @@ static CanopyResultEnum _send_payload(
         st_http_post(ctx, url, payload, &promise);
         free(url);
     }
-    else if (options->val_CANOPY_VAR_PUSH_PROTOCOL == CANOPY_PROTOCOL_WS)
+    else if (options->val_CANOPY_VAR_SEND_PROTOCOL == CANOPY_PROTOCOL_WS)
     {
         // Push: WS implementation
         if (!(st_websocket_is_connected(ws) && st_websocket_is_write_ready(ws)))
@@ -61,7 +62,7 @@ static CanopyResultEnum _send_payload(
         // TODO: need a different payload for WS as for HTTP?
         st_websocket_write(ws, payload);
     }
-    else if (options->val_CANOPY_VAR_PUSH_PROTOCOL == CANOPY_PROTOCOL_NOOP)
+    else if (options->val_CANOPY_VAR_SEND_PROTOCOL == CANOPY_PROTOCOL_NOOP)
     {
         // Push: NOOP implementation
         // Just log the payload
@@ -112,11 +113,11 @@ CanopyResultEnum st_sync(CanopyContext ctx, STOptions options, STWebSocket ws, S
         return CANOPY_ERROR_MISSING_REQUIRED_OPTION;
     }
 
-    if (options->val_CANOPY_VAR_PULL_PROTOCOL == CANOPY_PROTOCOL_NOOP)
+    if (options->val_CANOPY_VAR_RECV_PROTOCOL == CANOPY_PROTOCOL_NOOP)
     {
         // Noop Pull: 
     }
-    else if (options->val_CANOPY_VAR_PULL_PROTOCOL == CANOPY_PROTOCOL_WS)
+    else if (options->val_CANOPY_VAR_RECV_PROTOCOL == CANOPY_PROTOCOL_WS)
     {
         // WS Pull:
         // Initiate websocket connection if necessary:
@@ -151,7 +152,7 @@ CanopyResultEnum st_sync(CanopyContext ctx, STOptions options, STWebSocket ws, S
         st_cloudvar_system_clear_dirty(cloudvars);
     }
 
-    if (options->val_CANOPY_VAR_PULL_PROTOCOL == CANOPY_PROTOCOL_WS)
+    if (options->val_CANOPY_VAR_RECV_PROTOCOL == CANOPY_PROTOCOL_WS)
     {
         // Service websockets
         // TODO: don't hardcode timeout
