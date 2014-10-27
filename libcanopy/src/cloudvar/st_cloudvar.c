@@ -108,7 +108,7 @@ CanopyResultEnum st_cloudvar_system_add(STCloudVarSystem sys, const char *varnam
     // Create new Cloud Variable (default configuration)
     var->sys = sys;
     var->name = RedString_strdup(varname);
-    var->value->datatype = CANOPY_DATATYPE_FLOAT32;
+    var->value = NULL;
 
     RedHash_InsertS(sys->vars, varname, var);
     _mark_dirty2(sys, varname);
@@ -311,13 +311,11 @@ CanopyResultEnum st_cloudvar_set_local_value(STCloudVarSystem sys, const char *v
     {
         // Var doesn't exist locally.
         // Create it.
-        STCloudVar var;
         var = calloc(1, sizeof(struct STCloudVar_t));
 
         // Create new Cloud Variable (default configuration)
         var->sys = sys;
         var->name = RedString_strdup(varname);
-        var->value->datatype = CANOPY_DATATYPE_FLOAT32;
         // TODO: set other properties
 
         RedHash_InsertS(sys->vars, varname, var);
