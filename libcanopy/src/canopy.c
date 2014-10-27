@@ -42,22 +42,6 @@ typedef struct CanopyContext_t
 
 } CanopyContext_t;
 
-typedef struct CanopyVarStruct_t
-{
-    RedHash hash; // string -> CanopyVarValue
-} CanopyVarStruct_t;
-
-typedef struct CanopyVarValue_t
-{
-    CanopyDatatypeEnum datatype;
-    union
-    {
-        float val_float32;
-        char *val_string;
-        CanopyVarStruct_t val_strct;
-    } val;
-} CanopyVarValue_t;
-
 CanopyContext canopy_init_context()
 {
     CanopyContext ctx;
@@ -98,12 +82,12 @@ fail:
     return NULL;
 }
 
-CanopyResultEnum canopy_destroy_context(CanopyContext ctx)
+CanopyResultEnum canopy_shutdown_context(CanopyContext ctx)
 {
     return CANOPY_ERROR_NOT_IMPLEMENTED;
 }
 
-CanopyResultEnum canopy_set_opt_impl(CanopyContext ctx, CanopyOptEnum option, ...)
+CanopyResultEnum canopy_set_opt(CanopyContext ctx, CanopyOptEnum option, ...)
 {
     va_list ap;
     return st_options_extend_varargs(ctx->options, option, ap);
@@ -111,85 +95,47 @@ CanopyResultEnum canopy_set_opt_impl(CanopyContext ctx, CanopyOptEnum option, ..
 
 CanopyVarValue CANOPY_FLOAT32(float x)
 {
-    CanopyVarValue out;
-    out = malloc(sizeof(CanopyVarValue_t));
-    if (!out)
-    {
-        return NULL;
-    }
-    out->datatype = CANOPY_DATATYPE_FLOAT32;
-    out->val.val_float32 = x;
-    return out;
+    return st_cloudvar_value_float32(x);
 }
 
 CanopyVarValue CANOPY_STRING(const char *sz)
 {
-    CanopyVarValue out;
-    out = malloc(sizeof(CanopyVarValue_t));
-    if (!out)
-    {
-        return NULL;
-    }
-    out->datatype = CANOPY_DATATYPE_STRING;
-    out->val.val_string = RedString_strdup(sz);
-    if (!out->val.val_string)
-    {
-        free(out);
-        return NULL;
-    }
-    return out;
+    return st_cloudvar_value_string(sz);
 }
 
 CanopyVarValue CANOPY_STRUCT(void * dummy, ...)
 {
-    CanopyVarValue out;
-    char *fieldname;
-    out = malloc(sizeof(CanopyVarValue_t));
-    if (!out)
-    {
-        return NULL;
-    }
-    out->datatype = CANOPY_DATATYPE_STRUCT;
-    out->val.val_strct.hash = RedHash_New(0);
-    if (!out->val.val_strct.hash)
-    {
-        free(out);
-        return NULL;
-    }
-
-    // Process each parameter
     va_list ap;
+    CanopyVarValue out;
     va_start(ap, dummy);
-    while ((fieldname = va_arg(ap, char *)) != NULL)
-    {
-        CanopyVarValue val = va_arg(ap, CanopyVarValue);
-        RedHash_InsertS(out->val.val_strct.hash, fieldname, val);
-    }
+    out = st_cloudvar_value_struct(ap);
     va_end(ap);
-
     return out;
 }
 
 void canopy_var_value_free(CanopyVarValue value)
 {
-    switch (value->datatype)
-    {
-        case CANOPY_DATATYPE_FLOAT32:
-            free(value);
-            break;
-        case CANOPY_DATATYPE_STRING:
-            free(value->val.val_string);
-            free(value);
-            break;
-        default:
-            assert(1);
-            break;
-    }
+    return st_cloudvar_value_free(value);
 }
 
 CanopyResultEnum canopy_var_set(CanopyContext ctx, const char *varname, CanopyVarValue value)
 {
-    return st_cloudvar_set_local_value(ctx->cloudvars, varname, value);
+    CanopyResultEnum result;
+    if (st_cloudvar_value_already_used(value))
+    {
+        // CanopyVarValue objects are meant to be used once.  If it has been
+        // used already, throw an error.
+        return CANOPY_ERROR_SINGLE_USE_VALUE_ALREADY_USED;
+    }
+    result = st_cloudvar_set_local_value(ctx->cloudvars, varname, value);
+
+    // Mark <value> as used, since it is intended to be single-use.
+    // This allows, for example:
+    //      canopy_set_var(ctx, "foo", CANOPY_FLOAT32(100.0f)) 
+    //  to not leak any memory.
+    //  Although, it does result in an alloc and free for each call.
+    st_cloudvar_value_mark_used(value);
+    return result;
 }
 
 CanopyResultEnum canopy_var_get(CanopyContext ctx, const char *varname, CanopyVarReader dest)

@@ -36,11 +36,8 @@
 //
 typedef struct CanopyContext_t * CanopyContext;
 
-// A CanopyVar is a "Cloud Variable".
-typedef struct CanopyVar_t * CanopyVar;
-
 // A CanopyVarValue represents a value that can be assigned to Cloud Variable.
-typedef struct CanopyVarValue_t * CanopyVarValue;
+typedef struct STCloudVarValue_t * CanopyVarValue;
 
 // A CanopyVarReader represents a destination for reading a Cloud Variable.
 typedef struct CanopyVarReader_t * CanopyVarReader;
@@ -113,6 +110,9 @@ typedef enum {
     //  A Cloud Variable exists but its value could not be read because it has
     //  never been set.
     CANOPY_ERROR_VARIABLE_NOT_SET,
+   
+    // A single-use Cloud Variable value has already been used as an argument.
+    CANOPY_ERROR_SINGLE_USE_VALUE_ALREADY_USED
 } CanopyResultEnum;
 
 // CanopyOptEnum
@@ -156,6 +156,21 @@ typedef enum {
     //
     // Defaults to CANOPY_PROTOCOL_WS
     CANOPY_VAR_RECV_PROTOCOL,
+
+    // Configures whether canopy_sync blocks the calling thread.  The value
+    // must be a boolean.  If true, the calling thread will block until the
+    // sync operation completes (either successfully, or with an error, or
+    // times out).  If false, the call to canopy_sync will begin synchronizing
+    // in another thread and them immediately return.
+    CANOPY_SYNC_BLOCKING,
+
+    // Configures the amount of time to allow canopy_sync synchronization to
+    // take, in milliseconds.  Must be a nonnegative integer.  If
+    // CANOPY_SYNC_BLOCKING is enabled, then this specifies the maximum amount
+    // of time the canopy_sync command will block for.  If CANOPY_SYNC_BLOCKING
+    // is disabled, then this specifies the maximum amount of time the spawned
+    // synchronization thread will exist for.
+    CANOPY_SYNC_TIMEOUT_MS
 } CanopyOptEnum;
 
 // CanopyProtocolEnum
@@ -186,10 +201,10 @@ typedef enum {
 // useful for unit testing, or if you need to talk to multiple canopy servers.
 CanopyContext canopy_init_context();
 
-// Destroy a libcanopy context.
+// Shutdown a libcanopy context.
 //
 // Call this at the end of your program to free resources used by libcanopy.
-CanopyResultEnum canopy_destroy_context(CanopyContext ctx);
+CanopyResultEnum canopy_shutdown_context(CanopyContext ctx);
 
 // Set a context-wide option.
 //

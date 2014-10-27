@@ -50,8 +50,17 @@ CanopyResultEnum st_cloudvar_set_local_value_uint32(STCloudVar var, uint32_t val
 CanopyResultEnum st_cloudvar_set_local_value_uint32(STCloudVar var, uint32_t value);
 CanopyResultEnum st_cloudvar_set_local_value_float32(STCloudVar var, float value);
 
+CanopyVarValue st_cloudvar_value_float32(float x);
+CanopyVarValue st_cloudvar_value_string(const char *sz);
+CanopyVarValue st_cloudvar_value_struct(va_list ap);
+
+void st_cloudvar_value_free(CanopyVarValue value);
+
 float st_cloudvar_local_value_float32(STCloudVar var);
 const char * st_cloudvar_name(STCloudVar var);
+
+bool st_cloudvar_value_already_used(CanopyVarValue value);
+void st_cloudvar_value_mark_used(CanopyVarValue value);
 
 #endif // ST_VARS_INCLUDED
 
