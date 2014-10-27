@@ -18,6 +18,6 @@ clean:
 
 $(TARGET) : $(SOURCE_FILES)
 	mkdir -p build
-	gcc -I../../include $(SOURCE_FILES) -L../.. -lcanopy -lcurl -lwebsockets -Wall -Werror -g -o $(TARGET)
+	gcc -I../../3rdparty/libred/include -I../../include $(SOURCE_FILES) -L../.. -lcanopy -lcurl -lwebsockets -Wall -Werror -g -o $(TARGET)
 
 all: $(TARGET)

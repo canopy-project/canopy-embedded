@@ -52,6 +52,26 @@ typedef struct STCloudVarValue_t {
     } val;
 } STCloudVarValue_t;
 
+typedef struct STCloudVarReader_t {
+    CanopyDatatypeEnum datatype;
+    bool used;
+    union
+    {
+        bool *dest_bool;
+        char ** dest_string;
+        int8_t dest_int8;
+        uint8_t *dest_uint8;
+        int16_t *dest_int16;
+        uint16_t *dest_uint16;
+        int32_t *dest_int32;
+        uint32_t *dest_uint32;
+        float *dest_float32;
+        double *dest_float64;
+        struct tm *dest_datetime;
+        STCloudVarStruct_t *dest_strct;
+    } dest;
+} STCloudVarReader_t;
+
 struct STCloudVar_t {
     STCloudVarSystem sys;
     bool dirty;
@@ -226,6 +246,30 @@ void st_cloudvar_value_free(CanopyVarValue value)
     }
 }
 
+
+CanopyVarReader st_cloudvar_reader_float32(float *dest)
+{
+    CanopyVarReader out;
+    out = malloc(sizeof(STCloudVarReader_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    out->datatype = CANOPY_DATATYPE_FLOAT32;
+    out->dest.dest_float32 = dest;
+    return out;
+}
+
+CanopyVarReader st_cloudvar_reader_string(const char **dest)
+{
+    return NULL;
+}
+
+CanopyVarReader st_cloudvar_reader_struct(va_list ap)
+{
+    return NULL;
+}
+
 static CanopyResultEnum _mark_dirty(STCloudVar var)
 {
     var->dirty = true;
@@ -328,9 +372,34 @@ CanopyResultEnum st_cloudvar_set_local_value(STCloudVarSystem sys, const char *v
     return CANOPY_SUCCESS;
 }
 
-CanopyResultEnum st_cloudvar_get_local_value(STCloudVarSystem vars, const char *varname, CanopyVarReader dest)
+CanopyResultEnum st_cloudvar_get_local_value(STCloudVarSystem sys, const char *varname, CanopyVarReader dest)
 {
-    return CANOPY_ERROR_NOT_IMPLEMENTED;
+    STCloudVar var;
+    var = RedHash_GetWithDefaultS(sys->vars, varname, NULL);
+    if (!var)
+    {
+        return CANOPY_ERROR_VARIABLE_NOT_FOUND;
+    }
+    
+    if (!var->value)
+    {
+        return CANOPY_ERROR_VARIABLE_NOT_SET;
+    }
+    if (dest->datatype != var->value->datatype)
+    {
+        return CANOPY_ERROR_INCORRECT_DATATYPE;
+    }
+
+    switch (dest->datatype)
+    {
+        case CANOPY_DATATYPE_FLOAT32:
+            *dest->dest.dest_float32 = var->value->val.val_float32;
+            break;
+        default:
+            return CANOPY_ERROR_NOT_IMPLEMENTED;
+    }
+
+    return CANOPY_SUCCESS;
 }
 
 bool st_cloudvar_value_already_used(CanopyVarValue value)

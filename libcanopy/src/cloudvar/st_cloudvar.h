@@ -56,6 +56,12 @@ CanopyVarValue st_cloudvar_value_struct(va_list ap);
 
 void st_cloudvar_value_free(CanopyVarValue value);
 
+CanopyVarReader st_cloudvar_reader_float32(float *dest);
+CanopyVarReader st_cloudvar_reader_string(const char **dest);
+CanopyVarReader st_cloudvar_reader_struct(va_list ap);
+
+void st_cloudvar_reader_free(CanopyVarReader value);
+
 float st_cloudvar_local_value_float32(STCloudVar var);
 const char * st_cloudvar_name(STCloudVar var);
 

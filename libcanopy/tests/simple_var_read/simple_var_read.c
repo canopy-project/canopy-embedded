@@ -1,44 +1,40 @@
 #include <canopy.h>
+#include "red_test.h"
+#include <stdio.h>
 
-int main(void)
+// Just tests local copy of cloud variable.  Doesn't "sync" w/ server.
+int main(int argc, const char *argv[])
 {
+    CanopyContext canopy;
     CanopyResultEnum result;
+    RedTest test;
     float temperature;
 
-    result = canopy_global_opt(
+    test = RedTest_Begin(argv[0], NULL, NULL);
+
+    canopy = canopy_init_context();
+    RedTest_Verify(test, "Canopy init", canopy);
+
+    result = canopy_set_opt(canopy,
         CANOPY_CLOUD_SERVER, "dev02.canopy.link",
-        CANOPY_DEVICE_UUID, "c31a8ced-b9f1-4b0c-afe9-1afed3b0c21f"
+        CANOPY_DEVICE_UUID, "c31a8ced-b9f1-4b0c-afe9-1afed3b0c21f",
+        CANOPY_SYNC_BLOCKING, true,
+        CANOPY_SYNC_TIMEOUT_MS, 10000,
+        CANOPY_VAR_SEND_PROTOCOL, CANOPY_PROTOCOL_NOOP,
+        CANOPY_VAR_RECV_PROTOCOL, CANOPY_PROTOCOL_NOOP
     );
-    if (result != CANOPY_SUCCESS)
-    {
-        fprintf(stderr, "Error configuring global ctx\n");
-        return -1;
-    }
+    RedTest_Verify(test, "Configure canopy options", result == CANOPY_SUCCESS);
 
-    result = canopy_var_config(
-        CANOPY_VAR_NAME, "temperature",
-        CANOPY_VAR_DATATYPE, CANOPY_FLOAT64
-    );
-    if (result != CANOPY_SUCCESS)
-    {
-        fprintf(stderr, "Error configuring cloud variable \"temperature\"\n");
-        return -1;
-    }
+    result = canopy_var_set_float32(canopy, "temperature", 18.5f);
+    RedTest_Verify(test, "Set cloud variable (local)", result == CANOPY_SUCCESS);
 
-    result = canopy_sync();
-    if (result != CANOPY_SUCCESS)
-    {
-        fprintf(stderr, "Error syncing with the cloud\n");
-        return -1;
-    }
+    result = canopy_var_get_float32(canopy, "temperature", &temperature);
+    RedTest_Verify(test, "Get cloud variable (local)", result == CANOPY_SUCCESS);
 
-    result = canopy_var_read(
-        CANOPY_VAR_NAME, "temperature",
-        CANOPY_STORE_VALUE_FLOAT32, &temperature);
-    if (result == CANOPY_SUCCESS)
-    {
-        printf("Value of temperature: %f\n", temperature);
-    }
-    
-    return (result == CANOPY_SUCCESS) ? 0 : -1;
+    RedTest_Verify(test, "Temperature matches", temperature == 18.5f);
+
+    result = canopy_shutdown_context(canopy);
+    RedTest_Verify(test, "Shutdown", result == CANOPY_SUCCESS);
+
+    return RedTest_End(test);
 }

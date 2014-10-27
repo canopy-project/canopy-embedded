@@ -146,6 +146,25 @@ CanopyResultEnum canopy_var_set(CanopyContext ctx, const char *varname, CanopyVa
     return result;
 }
 
+CanopyVarReader CANOPY_READ_FLOAT32(float *dest)
+{
+    return st_cloudvar_reader_float32(dest);
+}
+CanopyVarReader CANOPY_READ_STRING(const char **sz)
+{
+    return st_cloudvar_reader_string(sz);
+}
+
+CanopyVarReader CANOPY_READ_STRUCT(void * dummy, ...)
+{
+    va_list ap;
+    CanopyVarReader out;
+    va_start(ap, dummy);
+    out = st_cloudvar_reader_struct(ap);
+    va_end(ap);
+    return out;
+}
+
 CanopyResultEnum canopy_var_get(CanopyContext ctx, const char *varname, CanopyVarReader dest)
 {
     return st_cloudvar_get_local_value(ctx->cloudvars, varname, dest);

@@ -40,7 +40,7 @@ typedef struct CanopyContext_t * CanopyContext;
 typedef struct STCloudVarValue_t * CanopyVarValue;
 
 // A CanopyVarReader represents a destination for reading a Cloud Variable.
-typedef struct CanopyVarReader_t * CanopyVarReader;
+typedef struct STCloudVarReader_t * CanopyVarReader;
 
 typedef int (*CanopyOnChangeCallback)(CanopyContext, const char *, void *);
 
@@ -107,12 +107,20 @@ typedef enum {
     //  You need to add more RAM :-)
     CANOPY_ERROR_OUT_OF_MEMORY,
 
+    // The requested cloud variable does not exist locally.
+    // You can try canopy_sync(...) if you know the variable exists on the cloud.
+    // Or you can create the cloud variable locally with canopy_var_config(...)
+    CANOPY_ERROR_VARIABLE_NOT_FOUND,
+
     //  A Cloud Variable exists but its value could not be read because it has
     //  never been set.
     CANOPY_ERROR_VARIABLE_NOT_SET,
    
     // A single-use Cloud Variable value has already been used as an argument.
-    CANOPY_ERROR_SINGLE_USE_VALUE_ALREADY_USED
+    CANOPY_ERROR_SINGLE_USE_VALUE_ALREADY_USED,
+
+    // The provided datatype does not match the dataype expected.
+    CANOPY_ERROR_INCORRECT_DATATYPE
 } CanopyResultEnum;
 
 // CanopyOptEnum
@@ -324,6 +332,15 @@ CanopyResultEnum canopy_var_set(CanopyContext ctx, const char *varname, CanopyVa
     canopy_var_set((ctx), (varname), CANOPY_UINT16(value))
 #define canopy_var_set_uint32(ctx, varname, value) \
     canopy_var_set((ctx), (varname), CANOPY_UINT32(value))
+
+// Create a new CanopyVarReader object that reads into a 32-bit float.
+CanopyVarReader CANOPY_READ_FLOAT32(float *x);
+
+// Create a new CanopyVarReader object that reads into a string.
+CanopyVarReader CANOPY_READ_STRING(const char **sz);
+
+// Create a new CanopyVarReaader object that reads multiple structure fields.
+CanopyVarReader CANOPY_READ_STRUCT(void * dummy, ...);
 
 // Get the local value of a Cloud Variable.
 //
