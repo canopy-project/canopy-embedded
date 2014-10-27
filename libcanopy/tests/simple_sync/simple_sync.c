@@ -17,7 +17,9 @@ int main(int argc, const char *argv[])
         CANOPY_CLOUD_SERVER, "dev02.canopy.link",
         CANOPY_DEVICE_UUID, "c31a8ced-b9f1-4b0c-afe9-1afed3b0c21f",
         CANOPY_SYNC_BLOCKING, true,
-        CANOPY_SYNC_TIMEOUT_MS, 10000
+        CANOPY_SYNC_TIMEOUT_MS, 10000,
+        CANOPY_VAR_SEND_PROTOCOL, CANOPY_PROTOCOL_NOOP,
+        CANOPY_VAR_RECV_PROTOCOL, CANOPY_PROTOCOL_NOOP
     );
 
     RedTest_Verify(test, "Configure canopy options", result == CANOPY_SUCCESS);

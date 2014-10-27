@@ -75,16 +75,20 @@ CanopyContext canopy_init_context()
 
     return ctx;
 fail:
-    st_options_free(ctx->options);
-    st_websocket_free(ctx->ws);
-    st_cloudvar_system_free(ctx->cloudvars);
-    free(ctx);
+    canopy_shutdown_context(ctx);
     return NULL;
 }
 
 CanopyResultEnum canopy_shutdown_context(CanopyContext ctx)
 {
-    return CANOPY_ERROR_NOT_IMPLEMENTED;
+    if (ctx)
+    {
+        st_options_free(ctx->options);
+        st_websocket_free(ctx->ws);
+        st_cloudvar_system_free(ctx->cloudvars);
+        free(ctx);
+    }
+    return CANOPY_SUCCESS;
 }
 
 CanopyResultEnum canopy_set_opt_impl(CanopyContext ctx, ...)
