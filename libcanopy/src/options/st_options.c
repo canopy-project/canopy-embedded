@@ -81,7 +81,7 @@ void st_options_extend(STOptions dest, STOptions base, STOptions override)
     _OPTION_LIST
 }
 
-CanopyResultEnum st_options_extend_varargs_impl(STOptions base, va_list ap)
+CanopyResultEnum st_options_extend_varargs(STOptions base, va_list ap)
 {
     // TODO: Call free routines
     // TODO: Call duplicate routine
@@ -125,7 +125,8 @@ CanopyResultEnum st_options_new_extend_varargs_impl(STOptions *newOptions, STOpt
     {
         return CANOPY_ERROR_OUT_OF_MEMORY;
     }
-    st_options_extend_varargs_impl(*newOptions, ap);
+    // TODO: broken?
+    st_options_extend_varargs(*newOptions, ap);
     return CANOPY_SUCCESS;
 }
 

@@ -87,10 +87,14 @@ CanopyResultEnum canopy_shutdown_context(CanopyContext ctx)
     return CANOPY_ERROR_NOT_IMPLEMENTED;
 }
 
-CanopyResultEnum canopy_set_opt(CanopyContext ctx, CanopyOptEnum option, ...)
+CanopyResultEnum canopy_set_opt_impl(CanopyContext ctx, ...)
 {
     va_list ap;
-    return st_options_extend_varargs(ctx->options, option, ap);
+    CanopyResultEnum out;
+    va_start(ap, ctx);
+    out = st_options_extend_varargs(ctx->options, ap);
+    va_end(ap);
+    return out;
 }
 
 CanopyVarValue CANOPY_FLOAT32(float x)

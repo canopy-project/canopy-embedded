@@ -261,7 +261,9 @@ CanopyResultEnum canopy_shutdown_context(CanopyContext ctx);
 //          CANOPY_DEVICE_UUID, "16eeca6a-e8dc-4c54-b78e-6a7416803ca8",
 //          CANOPY_VAR_SEND_PROTOCOL, CANOPY_PROTOCOL_NOOP);
 //      // sets several options.
-CanopyResultEnum canopy_set_opt(CanopyContext ctx, CanopyOptEnum option, ...);
+#define canopy_set_opt(ctx, option, ...) \
+    canopy_set_opt_impl(ctx, option, __VA_ARGS__, NULL)
+CanopyResultEnum canopy_set_opt_impl(CanopyContext ctx, ...);
 
 // Create a new CanopyVarValue object from a 32-bit float.
 CanopyVarValue CANOPY_FLOAT32(float x);

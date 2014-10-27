@@ -59,6 +59,8 @@
 #define _OPTION_LIST \
     _OPTION_LIST_FOREACH(CANOPY_CLOUD_SERVER, char *, char *, free) \
     _OPTION_LIST_FOREACH(CANOPY_DEVICE_UUID, char *, char *, free) \
+    _OPTION_LIST_FOREACH(CANOPY_SYNC_BLOCKING, bool, int, _noop) \
+    _OPTION_LIST_FOREACH(CANOPY_SYNC_TIMEOUT_MS, int, int, _noop) \
     _OPTION_LIST_FOREACH(CANOPY_VAR_SEND_PROTOCOL, CanopyProtocolEnum, CanopyProtocolEnum, _noop) \
     _OPTION_LIST_FOREACH(CANOPY_VAR_RECV_PROTOCOL, CanopyProtocolEnum, CanopyProtocolEnum, _noop)
 
@@ -107,9 +109,7 @@ STOptions st_options_dup(STOptions options);
 void st_options_extend(STOptions dest, STOptions base, STOptions override);
 
 // Merge-in STOptions from varargs.
-#define st_options_extend_varargs(options, start, ap) \
-    (va_start(ap, start), st_options_extend_varargs_impl(options, ap))
-CanopyResultEnum st_options_extend_varargs_impl(STOptions base, va_list ap);
+CanopyResultEnum st_options_extend_varargs(STOptions base, va_list ap);
 
 #define st_options_new_extend_varargs(newOptions, options, start, ap) \
     (va_start(ap, start), st_options_new_extend_varargs_impl(newOptions, options, ap))
