@@ -33,6 +33,14 @@
 #include <string.h>
 #include <unistd.h>
 
+typedef struct _Global_t
+{
+    bool initialized;
+    STGlobalOptions options;
+} _Global_t;
+
+static _Global_t _global;
+
 typedef struct CanopyContext_t
 {
     STOptions options;
@@ -43,9 +51,29 @@ typedef struct CanopyContext_t
 
 } CanopyContext_t;
 
+static CanopyResultEnum _global_init()
+{
+    // TODO: thread safety?
+    if (!_global.initialized)
+    {
+        _global.options = st_global_options_new_default();
+        _global.initialized = true;
+    }
+    return CANOPY_SUCCESS;
+}
+
 CanopyContext canopy_init_context()
 {
     CanopyContext ctx;
+    CanopyResultEnum result;
+
+    // Initialize the global system-wide struct
+    result = _global_init();
+    if (result != CANOPY_SUCCESS)
+    {
+        return NULL;
+    }
+    
     st_log_trace("canopy_init_context");
 
     ctx = calloc(1, sizeof(struct CanopyContext_t));
@@ -94,6 +122,24 @@ CanopyResultEnum canopy_shutdown_context(CanopyContext ctx)
         free(ctx);
     }
     return CANOPY_SUCCESS;
+}
+
+CanopyResultEnum canopy_set_global_opt_impl(void *dummy, ...)
+{
+    va_list ap;
+    CanopyResultEnum out;
+
+    // Initialize the global system-wide struct
+    out = _global_init();
+    if (out != CANOPY_SUCCESS)
+    {
+        return out;
+    }
+    st_log_trace("canopy_set_opt_impl");
+    va_start(ap, dummy);
+    out = st_global_options_extend_varargs(_global.options, ap);
+    va_end(ap);
+    return out;
 }
 
 CanopyResultEnum canopy_set_opt_impl(CanopyContext ctx, ...)
@@ -210,6 +256,34 @@ void canopy_debug_dump_opts(CanopyContext ctx)
     st_log_trace("canopy_debug_dump_opts(0x%p)", ctx);
     // TODO: would like to use OPTION_LIST expansion macro here, but dealing
     // with the different datatypes in the printf is tricky.
+    RedStringList_AppendPrintf(out, "\n\n");
+    RedStringList_AppendPrintf(out, "Global Settings\n");
+    RedStringList_AppendPrintf(out, "----------------------\n");
+
+    if (_global.options->has_CANOPY_LOG_ENABLED)
+        RedStringList_AppendPrintf(out, "LOG_ENABLED: %d\n", 
+                _global.options->val_CANOPY_LOG_ENABLED);
+    else
+        RedStringList_AppendPrintf(out, "LOG_ENABLED: <undefined>\n");
+
+    if (_global.options->has_CANOPY_LOG_FILE)
+        RedStringList_AppendPrintf(out, "LOG_FILE: %s\n", 
+                _global.options->val_CANOPY_LOG_FILE);
+    else
+        RedStringList_AppendPrintf(out, "LOG_FILE: <undefined>\n");
+
+    if (_global.options->has_CANOPY_LOG_LEVEL)
+        RedStringList_AppendPrintf(out, "LOG_LEVEL: %d\n", 
+                _global.options->val_CANOPY_LOG_LEVEL);
+    else
+        RedStringList_AppendPrintf(out, "LOG_LEVEL: <undefined>\n");
+
+    if (_global.options->has_CANOPY_LOG_PAYLOADS)
+        RedStringList_AppendPrintf(out, "LOG_PAYLOADS: %d\n", 
+                _global.options->val_CANOPY_LOG_PAYLOADS);
+    else
+        RedStringList_AppendPrintf(out, "LOG_PAYLOADS: <undefined>\n");
+
     RedStringList_AppendPrintf(out, "\n\n");
     RedStringList_AppendPrintf(out, "Context 0x%p settings\n", ctx);
     RedStringList_AppendPrintf(out, "----------------------\n");

@@ -123,6 +123,44 @@ typedef enum {
     CANOPY_ERROR_INCORRECT_DATATYPE
 } CanopyResultEnum;
 
+// CanopyGlobalOptEnum
+//
+// Identifiers for the options that can be provided to canopy_set_global_opt
+typedef enum
+{
+    //  Invalid option. (Equal to NULL).
+    CANOPY_INVALID_GLOBAL_OPT=0,
+    
+    // Special value used as marker at end of argument lists.  (Also == NULL).
+    CANOPY_GLOBAL_OPT_LIST_END=0,
+
+    // Enable/disable logging within libcanopy.  Value must be a boolean.
+    // Defaults to true.
+    CANOPY_LOG_ENABLED,
+
+    // Filename of log file to write to.  The value must be a string.
+    // Defaults to "~/.canopy/log".
+    CANOPY_LOG_FILE,
+
+    // Logging level:
+    //
+    //  0 = Trace, Debug, Info, Warn, Error & Fatal messages
+    //  1 = Debug, Info, Warn, Error & Fatal messages
+    //  2 = Info, Warn, Error & Fatal messages
+    //  3 = Warn, Error & Fatal messages
+    //  4 = Error & Fatal messages
+    //  5 = Fatal messages only
+    //
+    // The value must be an integer.  Defaults to 2.
+    CANOPY_LOG_LEVEL,
+
+    // Global configuration option that determines if communication payloads
+    // (requests and responses) should be included in the log.  If true,
+    // payloads will be included as DEBUG messages.  Otherwise, they will not
+    // be logged.  Defaults to false.
+    CANOPY_LOG_PAYLOADS,
+} CanopyGlobalOptEnum;
+
 // CanopyOptEnum
 //
 // Identifiers for the options that can be provided to canopy_set_opt
@@ -226,12 +264,31 @@ void canopy_debug_dump_opts(CanopyContext context);
 // Call this at the end of your program to free resources used by libcanopy.
 CanopyResultEnum canopy_shutdown_context(CanopyContext ctx);
 
+// Set a global configuration option.
+//
+// Takes an even number of arguments.  The arguments must alternate between
+// option identifiers and values.  The option pairs may appear in any
+// order, but each option may be provided at most once.
+//
+// The options that can be set are:
+//
+//  CANOPY_LOG_ENABLED
+//  CANOPY_LOG_FILE
+//  CANOPY_LOG_LEVEL
+//  CANOPY_LOG_PAYLOADS
+//
+// At least one option pair must be provided or a compilation error will occur.
+#define canopy_set_global_opt(option, ...) \
+    canopy_set_global_opt_impl(NULL, option, __VA_ARGS__, NULL)
+CanopyResultEnum canopy_set_global_opt_impl(void *dummy, ...);
+
+
 // Set a context-wide option.
 //
 // Takes an odd number of arguments.  After the first argument (<ctx>), the
 // arguments must must alternate between option identifiers and values.  The
-// option identifies may appear in any order, but each option may be provided
-// at most once.
+// option pars may appear in any order, but each option may be provided at most
+// once.
 //
 // The options that can be set are:
 //

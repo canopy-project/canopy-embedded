@@ -32,9 +32,9 @@ STOptions st_options_new_empty()
         if ((options)->has_##prop) \
         { \
             free((options)->val_##prop); \
-            (options)->has_##prop = true; \
-            (options)->val_##prop = RedString_strdup(szVal); \
         } \
+        (options)->has_##prop = true; \
+        (options)->val_##prop = RedString_strdup(szVal); \
     } while (0)
 
 #define _OPTION_SET(options, prop, szVal) \
@@ -55,6 +55,22 @@ STOptions st_options_new_default()
 
     _OPTION_SET_AND_FREE_OLD(options, CANOPY_CLOUD_SERVER, "canopy.link");
     _OPTION_SET(options, CANOPY_VAR_SEND_PROTOCOL, CANOPY_PROTOCOL_WS);
+
+    return options;
+}
+STGlobalOptions st_global_options_new_default()
+{
+    STGlobalOptions options;
+    options = calloc(1, sizeof(struct STGlobalOptions_t));
+    if (!options)
+    {
+        return NULL;
+    }
+
+    _OPTION_SET(options, CANOPY_LOG_ENABLED, true);
+    _OPTION_SET_AND_FREE_OLD(options, CANOPY_LOG_FILE, "~/.canopy/log");
+    _OPTION_SET(options, CANOPY_LOG_LEVEL, 2);
+    _OPTION_SET(options, CANOPY_LOG_PAYLOADS, false);
 
     return options;
 }
