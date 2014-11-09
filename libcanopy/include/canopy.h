@@ -207,9 +207,14 @@ typedef enum {
 //
 // This may be called multiple times to create multiple contexts, which may be
 // useful for unit testing, or if you need to talk to multiple canopy servers.
+//
+// The new context is configured based on environment variables, falling back
+// to default settings.
 CanopyContext canopy_init_context();
 
 // Load settings from configuration file.
+//
+// The configuration file must be 
 CanopyResultEnum canopy_load_opts(CanopyContext context, const char *filename);
 
 // Dump the current settings affecting <context>.  The destination is

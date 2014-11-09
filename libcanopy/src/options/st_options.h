@@ -55,16 +55,16 @@
 // on the currently-defined value of _OPTION_LIST_FOREACH.  So by redefining
 // _OPTION_LIST_FOREACH you can easily generate code for the whole list.
 //
-//                       ENUM VALUE,  DATATYPE,  VARARG_DATATYPE, FREE_ROUTINE
+//                       ENUM VALUE,  DATATYPE,  VARARG_DATATYPE, FREE_ROUTINE, CONVER_FROM_STRING
 #define _OPTION_LIST \
-    _OPTION_LIST_FOREACH(CANOPY_CLOUD_SERVER, char *, char *, free) \
-    _OPTION_LIST_FOREACH(CANOPY_DEVICE_UUID, char *, char *, free) \
-    _OPTION_LIST_FOREACH(CANOPY_SYNC_BLOCKING, bool, int, _noop) \
-    _OPTION_LIST_FOREACH(CANOPY_SYNC_TIMEOUT_MS, int, int, _noop) \
-    _OPTION_LIST_FOREACH(CANOPY_VAR_SEND_PROTOCOL, CanopyProtocolEnum, CanopyProtocolEnum, _noop) \
-    _OPTION_LIST_FOREACH(CANOPY_VAR_RECV_PROTOCOL, CanopyProtocolEnum, CanopyProtocolEnum, _noop)
+    _OPTION_LIST_FOREACH(CANOPY_CLOUD_SERVER, char *, char *, free, (char *)) \
+    _OPTION_LIST_FOREACH(CANOPY_DEVICE_UUID, char *, char *, free, (char *)) \
+    _OPTION_LIST_FOREACH(CANOPY_SYNC_BLOCKING, bool, int, _noop, atoi) \
+    _OPTION_LIST_FOREACH(CANOPY_SYNC_TIMEOUT_MS, int, int, _noop, atoi) \
+    _OPTION_LIST_FOREACH(CANOPY_VAR_SEND_PROTOCOL, CanopyProtocolEnum, int, _noop, atoi) \
+    _OPTION_LIST_FOREACH(CANOPY_VAR_RECV_PROTOCOL, CanopyProtocolEnum, int, _noop, atoi)
 
-#define _OPTION_LIST_FOREACH(option, datatype, va_datatype, freefn) 
+#define _OPTION_LIST_FOREACH(option, datatype, va_datatype, freefn, fromstring) 
 
 // Generate STOptions_t structure.
 // The macro causes _OPTION_LIST to eexpand to something like:
@@ -77,7 +77,7 @@
 //
 //      ...
 #undef _OPTION_LIST_FOREACH
-#define _OPTION_LIST_FOREACH(option, datatype, va_datatype, freefn) \
+#define _OPTION_LIST_FOREACH(option, datatype, va_datatype, freefn, fromstring) \
         bool has_##option; \
         datatype val_##option;
  
@@ -120,5 +120,8 @@ void st_options_free(STOptions options);
 
 // Does STOptions object have a particular option set?
 bool st_option_is_set(STOptions options, CanopyOptEnum option);
+
+// Load options from environment variables
+void st_options_load_from_env(STOptions options);
 
 #endif // ST_OPTIONS_INCLUDED

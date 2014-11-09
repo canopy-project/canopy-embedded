@@ -59,6 +59,8 @@ CanopyContext canopy_init_context()
         goto fail;
     }
 
+    st_options_load_from_env(ctx->options);
+
     ctx->ws = st_websocket_new();
     if (!ctx->options)
     {

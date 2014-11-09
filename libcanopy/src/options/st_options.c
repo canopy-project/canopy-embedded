@@ -19,6 +19,7 @@
 #include "red_string.h"
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 // Create a new STOptions object with all options unset.
 STOptions st_options_new_empty()
@@ -74,7 +75,7 @@ void st_options_extend(STOptions dest, STOptions base, STOptions override)
     //      dest->has_CANOPY_CLOUD_SERVER = 
     //          base->has_CANOPY_CLOUD_SERVER || override->has_CANOPY_CLOUD_SERVER;
     #undef _OPTION_LIST_FOREACH
-    #define _OPTION_LIST_FOREACH(opt, datatype, va_datatype, freefn) \
+    #define _OPTION_LIST_FOREACH(opt, datatype, va_datatype, freefn, fromstring) \
         dest->val_##opt = override->has_##opt ? override->val_##opt : base->val_##opt; \
         dest->has_##opt = base->has_##opt || override->has_##opt;
 
@@ -95,7 +96,7 @@ CanopyResultEnum st_options_extend_varargs(STOptions base, va_list ap)
     //          break;
     //      }
     #undef _OPTION_LIST_FOREACH
-    #define _OPTION_LIST_FOREACH(opt, datatype, va_datatype, freefn) \
+    #define _OPTION_LIST_FOREACH(opt, datatype, va_datatype, freefn, fromstring) \
         case opt: \
         { \
             base->val_##opt = (datatype)va_arg(ap, va_datatype); \
@@ -158,7 +159,7 @@ char *st_option_enum_to_string(CanopyOptEnum option)
     //          return "CANOPY_CONTROL_PROTOCOL";
     //      ...
     #undef _OPTION_LIST_FOREACH
-    #define _OPTION_LIST_FOREACH(opt, datatype, va_datatype, freefn) \
+    #define _OPTION_LIST_FOREACH(opt, datatype, va_datatype, freefn, fromstring) \
         case opt: \
             return #opt;
 
@@ -180,7 +181,7 @@ bool st_option_is_set(STOptions options, CanopyOptEnum option)
     //          return val_CANOPY_CONTROL_PROTOCOL;
     //      ...
     #undef _OPTION_LIST_FOREACH
-    #define _OPTION_LIST_FOREACH(opt, datatype, va_datatype, freefn) \
+    #define _OPTION_LIST_FOREACH(opt, datatype, va_datatype, freefn, fromstring) \
         case opt: \
             return options->has_##opt;
 
@@ -191,4 +192,20 @@ bool st_option_is_set(STOptions options, CanopyOptEnum option)
             RedLog_Error("Invalid option to st_option_is_set: %d\n", option);
             return false;
     }
+}
+
+void st_options_load_from_env(STOptions options)
+{
+    // TODO: free old value
+    char *envVal;
+    #undef _OPTION_LIST_FOREACH
+    #define _OPTION_LIST_FOREACH(opt, datatype, va_datatype, freefn, fromstring) \
+        envVal = getenv(#opt); \
+        if (envVal)  \
+        { \
+            options->has_##opt = true; \
+            options->val_##opt = (datatype)fromstring(envVal); \
+        }
+
+    _OPTION_LIST
 }
