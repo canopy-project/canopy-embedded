@@ -15,10 +15,19 @@
 #ifndef ST_LOG_INCLUDED
 #define ST_LOG_INCLUDED
 
+#include <canopy.h>
 #include "red_log.h"
 
 // Logging utility library for Canopy.
 // Implemented as a simple wrapper around RedLog.
+
+typedef struct STLogger_t * STLogger;
+
+STLogger st_log_init();
+CanopyResultEnum st_log_set_enabled(STLogger logger, bool enabled);
+CanopyResultEnum st_log_set_filename(STLogger logger, const char *filename);
+CanopyResultEnum st_log_set_level(STLogger logger, int level);
+CanopyResultEnum st_log_set_payload_logging(STLogger logger, bool enabled);
 
 #define st_log_trace(...)  \
     RedLog_LogCommon(__FILE__, __LINE__, "canopy", RED_LOG_LEVEL_TRACE, __VA_ARGS__)

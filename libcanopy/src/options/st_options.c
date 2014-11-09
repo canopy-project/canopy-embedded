@@ -225,3 +225,10 @@ void st_options_load_from_env(STOptions options)
 
     _OPTION_LIST
 }
+
+void st_global_options_load_from_env(STGlobalOptions options)
+{
+    // TODO: free old value
+    char *envVal;
+    _GLOBAL_OPTION_LIST
+}

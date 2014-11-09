@@ -35,13 +35,14 @@ typedef enum
 #define RED_LOG_LEVEL_ERROR_AND_HIGHER 0x30
 #define RED_LOG_LEVEL_WARN_AND_HIGHER 0x38
 #define RED_LOG_LEVEL_INFO_AND_HIGHER 0x3C
+#define RED_LOG_LEVEL_DEBUG_AND_HIGHER 0x3E
 #define RED_LOG_LEVEL_ALL 0x3F
 
 #define RED_LOG_DEFAULT_LOG "__default__"
 
 typedef int RedLogLevels;
 
-typedef void (*RedLogCallbackFunc)(const char *file, int line, const char *loggerName, RedLogLevel level, const char *msg);
+typedef void (*RedLogCallbackFunc)(const char *file, int line, const char *loggerName, RedLogLevel level, const char *msg, void *userData);
 
 void RedLog_Logv(const char *file, int line, const char *logName, RedLogLevel level, const char *fmt, va_list ap);
 
@@ -85,7 +86,9 @@ void RedLog_LogCommon(const char *file, int line, const char *logName, RedLogLev
 
 void RedLog_SetLogCallback(const char *loggerName, RedLogLevels levels, RedLogCallbackFunc handler);
 void RedLog_SetLogLevelsEnabled(const char *loggerName, RedLogLevels levels);
+void RedLog_SetLogCallbackUserData(const char *loggerName, void *userData);
 
 extern RedLogCallbackFunc RedLog_WriteToStderrRoutine;
 
+const char * RedLog_LogLevelString(RedLogLevel level);
 #endif

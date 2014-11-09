@@ -37,6 +37,7 @@ typedef struct _Global_t
 {
     bool initialized;
     STGlobalOptions options;
+    STLogger logger;
 } _Global_t;
 
 static _Global_t _global;
@@ -54,11 +55,32 @@ typedef struct CanopyContext_t
 static CanopyResultEnum _global_init()
 {
     // TODO: thread safety?
-    if (!_global.initialized)
+    // TODO: error handling
+
+    // Already initialized?
+    if (_global.initialized)
+        return CANOPY_SUCCESS;
+
+    _global.options = st_global_options_new_default();
+    if (!_global.options)
     {
-        _global.options = st_global_options_new_default();
-        _global.initialized = true;
+        return CANOPY_ERROR_OUT_OF_MEMORY;
     }
+    st_global_options_load_from_env(_global.options);
+
+    _global.logger = st_log_init();
+    if (!_global.logger)
+    {
+        return CANOPY_ERROR_OUT_OF_MEMORY;
+    }
+
+    // Setup logging
+    st_log_set_enabled(_global.logger, _global.options->val_CANOPY_LOG_ENABLED);
+    st_log_set_filename(_global.logger, _global.options->val_CANOPY_LOG_FILE);
+    st_log_set_level(_global.logger, _global.options->val_CANOPY_LOG_LEVEL);
+    st_log_set_payload_logging(_global.logger, _global.options->val_CANOPY_LOG_PAYLOADS);
+
+    _global.initialized = true;
     return CANOPY_SUCCESS;
 }
 
@@ -139,6 +161,17 @@ CanopyResultEnum canopy_set_global_opt_impl(void *dummy, ...)
     va_start(ap, dummy);
     out = st_global_options_extend_varargs(_global.options, ap);
     va_end(ap);
+
+    if (out != CANOPY_SUCCESS)
+    {
+        return out;
+    }
+
+    // setup logging
+    st_log_set_enabled(_global.logger, _global.options->val_CANOPY_LOG_ENABLED);
+    st_log_set_filename(_global.logger, _global.options->val_CANOPY_LOG_FILE);
+    st_log_set_level(_global.logger, _global.options->val_CANOPY_LOG_LEVEL);
+    st_log_set_payload_logging(_global.logger, _global.options->val_CANOPY_LOG_PAYLOADS);
     return out;
 }
 

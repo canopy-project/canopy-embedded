@@ -142,5 +142,6 @@ bool st_option_is_set(STOptions options, CanopyOptEnum option);
 
 // Load options from environment variables
 void st_options_load_from_env(STOptions options);
+void st_global_options_load_from_env(STGlobalOptions options);
 
 #endif // ST_OPTIONS_INCLUDED

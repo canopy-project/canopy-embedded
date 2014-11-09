@@ -120,7 +120,10 @@ typedef enum {
     CANOPY_ERROR_SINGLE_USE_VALUE_ALREADY_USED,
 
     // The provided datatype does not match the dataype expected.
-    CANOPY_ERROR_INCORRECT_DATATYPE
+    CANOPY_ERROR_INCORRECT_DATATYPE,
+
+    // An invalid value was provided as a parameter.
+    CANOPY_ERROR_INVALID_VALUE
 } CanopyResultEnum;
 
 // CanopyGlobalOptEnum
