@@ -11,6 +11,7 @@ SOURCE_FILES = \
     src/canopy.c \
     src/cloudvar/st_cloudvar.c \
     src/http/st_http_curl.c \
+    src/log/st_log.c \
     src/options/st_options.c \
     src/sync/st_sync.c \
     src/websocket/st_websocket.c \

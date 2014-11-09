@@ -15,15 +15,28 @@
 #ifndef ST_LOG_INCLUDED
 #define ST_LOG_INCLUDED
 
+#include "red_log.h"
+
 // Logging utility library for Canopy.
 // Implemented as a simple wrapper around RedLog.
 
-// TODO: implement for realz
-#if 0
-#define st_log_trace printf
-#else
-#define st_log_trace(...) (void)0
-#endif
+#define st_log_trace(...)  \
+    RedLog_LogCommon(__FILE__, __LINE__, "canopy", RED_LOG_LEVEL_TRACE, __VA_ARGS__)
+
+#define st_log_debug(...)  \
+    RedLog_LogCommon(__FILE__, __LINE__, "canopy", RED_LOG_LEVEL_DEBUG, __VA_ARGS__)
+
+#define st_log_info(...)  \
+    RedLog_LogCommon(__FILE__, __LINE__, "canopy", RED_LOG_LEVEL_INFO, __VA_ARGS__)
+
+#define st_log_warn(...)  \
+    RedLog_LogCommon(__FILE__, __LINE__, "canopy", RED_LOG_LEVEL_WARN, __VA_ARGS__)
+
+#define st_log_error(...)  \
+    RedLog_LogCommon(__FILE__, __LINE__, "canopy", RED_LOG_LEVEL_ERROR, __VA_ARGS__)
+
+#define st_log_fatal(...)  \
+    RedLog_LogCommon(__FILE__, __LINE__, "canopy", RED_LOG_LEVEL_FATAL, __VA_ARGS__)
 
 #endif // ST_LOG_INCLUDED
 

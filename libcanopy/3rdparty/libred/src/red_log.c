@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#define _NUM_LOG_LEVELS 5
+#define _NUM_LOG_LEVELS 6
 
 typedef struct _Logger_t
 {
@@ -64,6 +64,8 @@ static const char * _LogLevelString(RedLogLevel level)
 {
     switch (level)
     {
+        case RED_LOG_LEVEL_TRACE:
+            return "TRACE";
         case RED_LOG_LEVEL_DEBUG:
             return "DEBUG";
         case RED_LOG_LEVEL_INFO:
@@ -91,16 +93,18 @@ static int _LogLevelIdx(RedLogLevel level)
 {
     switch (level)
     {
-        case RED_LOG_LEVEL_DEBUG:
+        case RED_LOG_LEVEL_TRACE:
             return 0;
-        case RED_LOG_LEVEL_INFO:
+        case RED_LOG_LEVEL_DEBUG:
             return 1;
-        case RED_LOG_LEVEL_WARN:
+        case RED_LOG_LEVEL_INFO:
             return 2;
-        case RED_LOG_LEVEL_ERROR:
+        case RED_LOG_LEVEL_WARN:
             return 3;
-        case RED_LOG_LEVEL_FATAL:
+        case RED_LOG_LEVEL_ERROR:
             return 4;
+        case RED_LOG_LEVEL_FATAL:
+            return 5;
         default:
             return 0;
     }
@@ -123,7 +127,7 @@ void RedLog_SetLogCallback(const char *loggerName, RedLogLevels levels, RedLogCa
     int i;
     _Logger_t *logger;
     logger = _CreateOrGetLogger(loggerName);
-    for (i = 0; i < 5; i++)
+    for (i = 0; i < _NUM_LOG_LEVELS; i++)
     {
         if (levels & (1 << i))
         {

@@ -205,36 +205,44 @@ CanopyResultEnum canopy_sync(CanopyContext ctx, CanopyPromise promise)
 
 void canopy_debug_dump_opts(CanopyContext ctx)
 {
+    RedStringList out = RedStringList_New();
+
     st_log_trace("canopy_debug_dump_opts(0x%p)", ctx);
     // TODO: would like to use OPTION_LIST expansion macro here, but dealing
     // with the different datatypes in the printf is tricky.
-    printf("\n\n");
-    printf("Context 0x%p settings\n", ctx);
-    printf("----------------------\n");
-    printf("CLOUD_SERVER: %s\n", 
+    RedStringList_AppendPrintf(out, "\n\n");
+    RedStringList_AppendPrintf(out, "Context 0x%p settings\n", ctx);
+    RedStringList_AppendPrintf(out, "----------------------\n");
+    RedStringList_AppendPrintf(out, "CLOUD_SERVER: %s\n", 
             ctx->options->has_CANOPY_CLOUD_SERVER ?
                 ctx->options->val_CANOPY_CLOUD_SERVER : "<undefined>");
-    printf("DEVICE_UUID: %s\n", 
+    RedStringList_AppendPrintf(out, "DEVICE_UUID: %s\n", 
             ctx->options->has_CANOPY_DEVICE_UUID ?
                 ctx->options->val_CANOPY_DEVICE_UUID : "<undefined>");
 
     if (ctx->options->has_CANOPY_VAR_SEND_PROTOCOL)
-        printf("VAR_SEND_PROTOCOL: %d\n", 
+        RedStringList_AppendPrintf(out, "VAR_SEND_PROTOCOL: %d\n", 
                 ctx->options->val_CANOPY_VAR_SEND_PROTOCOL);
     else
-        printf("VAR_SEND_PROTOCOL: <undefined>\n");
+        RedStringList_AppendPrintf(out, "VAR_SEND_PROTOCOL: <undefined>\n");
 
     if (ctx->options->has_CANOPY_SYNC_BLOCKING)
-        printf("SYNC_BLOCKING: %d\n", 
+        RedStringList_AppendPrintf(out, "SYNC_BLOCKING: %d\n", 
                 ctx->options->val_CANOPY_SYNC_BLOCKING);
     else
-        printf("SYNC_BLOCKING: <undefined>\n");
+        RedStringList_AppendPrintf(out, "SYNC_BLOCKING: <undefined>\n");
 
     if (ctx->options->has_CANOPY_SYNC_TIMEOUT_MS)
-        printf("SYNC_TIMEOUT_MS: %d\n", 
+        RedStringList_AppendPrintf(out, "SYNC_TIMEOUT_MS: %d\n", 
                 ctx->options->val_CANOPY_SYNC_TIMEOUT_MS);
     else
-        printf("SYNC_TIMEOUT_MS: <undefined>\n");
+        RedStringList_AppendPrintf(out, "SYNC_TIMEOUT_MS: <undefined>\n");
 
-    printf("\n\n");
+    RedStringList_AppendPrintf(out, "\n\n");
+
+    char *outsz = RedStringList_ToNewChars(out);
+    st_log_info("%s", outsz);
+    free(outsz);
+    RedStringList_Free(out);
+
 }
