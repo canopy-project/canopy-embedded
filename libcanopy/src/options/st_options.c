@@ -137,6 +137,22 @@ CanopyResultEnum st_options_extend_varargs(STOptions base, va_list ap)
     }
     return CANOPY_SUCCESS;
 }
+CanopyResultEnum st_global_options_extend_varargs(STGlobalOptions base, va_list ap)
+{
+    CanopyGlobalOptEnum param;
+    while ((param = va_arg(ap, CanopyGlobalOptEnum)) != CANOPY_GLOBAL_OPT_LIST_END)
+    {
+        switch (param)
+        {
+            _GLOBAL_OPTION_LIST
+            default:
+            {
+                return CANOPY_ERROR_INVALID_OPT;
+            }
+        }
+    }
+    return CANOPY_SUCCESS;
+}
 
 CanopyResultEnum st_options_new_extend_varargs_impl(STOptions *newOptions, STOptions base, va_list ap)
 {

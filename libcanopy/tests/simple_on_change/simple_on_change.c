@@ -1,45 +1,54 @@
 #include <canopy.h>
+#include "red_test.h"
+#include <stdio.h>
+#include <string.h>
 
-static int handle_dimmer_level(CanopyContext ctx, const char *varName, float value)
+static bool callbackTriggered;
+
+static int handle_dimmer_level(CanopyContext ctx, const char *varName, void *extra)
 {
-    // TODO: need info about event?
-    // Timestamp of change?
-    // Origin of change?
+    RedTest test = (RedTest)extra;
+    float value;
+    CanopyResultEnum result;
+
+    RedTest_Verify(test, "OnChange: varName matches", !strcmp(varName, "dimmer_level"));
+
+    result = canopy_var_get(ctx, varName, CANOPY_READ_FLOAT32(&value));
+    RedTest_Verify(test, "OnChange: canopy_var_get", result == CANOPY_SUCCESS);
+    RedTest_Verify(test, "OnChange: value", value == 100.5f);
     return 0;
 }
 
-int main(void)
+int main(int argc, const char *argv[])
 {
-    int i;
+    CanopyContext canopy;
     CanopyResultEnum result;
-    result = canopy_global_config(
-        CANOPY_CLOUD_SERVER, "dev02.canopy.link",
-        CANOPY_DEVICE_UUID, "c31a8ced-b9f1-4b0c-afe9-1afed3b0c21f"
-    );
-    if (result != CANOPY_SUCCESS)
-    {
-        fprintf(stderr, "Failed to configure global context\n");
-        return result;
-    }
+    RedTest test;
+    int i;
 
-    result = canopy_var_on_change(
-        CANOPY_VAR_NAME, "dimmer_level",
-        CANOPY_VAR_CALLBACK_FLOAT32, handle_dimmer_level
+    test = RedTest_Begin(argv[0], NULL, NULL);
+
+    canopy = canopy_init_context();
+    RedTest_Verify(test, "Canopy init", canopy);
+
+    result = canopy_set_opt(canopy,
+        CANOPY_CLOUD_SERVER, "dev02.canopy.link",
+        CANOPY_DEVICE_UUID, "c31a8ced-b9f1-4b0c-afe9-1afed3b0c21f",
+        CANOPY_SYNC_BLOCKING, true,
+        CANOPY_SYNC_TIMEOUT_MS, 10000,
+        CANOPY_VAR_SEND_PROTOCOL, CANOPY_PROTOCOL_NOOP,
+        CANOPY_VAR_RECV_PROTOCOL, CANOPY_PROTOCOL_WS
     );
-    if (result != CANOPY_SUCCESS)
-    {
-        fprintf(stderr, "Failed to setup control callback\n");
-        return -1;
-    }
+    RedTest_Verify(test, "Configure canopy options", result == CANOPY_SUCCESS);
+
+    result = canopy_var_on_change(canopy, "dimmer_level", handle_dimmer_level, test);
+    RedTest_Verify(test, "Establish on_change callback", result == CANOPY_SUCCESS);
 
     for (i = 0; i < 10; i++)
     {
         printf("sync...\n");
-        result = canopy_sync(CANOPY_SYNC_DURATION_MS, 10000);
-        if (result != CANOPY_SUCCESS)
-        {
-            fprintf(stderr, "Error syncing\n");
-        }
+        result = canopy_sync(canopy, NULL);
     }
-    return 0;
+    RedTest_Verify(test, "Callback Triggered", callbackTriggered);
+    return RedTest_End(test);
 }

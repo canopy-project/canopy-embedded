@@ -149,22 +149,22 @@ CanopyResultEnum canopy_shutdown_context(CanopyContext ctx)
 CanopyResultEnum canopy_set_global_opt_impl(void *dummy, ...)
 {
     va_list ap;
-    CanopyResultEnum out;
+    CanopyResultEnum result;
 
     // Initialize the global system-wide struct
-    out = _global_init();
-    if (out != CANOPY_SUCCESS)
+    result = _global_init();
+    if (result != CANOPY_SUCCESS)
     {
-        return out;
+        return result;
     }
     st_log_trace("canopy_set_opt_impl");
     va_start(ap, dummy);
-    out = st_global_options_extend_varargs(_global.options, ap);
+    result = st_global_options_extend_varargs(_global.options, ap);
     va_end(ap);
 
-    if (out != CANOPY_SUCCESS)
+    if (result != CANOPY_SUCCESS)
     {
-        return out;
+        return result;
     }
 
     // setup logging
@@ -172,7 +172,7 @@ CanopyResultEnum canopy_set_global_opt_impl(void *dummy, ...)
     st_log_set_filename(_global.logger, _global.options->val_CANOPY_LOG_FILE);
     st_log_set_level(_global.logger, _global.options->val_CANOPY_LOG_LEVEL);
     st_log_set_payload_logging(_global.logger, _global.options->val_CANOPY_LOG_PAYLOADS);
-    return out;
+    return CANOPY_SUCCESS;
 }
 
 CanopyResultEnum canopy_set_opt_impl(CanopyContext ctx, ...)
