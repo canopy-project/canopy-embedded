@@ -209,6 +209,13 @@ typedef enum {
 // useful for unit testing, or if you need to talk to multiple canopy servers.
 CanopyContext canopy_init_context();
 
+// Load settings from configuration file.
+CanopyResultEnum canopy_load_opts(CanopyContext context, const char *filename);
+
+// Dump the current settings affecting <context>.  The destination is
+// implementation specific (typically stdout is used).
+void canopy_debug_dump_opts(CanopyContext context);
+
 // Shutdown a libcanopy context.
 //
 // Call this at the end of your program to free resources used by libcanopy.
@@ -410,6 +417,5 @@ CanopyResultEnum canopy_var_config(CanopyContext ctx, const char *varname, ...);
 // Updates the local and remote copies of each Cloud Variable with the latest
 // values.
 CanopyResultEnum canopy_sync(CanopyContext ctx, CanopyPromise promise);
-
 
 #endif // CANOPY_INCLUDED

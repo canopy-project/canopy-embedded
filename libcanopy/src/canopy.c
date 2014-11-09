@@ -184,3 +184,38 @@ CanopyResultEnum canopy_sync(CanopyContext ctx, CanopyPromise promise)
 {
     return st_sync(ctx, ctx->options, ctx->ws, ctx->cloudvars);
 }
+
+void canopy_debug_dump_opts(CanopyContext ctx)
+{
+    // TODO: would like to use OPTION_LIST expansion macro here, but dealing
+    // with the different datatypes in the printf is tricky.
+    printf("\n\n");
+    printf("Context 0x%p settings\n", ctx);
+    printf("----------------------\n");
+    printf("CLOUD_SERVER: %s\n", 
+            ctx->options->has_CANOPY_CLOUD_SERVER ?
+                ctx->options->val_CANOPY_CLOUD_SERVER : "<undefined>");
+    printf("DEVICE_UUID: %s\n", 
+            ctx->options->has_CANOPY_DEVICE_UUID ?
+                ctx->options->val_CANOPY_DEVICE_UUID : "<undefined>");
+
+    if (ctx->options->has_CANOPY_VAR_SEND_PROTOCOL)
+        printf("VAR_SEND_PROTOCOL: %d\n", 
+                ctx->options->val_CANOPY_VAR_SEND_PROTOCOL);
+    else
+        printf("VAR_SEND_PROTOCOL: <undefined>\n");
+
+    if (ctx->options->has_CANOPY_SYNC_BLOCKING)
+        printf("SYNC_BLOCKING: %d\n", 
+                ctx->options->val_CANOPY_SYNC_BLOCKING);
+    else
+        printf("SYNC_BLOCKING: <undefined>\n");
+
+    if (ctx->options->has_CANOPY_SYNC_TIMEOUT_MS)
+        printf("SYNC_TIMEOUT_MS: %d\n", 
+                ctx->options->val_CANOPY_SYNC_TIMEOUT_MS);
+    else
+        printf("SYNC_TIMEOUT_MS: <undefined>\n");
+
+    printf("\n\n");
+}

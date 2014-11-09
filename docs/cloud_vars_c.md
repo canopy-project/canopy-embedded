@@ -1,3 +1,5 @@
+This is outdated.  See canopy.h for latest documentation.
+
 IoT Cloud Variables in C
 ===============================================================================
 

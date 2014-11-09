@@ -11,6 +11,8 @@ int main(int argc, const char *argv[])
     test = RedTest_Begin(argv[0], NULL, NULL);
 
     canopy = canopy_init_context();
+    canopy_debug_dump_opts(canopy);
+
     RedTest_Verify(test, "Canopy init", canopy);
 
     result = canopy_set_opt(canopy,
