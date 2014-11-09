@@ -17,6 +17,7 @@
 #include "options/st_options.h"
 #include "red_log.h"
 #include "red_string.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -61,14 +62,16 @@ STOptions st_options_new_default()
 STGlobalOptions st_global_options_new_default()
 {
     STGlobalOptions options;
+    char filename[1024];
     options = calloc(1, sizeof(struct STGlobalOptions_t));
     if (!options)
     {
         return NULL;
     }
 
+    snprintf(filename, 1024, "%s/.canopy/log", getenv("HOME"));
     _OPTION_SET(options, CANOPY_LOG_ENABLED, true);
-    _OPTION_SET_AND_FREE_OLD(options, CANOPY_LOG_FILE, "~/.canopy/log");
+    _OPTION_SET_AND_FREE_OLD(options, CANOPY_LOG_FILE, filename);
     _OPTION_SET(options, CANOPY_LOG_LEVEL, 2);
     _OPTION_SET(options, CANOPY_LOG_PAYLOADS, false);
 
