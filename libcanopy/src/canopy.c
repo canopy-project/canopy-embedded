@@ -19,6 +19,7 @@
 #include <assert.h>
 #include "cloudvar/st_cloudvar.h"
 #include "http/st_http.h"
+#include "log/st_log.h"
 #include "options/st_options.h"
 #include "sync/st_sync.h"
 #include "websocket/st_websocket.h"
@@ -45,6 +46,7 @@ typedef struct CanopyContext_t
 CanopyContext canopy_init_context()
 {
     CanopyContext ctx;
+    st_log_trace("canopy_init_context");
 
     ctx = calloc(1, sizeof(struct CanopyContext_t));
     if (!ctx)
@@ -83,6 +85,7 @@ fail:
 
 CanopyResultEnum canopy_shutdown_context(CanopyContext ctx)
 {
+    st_log_trace("canopy_shutdown_context(0x%p)", ctx);
     if (ctx)
     {
         st_options_free(ctx->options);
@@ -97,6 +100,7 @@ CanopyResultEnum canopy_set_opt_impl(CanopyContext ctx, ...)
 {
     va_list ap;
     CanopyResultEnum out;
+    st_log_trace("canopy_set_opt_impl");
     va_start(ap, ctx);
     out = st_options_extend_varargs(ctx->options, ap);
     va_end(ap);
@@ -105,11 +109,13 @@ CanopyResultEnum canopy_set_opt_impl(CanopyContext ctx, ...)
 
 CanopyVarValue CANOPY_FLOAT32(float x)
 {
+    st_log_trace("CANOPY_FlOAT32(%f)", x);
     return st_cloudvar_value_float32(x);
 }
 
 CanopyVarValue CANOPY_STRING(const char *sz)
 {
+    st_log_trace("CANOPY_STRING(%s)", sz);
     return st_cloudvar_value_string(sz);
 }
 
@@ -117,6 +123,7 @@ CanopyVarValue CANOPY_STRUCT(void * dummy, ...)
 {
     va_list ap;
     CanopyVarValue out;
+    st_log_trace("CANOPY_STRUCT(...)");
     va_start(ap, dummy);
     out = st_cloudvar_value_struct(ap);
     va_end(ap);
@@ -125,12 +132,14 @@ CanopyVarValue CANOPY_STRUCT(void * dummy, ...)
 
 void canopy_var_value_free(CanopyVarValue value)
 {
+    st_log_trace("canopy_var_value_free");
     return st_cloudvar_value_free(value);
 }
 
 CanopyResultEnum canopy_var_set(CanopyContext ctx, const char *varname, CanopyVarValue value)
 {
     CanopyResultEnum result;
+    st_log_trace("canopy_var_set(0x%p, %s, ...", ctx, varname);
     if (st_cloudvar_value_already_used(value))
     {
         // CanopyVarValue objects are meant to be used once.  If it has been
@@ -150,15 +159,18 @@ CanopyResultEnum canopy_var_set(CanopyContext ctx, const char *varname, CanopyVa
 
 CanopyVarReader CANOPY_READ_FLOAT32(float *dest)
 {
+    st_log_trace("CANOPY_READ_FLOAT32(0x%p)", dest);
     return st_cloudvar_reader_float32(dest);
 }
 CanopyVarReader CANOPY_READ_STRING(const char **sz)
 {
+    st_log_trace("CANOPY_READ_STRING(0x%p)", sz);
     return st_cloudvar_reader_string(sz);
 }
 
 CanopyVarReader CANOPY_READ_STRUCT(void * dummy, ...)
 {
+    st_log_trace("CANOPY_READ_STRUCT(...)");
     va_list ap;
     CanopyVarReader out;
     va_start(ap, dummy);
@@ -169,26 +181,31 @@ CanopyVarReader CANOPY_READ_STRUCT(void * dummy, ...)
 
 CanopyResultEnum canopy_var_get(CanopyContext ctx, const char *varname, CanopyVarReader dest)
 {
+    st_log_trace("canopy_var_get(...)");
     return st_cloudvar_get_local_value(ctx->cloudvars, varname, dest);
 }
 
 CanopyResultEnum canopy_var_on_change(CanopyContext ctx, const char *varname, CanopyOnChangeCallback cb, void *userdata)
 {
+    st_log_trace("canopy_var_on_change(...)");
     return CANOPY_ERROR_NOT_IMPLEMENTED;
 }
 
 CanopyResultEnum canopy_var_config(CanopyContext ctx, const char *varname, ...)
 {
+    st_log_trace("canopy_var_config(...)");
     return CANOPY_ERROR_NOT_IMPLEMENTED;
 }
 
 CanopyResultEnum canopy_sync(CanopyContext ctx, CanopyPromise promise)
 {
+    st_log_trace("canopy_sync(...)");
     return st_sync(ctx, ctx->options, ctx->ws, ctx->cloudvars);
 }
 
 void canopy_debug_dump_opts(CanopyContext ctx)
 {
+    st_log_trace("canopy_debug_dump_opts(0x%p)", ctx);
     // TODO: would like to use OPTION_LIST expansion macro here, but dealing
     // with the different datatypes in the printf is tricky.
     printf("\n\n");
