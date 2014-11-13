@@ -72,6 +72,7 @@ typedef enum
     SDDL_NUMERIC_DISPLAY_HINT_SCIENTIFIC,
     SDDL_NUMERIC_DISPLAY_HINT_HEX
 } SDDLNumericDisplayHintEnum;
+
 typedef struct SDDLDocument_t * SDDLDocument;
 
 typedef struct SDDLProperty_t * SDDLProperty;
