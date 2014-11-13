@@ -22,6 +22,8 @@
 // An STWebSocket is an ADT representing a websocket connection.
 typedef struct STWebSocket_t * STWebSocket;
 
+typedef void (*STWebsocketRecvCallback)(STWebSocket ws, const char *payload, void *userdata);
+
 // Create a new (disconnected) WebSocket object.
 STWebSocket st_websocket_new();
 
@@ -48,5 +50,8 @@ void st_websocket_service(STWebSocket ws, uint32_t timeout_ms);
 // Send payload over the WebSocket.  Fails silently if the WebSocket isn't
 // connected to the server.
 void st_websocket_write(STWebSocket ws, const char *msg);
+
+// Set the callback that gets triggered when data is received from the server.
+void st_websocket_recv_callback(STWebSocket ws, STWebsocketRecvCallback cb, void *userdata);
 
 #endif // ST_WEBSOCKET_INCLUDED

@@ -120,7 +120,7 @@ CanopyContext canopy_init_context()
         goto fail;
     }
 
-    ctx->cloudvars = st_cloudvar_system_new();
+    ctx->cloudvars = st_cloudvar_system_new(ctx);
     if (!ctx->cloudvars)
     {
         RedLog_Error("OOM in canopy_create_ctx");
@@ -267,7 +267,8 @@ CanopyResultEnum canopy_var_get(CanopyContext ctx, const char *varname, CanopyVa
 CanopyResultEnum canopy_var_on_change(CanopyContext ctx, const char *varname, CanopyOnChangeCallback cb, void *userdata)
 {
     st_log_trace("canopy_var_on_change(...)");
-    return CANOPY_ERROR_NOT_IMPLEMENTED;
+
+    return st_cloudvar_register_on_change_callback(ctx->cloudvars, varname, cb, userdata);
 }
 
 CanopyResultEnum canopy_var_config(CanopyContext ctx, const char *varname, ...)

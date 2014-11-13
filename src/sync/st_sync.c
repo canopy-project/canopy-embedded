@@ -17,6 +17,7 @@
 #include "sync/st_sync.h"
 #include "cloudvar/st_cloudvar.h"
 #include "http/st_http.h"
+#include "log/st_log.h"
 #include "options/st_options.h"
 #include "websocket/st_websocket.h"
 #include "red_json.h"
@@ -72,6 +73,56 @@ static CanopyResultEnum _send_payload(
         return CANOPY_ERROR_PROTOCOL_NOT_SUPPORTED;
     }
     return CANOPY_SUCCESS;
+}
+
+static CanopyResultEnum _process_payload(STCloudVarSystem sys, const char *payload)
+{
+    st_log_debug("Processing payload %s", payload); // TODO: Only log if payload logging enabled
+
+    RedJsonObject json = RedJson_Parse(payload);
+    if (!json)
+    {
+        return CANOPY_ERROR_PARSING_PAYLOAD;
+    }
+
+    if (RedJsonObject_HasKey(json, "vars"))
+    {
+        unsigned numVars, i;
+        RedJsonObject varsJson;
+        char ** varnames;
+        CanopyResultEnum result;
+
+        if (!RedJsonObject_IsValueObject(json, "vars"))
+        {
+            st_log_error("Inbound payload error: Expected \"vars\" to be JSON object\n");
+            return CANOPY_ERROR_PROCESSING_PAYLOAD;
+        }
+
+        varsJson = RedJsonObject_GetObject(json, "vars");
+
+        numVars = RedJsonObject_NumItems(varsJson);
+        varnames = RedJsonObject_NewKeysArray(varsJson);
+        if (!varnames)
+        {
+            return CANOPY_ERROR_OUT_OF_MEMORY;
+        }
+        for (i = 0 ; i < numVars; i++)
+        {
+            result = st_cloudvar_set_local_value_from_json(sys, varnames[i], RedJsonObject_Get(varsJson, varnames[i]));
+            if (result != CANOPY_SUCCESS)
+            {
+                return result;
+            }
+        }
+        RedJsonObject_FreeKeysArray(varnames);
+    }
+
+    return CANOPY_SUCCESS;
+}
+
+static void _handle_ws_recv(STWebSocket ws, const char *payload, void *userdata)
+{
+    _process_payload((STCloudVarSystem)userdata, payload);
 }
 
 static char * _gen_outbound_payload(STCloudVarSystem cloudvars)
@@ -134,6 +185,7 @@ CanopyResultEnum st_sync(CanopyContext ctx, STOptions options, STWebSocket ws, S
                 return result;
 
             // Service websocket for first time
+            st_websocket_recv_callback(ws, _handle_ws_recv, cloudvars);
             st_websocket_service(ws, 100);
         }
     }

@@ -123,7 +123,13 @@ typedef enum {
     CANOPY_ERROR_INCORRECT_DATATYPE,
 
     // An invalid value was provided as a parameter.
-    CANOPY_ERROR_INVALID_VALUE
+    CANOPY_ERROR_INVALID_VALUE,
+
+    // Unable to parse received payload.
+    CANOPY_ERROR_PARSING_PAYLOAD,
+
+    // Error processing received payload.
+    CANOPY_ERROR_PROCESSING_PAYLOAD
 } CanopyResultEnum;
 
 // CanopyGlobalOptEnum
@@ -468,6 +474,8 @@ CanopyResultEnum canopy_var_get(CanopyContext ctx, const char *varname, CanopyVa
 // }
 //
 // canopy_var_on_change(ctx, "temperature", handle_temperature, NULL);
+//
+// - Creates local variable if it doesn't already exist.
 //
 CanopyResultEnum canopy_var_on_change(CanopyContext ctx, const char *varname, CanopyOnChangeCallback cb, void *userdata);
 

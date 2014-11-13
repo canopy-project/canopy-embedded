@@ -18,11 +18,12 @@
 #include <canopy.h>
 #include <stdbool.h>
 #include "options/st_options.h"
+#include <red_json.h>
 
 typedef struct STCloudVar_t * STCloudVar;
 typedef struct STCloudVarSystem_t * STCloudVarSystem;
 
-STCloudVarSystem st_cloudvar_system_new();
+STCloudVarSystem st_cloudvar_system_new(CanopyContext ctx);
 
 STCloudVar st_cloudvar_new();
 bool st_cloudvar_system_contains(STCloudVarSystem sys, const char *varname);
@@ -33,13 +34,16 @@ void st_cloudvar_system_clear_dirty(STCloudVarSystem sys);
 void st_cloudvar_system_free(STCloudVarSystem sys);
 
 // TODO: What if multiple callbakcs are registered for single variable?
-CanopyResultEnum st_cloudvar_register_on_change_callback(STCloudVar var, STOptions options);
+CanopyResultEnum st_cloudvar_register_on_change_callback(STCloudVarSystem sys, const char *varname, CanopyOnChangeCallback cb, void *userdata);
 
 uint32_t st_cloudvar_system_num_dirty(STCloudVarSystem sys);
 STCloudVar st_cloudvar_system_dirty_var(STCloudVarSystem sys, uint32_t idx);
 
 CanopyResultEnum st_cloudvar_set_local_value(STCloudVarSystem vars, const char *varname, CanopyVarValue value);
 CanopyResultEnum st_cloudvar_get_local_value(STCloudVarSystem vars, const char *varname, CanopyVarReader dest);
+
+CanopyResultEnum st_cloudvar_set_local_value_from_json(STCloudVarSystem vars, const char *varname, RedJsonValue value);
+
 CanopyResultEnum st_cloudvar_set_local_value_bool(STCloudVar var, bool value);
 CanopyResultEnum st_cloudvar_set_local_value_int8(STCloudVar var, int8_t value);
 CanopyResultEnum st_cloudvar_set_local_value_uint8(STCloudVar var, uint8_t value);

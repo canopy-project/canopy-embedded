@@ -21,6 +21,7 @@
 
 struct STCloudVarSystem_t {
     bool dirty;
+    CanopyContext context;
     RedHash vars; // maps (char *varname) -> (STCloudVar var)
     RedHash dirty_vars; // maps (char *varname) -> void 
     RedHash callbacks; // maps (char *varname) -> (STOptions)
@@ -79,12 +80,13 @@ struct STCloudVar_t {
     CanopyVarValue value;
 };
 
-STCloudVarSystem st_cloudvar_system_new()
+STCloudVarSystem st_cloudvar_system_new(CanopyContext ctx)
 {
     STCloudVarSystem sys;
 
     sys = calloc(1, sizeof(struct STCloudVarSystem_t));
     sys->dirty = true;
+    sys->context = ctx;
     sys->vars = RedHash_New(0);
     sys->dirty_vars = RedHash_New(0);
     sys->callbacks = RedHash_New(0);
@@ -335,12 +337,49 @@ float st_cloudvar_local_value_float32(STCloudVar var)
     return var->value->val.val_float32;
 }
 
-CanopyResultEnum st_cloudvar_register_on_change_callback(STCloudVar var, STOptions options)
+typedef struct
 {
-    STOptions optionsCopy = st_options_dup(options);
-    RedHash_InsertS(var->sys->callbacks, var->name, optionsCopy);
-    var->dirty = true;
-    var->sys->dirty = true;
+    CanopyOnChangeCallback cb;
+    void *userdata;
+    char *varname;
+    STCloudVarSystem sys;
+} _CallbackEntry_t;
+
+CanopyResultEnum st_cloudvar_register_on_change_callback(STCloudVarSystem sys, const char *varname, CanopyOnChangeCallback cb, void *userdata)
+{
+    STCloudVar var;
+    _CallbackEntry_t * entry;
+    var = RedHash_GetWithDefaultS(sys->vars, varname, NULL);
+    if (!var)
+    {
+        // Var doesn't exist locally.
+        // Create it.
+        var = calloc(1, sizeof(struct STCloudVar_t));
+
+        // Create new Cloud Variable (default configuration)
+        var->sys = sys;
+        var->name = RedString_strdup(varname);
+        // TODO: set other properties
+
+        RedHash_InsertS(sys->vars, varname, var);
+        _mark_dirty2(sys, varname);
+    }
+
+    entry = calloc(1, sizeof(_CallbackEntry_t));
+    if (!entry)
+    {
+        return CANOPY_ERROR_OUT_OF_MEMORY;
+    }
+    entry->cb = cb;
+    entry->userdata = userdata;
+    entry->varname = RedString_strdup(varname);
+    entry->sys = sys; // TODO: reference?
+
+    RedHash_InsertS(sys->callbacks, varname, entry);
+
+    // TODO: needed?
+    //var->dirty = true;
+    //var->sys->dirty = true;
 
     // TODO: trigger callback when value changes locally
     // TODO: trigger callback when value changes remotely
@@ -369,6 +408,36 @@ CanopyResultEnum st_cloudvar_set_local_value(STCloudVarSystem sys, const char *v
     var->value = value;
     /* TODO: copy? Delete old value? */
 
+    return CANOPY_SUCCESS;
+}
+
+CanopyResultEnum st_cloudvar_set_local_value_from_json(STCloudVarSystem sys, const char *varname, RedJsonValue jsonValue)
+{
+    // Convert JSON object to STCloudVarValue_t
+    STCloudVarValue_t * val = calloc(1, sizeof(STCloudVarValue_t));
+
+    // TODO: other datatypes
+    if (RedJsonValue_IsNumber(jsonValue))
+    {
+        float newValue;
+        // TODO: Take into consideration the local variable's configured
+        // datatype.
+        val->datatype = CANOPY_DATATYPE_FLOAT32;
+        newValue = (float)RedJsonValue_GetNumber(jsonValue);
+        //if (newValue != val) TODO: only tigger if value actually changed
+        {
+            // Value changed.  Trigger callback.
+            _CallbackEntry_t * entry;
+           
+            entry = RedHash_GetWithDefaultS(sys->callbacks, varname, NULL);
+            if (entry)
+            {
+                entry->cb(sys->context, varname, entry->userdata);
+            }
+        }
+        val->val.val_float32 = newValue;
+    }
+    
     return CANOPY_SUCCESS;
 }
 
