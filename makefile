@@ -3,7 +3,7 @@ CFLAGS := -Wall -Werror
 DEBUG_FLAGS := $(CFLAGS) -g
 RELEASE_FLAGS := $(CFLAGS) -O3
 
-LIBRED_DIR := ../../3rdparty/libred
+LIBRED_DIR := ../3rdparty/libred
 
 INCLUDE_FLAGS := -Isrc -Iinclude -I$(LIBRED_DIR)/include -I$(LIBRED_DIR)/under_construction
 
