@@ -16,6 +16,7 @@
 
 #include "websocket/st_websocket.h"
 #include "red_log.h"
+#include "log/st_log.h"
 #include <libwebsockets.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,6 +27,8 @@ struct STWebSocket_t
     struct libwebsocket_context *ws_ctx;
     struct libwebsocket *ws;
     bool ws_write_ready;
+    STWebsocketRecvCallback cb_recv;
+    void *cb_recv_userdata;
 };
 
 STWebSocket st_websocket_new()
@@ -84,12 +87,14 @@ static int _ws_callback(
             break;
         }
         case LWS_CALLBACK_CLIENT_RECEIVE:
-#if 0
             /* TODO: this next line seems dangerous! */
             ((char *)in)[len] = '\0';
             fprintf(stderr, "rx %d '%s'\n", (int)len, (char *)in);
-            _process_ws_payload(canopy, in);
-#endif
+            //_process_ws_payload(canopy, in);
+            if (ws->cb_recv)
+            {
+                ws->cb_recv(ws, in, ws->cb_recv_userdata);
+            }
             break;
         /*case LWS_CALLBACK_CLIENT_CONFIRM_EXTENSION_SUPPORTED:*/
         default:
@@ -176,6 +181,7 @@ CanopyResultEnum st_websocket_connect(
         return CANOPY_ERROR_CONNECTION_FAILED;
     }
 
+    libwebsocket_callback_on_writable(ws->ws_ctx, ws->ws);
     return CANOPY_SUCCESS;
 }
 
@@ -198,6 +204,9 @@ void st_websocket_write(STWebSocket ws, const char *msg)
     buf = calloc(1, LWS_SEND_BUFFER_PRE_PADDING + len + LWS_SEND_BUFFER_POST_PADDING);
     strcpy(&buf[LWS_SEND_BUFFER_PRE_PADDING], msg);
 
+    // Log payload
+    st_log_debug("Websocket Send: %d '%s'\n", (int)len, (char *)msg);
+
     // Send msg.
     libwebsocket_write(ws->ws, (unsigned char *)&buf[LWS_SEND_BUFFER_PRE_PADDING], len, LWS_WRITE_TEXT);
     ws->ws_write_ready = false;
@@ -207,4 +216,10 @@ void st_websocket_write(STWebSocket ws, const char *msg)
 
     // Cleanup.
     free(buf);
+}
+
+void st_websocket_recv_callback(STWebSocket ws, STWebsocketRecvCallback cb, void *userdata)
+{
+    ws->cb_recv = cb;
+    ws->cb_recv_userdata = userdata;
 }

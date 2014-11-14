@@ -125,6 +125,11 @@ static void _handle_ws_recv(STWebSocket ws, const char *payload, void *userdata)
     _process_payload((STCloudVarSystem)userdata, payload);
 }
 
+static char * _gen_handshake_payload(const char *uuid)
+{
+    return RedString_PrintfToNewChars("{\"device_id\" : \"%s\" }", uuid);
+}
+
 static char * _gen_outbound_payload(STCloudVarSystem cloudvars)
 {
     uint32_t i, num_dirty;
@@ -145,10 +150,13 @@ static char * _gen_outbound_payload(STCloudVarSystem cloudvars)
             // TODO:
             //   - timestamp for better synchronization?
             //   - post var configuration?
-            RedJsonObject_SetNumber(
-                    json_vars, 
-                    st_cloudvar_name(var), 
-                    st_cloudvar_local_value_float32(var));
+            if (st_cloudvar_has_value(var))
+            {
+                RedJsonObject_SetNumber(
+                        json_vars, 
+                        st_cloudvar_name(var), 
+                        st_cloudvar_local_value_float32(var));
+            }
         }
     }
 
@@ -186,7 +194,23 @@ CanopyResultEnum st_sync(CanopyContext ctx, STOptions options, STWebSocket ws, S
 
             // Service websocket for first time
             st_websocket_recv_callback(ws, _handle_ws_recv, cloudvars);
-            st_websocket_service(ws, 100);
+            st_websocket_service(ws, 1000);
+            st_websocket_service(ws, 1000);
+
+            // send handhsake
+            char *handshakePayload;
+            handshakePayload = _gen_handshake_payload(options->val_CANOPY_DEVICE_UUID);
+
+            while (!(st_websocket_is_connected(ws) && st_websocket_is_write_ready(ws)))
+            {
+                // TODO: give up eventually!
+                st_websocket_service(ws, 1000);
+            }
+            // TODO: need a different payload for WS as for HTTP?
+            st_websocket_write(ws, handshakePayload);
+            free(handshakePayload);
+
+            st_websocket_service(ws, 1000);
         }
     }
 

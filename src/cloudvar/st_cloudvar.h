@@ -68,6 +68,7 @@ void st_cloudvar_reader_free(CanopyVarReader value);
 
 float st_cloudvar_local_value_float32(STCloudVar var);
 const char * st_cloudvar_name(STCloudVar var);
+bool st_cloudvar_has_value(STCloudVar var);
 
 bool st_cloudvar_value_already_used(CanopyVarValue value);
 void st_cloudvar_value_mark_used(CanopyVarValue value);

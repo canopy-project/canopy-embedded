@@ -331,6 +331,11 @@ const char * st_cloudvar_name(STCloudVar var)
     return var->name;
 }
 
+bool st_cloudvar_has_value(STCloudVar var)
+{
+    return (var->value != NULL);
+}
+
 float st_cloudvar_local_value_float32(STCloudVar var)
 {
     assert(var->value->datatype == CANOPY_DATATYPE_FLOAT32);
@@ -479,3 +484,5 @@ void st_cloudvar_value_mark_used(CanopyVarValue value)
 {
     value->used = true;
 }
+
+
