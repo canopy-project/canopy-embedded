@@ -77,6 +77,20 @@ STGlobalOptions st_global_options_new_default()
 
     return options;
 }
+STVarOptions st_var_options_new_default()
+{
+    STVarOptions options;
+    options = calloc(1, sizeof(struct STVarOptions_t));
+    if (!options)
+    {
+        return NULL;
+    }
+
+    _OPTION_SET(options, CANOPY_VAR_DATATYPE, CANOPY_DATATYPE_FLOAT32);
+    _OPTION_SET(options, CANOPY_VAR_DIRECTION, CANOPY_DIRECTION_INOUT);
+
+    return options;
+}
 
 // Merge two STOptions objects, by starting with <base> and overriding all
 // options that are set in <override>.  Store the result in <dest>.  It is ok
@@ -145,6 +159,23 @@ CanopyResultEnum st_global_options_extend_varargs(STGlobalOptions base, va_list 
         switch (param)
         {
             _GLOBAL_OPTION_LIST
+            default:
+            {
+                return CANOPY_ERROR_INVALID_OPT;
+            }
+        }
+    }
+    return CANOPY_SUCCESS;
+}
+
+CanopyResultEnum st_var_options_extend_varargs(STVarOptions base, va_list ap)
+{
+    CanopyVarConfigEnum param;
+    while ((param = va_arg(ap, CanopyVarConfigEnum)) != CANOPY_VAR_OPT_LIST_END)
+    {
+        switch (param)
+        {
+            _VAR_OPTION_LIST
             default:
             {
                 return CANOPY_ERROR_INVALID_OPT;

@@ -70,10 +70,16 @@
     _OPTION_LIST_FOREACH(CANOPY_LOG_LEVEL, int, int, _noop, atoi) \
     _OPTION_LIST_FOREACH(CANOPY_LOG_PAYLOADS, bool, int, _noop, atoi)
 
+#define _VAR_OPTION_LIST \
+    _OPTION_LIST_FOREACH(CANOPY_VAR_DATATYPE, CanopyDatatypeEnum, int, _noop, atoi) \
+    _OPTION_LIST_FOREACH(CANOPY_VAR_DIRECTION, CanopyDirectionEnum, int, _noop, atoi) \
+    _OPTION_LIST_FOREACH(CANOPY_VAR_MIN_VALUE, double, double, _noop, atof) \
+    _OPTION_LIST_FOREACH(CANOPY_VAR_MAX_VALUE, double, double, _noop, atof)
+
 #define _OPTION_LIST_FOREACH(option, datatype, va_datatype, freefn, fromstring) 
 
 // Generate STOptions_t structure.
-// The macro causes _OPTION_LIST to eexpand to something like:
+// The macro causes _OPTION_LIST to expand to something like:
 //
 //      bool has_CANOPY_CLOUD_SERVER;
 //      char * val_CANOPY_CLOUD_SERVER;
@@ -99,13 +105,21 @@ typedef struct STGlobalOptions_t
 } STGlobalOptions_t;
 typedef struct STGlobalOptions_t * STGlobalOptions;
 
+typedef struct STVarOptions_t
+{
+    _VAR_OPTION_LIST
+} STVarOptions_t;
+typedef struct STVarOptions_t * STVarOptions;
+
 // Create a new STOptions object with all options unset.
 STOptions st_options_new_empty();
 STGlobalOptions st_global_options_new_empty();
+STVarOptions st_var_options_new_empty();
 
 // Create a new STOptions object with default values for all options.
 STOptions st_options_new_default();
 STGlobalOptions st_global_options_new_default();
+STVarOptions st_var_options_new_default();
 
 // Create a new STOptions object using arguments supplied as VARARGS.
 // Takes same arguments as va_start.
@@ -116,6 +130,10 @@ STOptions st_options_new_varargs_impl(va_list ap);
 #define st_global_options_new_varargs(ap, start) \
     (va_start(ap, start), st_global_options_new_varargs_impl(ap))
 STGlobalOptions st_global_options_new_varargs_impl(va_list ap);
+
+#define st_var_options_new_varargs(ap, start) \
+    (va_start(ap, start), st_var_options_new_varargs_impl(ap))
+STVarOptions st_var_options_new_varargs_impl(va_list ap);
 
 // Duplicate STOptions.
 STOptions st_options_dup(STOptions options);
@@ -129,6 +147,7 @@ void st_options_extend(STOptions dest, STOptions base, STOptions override);
 // Merge-in STOptions from varargs.
 CanopyResultEnum st_options_extend_varargs(STOptions base, va_list ap);
 CanopyResultEnum st_global_options_extend_varargs(STGlobalOptions base, va_list ap);
+CanopyResultEnum st_var_options_extend_varargs(STVarOptions base, va_list ap);
 
 #define st_options_new_extend_varargs(newOptions, options, start, ap) \
     (va_start(ap, start), st_options_new_extend_varargs_impl(newOptions, options, ap))

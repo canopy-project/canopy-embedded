@@ -77,6 +77,9 @@ bool st_cloudvar_is_configured(STCloudVar var);
 void st_cloudvar_mark_configured(STCloudVar var);
 
 const char * st_cloudvar_datatype_string(STCloudVar var);
+
+CanopyResultEnum st_cloudvar_config_extend_varargs(STCloudVarSystem sys, const char *varname, va_list ap);
+
 #endif // ST_VARS_INCLUDED
 
 

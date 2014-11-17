@@ -320,7 +320,14 @@ CanopyResultEnum canopy_var_on_change(CanopyContext ctx, const char *varname, Ca
 CanopyResultEnum canopy_var_config(CanopyContext ctx, const char *varname, ...)
 {
     st_log_trace("canopy_var_config(...)");
-    return CANOPY_ERROR_NOT_IMPLEMENTED;
+    va_list ap;
+    CanopyResultEnum result;
+
+    va_start(ap, varname);
+    result = st_cloudvar_config_extend_varargs(ctx->cloudvars, varname, ap);
+    va_end(ap);
+
+    return result;
 }
 
 CanopyResultEnum canopy_sync(CanopyContext ctx, CanopyPromise promise)

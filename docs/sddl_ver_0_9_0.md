@@ -22,28 +22,28 @@ temperature sensors, a humidity sensore, a GPS sensor, and can be remotely
 rebooted:
 
     {
-        inbound bool reboot : { },
+        in bool reboot : { },
 
-        struct gps : {
-            required outbound float32 latitude : {
+        out namedtuple gps : {
+            float32 latitude : {
                 min-value : -90,
                 max-value : 90,
                 unit : "degrees"
             },
-            required outbound float32 longitude : {
+            float32 longitude : {
                 min-value : -180,
                 max-value : 180,
                 unit : "degrees"
             }
         },
 
-        outbound float32 temperature[2] : {
+        out float32 temperature[2] : {
             min-value : -50,
             max-value : 200,
             units : "degrees_c"
         },
 
-        outbound float32 humidity : {
+        out float32 humidity : {
             min-value : 0.0,
             max-value : 1.0,
             numeric-display-hint : "percentage"

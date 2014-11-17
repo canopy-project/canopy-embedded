@@ -67,13 +67,21 @@ typedef enum
     CANOPY_DATATYPE_STRUCT
 } CanopyDatatypeEnum;
 
+typedef enum
+{
+    CANOPY_INVALID_DIRECTION,
+    CANOPY_DIRECTION_INOUT,
+    CANOPY_DIRECTION_IN,
+    CANOPY_DIRECTION_OUT
+} CanopyDirectionEnum;
 // 
 // CanopyResultEnum
 //
 //  Contains success & error codes returned by many of the routines in this
 //  library.
 //
-typedef enum {
+typedef enum
+{
     // Command succeeded.
     CANOPY_SUCCESS,
 
@@ -129,7 +137,10 @@ typedef enum {
     CANOPY_ERROR_PARSING_PAYLOAD,
 
     // Error processing received payload.
-    CANOPY_ERROR_PROCESSING_PAYLOAD
+    CANOPY_ERROR_PROCESSING_PAYLOAD,
+
+    // Cannot modify variable that has "in" direction.
+    CANOPY_ERROR_CANNOT_MODIFY_INPUT_VARIABLE
 } CanopyResultEnum;
 
 // CanopyGlobalOptEnum
@@ -173,7 +184,8 @@ typedef enum
 // CanopyOptEnum
 //
 // Identifiers for the options that can be provided to canopy_set_opt
-typedef enum {
+typedef enum
+{
     //  Invalid option. (Equal to NULL).
     CANOPY_INVALID_OPT=0,
 
@@ -227,6 +239,16 @@ typedef enum {
     // synchronization thread will exist for.
     CANOPY_SYNC_TIMEOUT_MS
 } CanopyOptEnum;
+
+typedef enum
+{
+    CANOPY_VAR_INVALID_OPT=0,
+    CANOPY_VAR_OPT_LIST_END=0,
+    CANOPY_VAR_DATATYPE,
+    CANOPY_VAR_DIRECTION,
+    CANOPY_VAR_MIN_VALUE,
+    CANOPY_VAR_MAX_VALUE,
+} CanopyVarConfigEnum;
 
 // CanopyProtocolEnum
 //

@@ -78,6 +78,7 @@ struct STCloudVar_t {
     bool dirty;
     bool configured; // has this cloud variable been configured yet?
     char *name;
+    STVarOptions options;
     CanopyVarValue value;
 };
 
@@ -131,6 +132,7 @@ CanopyResultEnum st_cloudvar_system_add(STCloudVarSystem sys, const char *varnam
     // Create new Cloud Variable (default configuration)
     var->sys = sys;
     var->name = RedString_strdup(varname);
+    var->options = st_var_options_new_default();
     var->value = NULL;
 
     RedHash_InsertS(sys->vars, varname, var);
@@ -416,6 +418,7 @@ CanopyResultEnum st_cloudvar_register_on_change_callback(STCloudVarSystem sys, c
         // Create new Cloud Variable (default configuration)
         var->sys = sys;
         var->name = RedString_strdup(varname);
+        var->options = st_var_options_new_default();
         // TODO: set other properties
 
         RedHash_InsertS(sys->vars, varname, var);
@@ -443,6 +446,12 @@ CanopyResultEnum st_cloudvar_register_on_change_callback(STCloudVarSystem sys, c
     return CANOPY_SUCCESS;
 }
 
+CanopyDirectionEnum st_cloudvar_direction(STCloudVar var)
+{
+    assert(var->options->has_CANOPY_VAR_DIRECTION);
+    return var->options->val_CANOPY_VAR_DIRECTION;
+}
+
 CanopyResultEnum st_cloudvar_set_local_value(STCloudVarSystem sys, const char *varname, CanopyVarValue value)
 {
     STCloudVar var;
@@ -456,9 +465,15 @@ CanopyResultEnum st_cloudvar_set_local_value(STCloudVarSystem sys, const char *v
         // Create new Cloud Variable (default configuration)
         var->sys = sys;
         var->name = RedString_strdup(varname);
+        var->options = st_var_options_new_default();
         // TODO: set other properties
 
         RedHash_InsertS(sys->vars, varname, var);
+    }
+
+    if (st_cloudvar_direction(var) == CANOPY_DIRECTION_IN)
+    {
+        return CANOPY_ERROR_CANNOT_MODIFY_INPUT_VARIABLE;
     }
 
     var->value = value;
@@ -612,4 +627,32 @@ const char * st_cloudvar_datatype_string(STCloudVar var)
         default:
             return "invalid_datatype";
     }
+}
+
+CanopyResultEnum st_cloudvar_config_extend_varargs(STCloudVarSystem sys, const char *varname, va_list ap)
+{
+    STCloudVar var;
+    CanopyResultEnum result;
+
+    var = RedHash_GetWithDefaultS(sys->vars, varname, NULL);
+    if (!var)
+    {
+        // Var doesn't exist locally.
+        // Create it.
+        var = calloc(1, sizeof(struct STCloudVar_t));
+
+        // Create new Cloud Variable (default configuration)
+        var->sys = sys;
+        var->name = RedString_strdup(varname);
+        var->options = st_var_options_new_default();
+        // TODO: set other properties
+
+        RedHash_InsertS(sys->vars, varname, var);
+    }
+
+    // TODO: Input validation!
+    result = st_var_options_extend_varargs(var->options, ap);
+
+    _mark_dirty(sys, varname);
+    return result;
 }
