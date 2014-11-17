@@ -24,6 +24,7 @@
 #include "red_string.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 static CanopyResultEnum _send_payload(
         CanopyContext ctx, 
@@ -136,26 +137,52 @@ static char * _gen_outbound_payload(STCloudVarSystem cloudvars)
     // construct payload:
     RedJsonObject json = RedJsonObject_New();
     RedJsonObject json_vars = RedJsonObject_New();
+    RedJsonObject json_sddl = RedJsonObject_New();
     num_dirty = st_cloudvar_system_num_dirty(cloudvars);
 
     if (num_dirty > 0)
     {
         RedJsonObject_SetObject(json, "vars", json_vars);
+        RedJsonObject_SetObject(json, "sddl", json_sddl);
 
         // For each dirty cloud variable, add to the payload "vars" object:
         // TODO: race condition?
         for (i = 0; i < num_dirty; i++)
         {
             STCloudVar var = st_cloudvar_system_dirty_var(cloudvars, i);
+
+            // If the variable's configuration hasn't been sent yet, send it
+            if (!st_cloudvar_is_configured(var))
+            {
+                //
+                // "sddl" : {
+                //     "uint16 var_u16" : {}
+                // }
+                const char *datatypeString = st_cloudvar_datatype_string(var);
+                char *varDef = RedString_PrintfToNewChars("%s %s", datatypeString, st_cloudvar_name(var));
+                RedJsonObject_SetObject(json_sddl, varDef, RedJsonObject_New());
+                // TODO: set other configuration settings
+                free(varDef);
+
+                // TODO: Only actually mark as configured after the server responds.
+                st_cloudvar_mark_configured(var);
+            }
+
             // TODO:
             //   - timestamp for better synchronization?
-            //   - post var configuration?
             if (st_cloudvar_has_value(var))
             {
-                RedJsonObject_SetNumber(
+                RedJsonValue val;
+                val = st_cloudvar_value_to_json(var);
+                assert(val);
+                if (!val)
+                {
+                    return NULL;
+                }
+                RedJsonObject_Set(
                         json_vars, 
                         st_cloudvar_name(var), 
-                        st_cloudvar_local_value_float32(var));
+                        val);
             }
         }
     }

@@ -185,20 +185,66 @@ CanopyResultEnum canopy_set_opt_impl(CanopyContext ctx, ...)
     va_end(ap);
     return out;
 }
-
-CanopyVarValue CANOPY_FLOAT32(float x)
+CanopyVarValue CANOPY_VALUE_BOOL(bool x)
 {
-    st_log_trace("CANOPY_FlOAT32(%f)", x);
+    st_log_trace("CANOPY_VALUE_BOOL(%d)", x);
+    return st_cloudvar_value_bool(x);
+}
+
+CanopyVarValue CANOPY_VALUE_FLOAT32(float x)
+{
+    st_log_trace("CANOPY_VALUE_FLOAT32(%f)", x);
     return st_cloudvar_value_float32(x);
 }
 
-CanopyVarValue CANOPY_STRING(const char *sz)
+CanopyVarValue CANOPY_VALUE_FLOAT64(double x)
 {
-    st_log_trace("CANOPY_STRING(%s)", sz);
+    st_log_trace("CANOPY_VALUE_FLOAT64(%f)", x);
+    return st_cloudvar_value_float64(x);
+}
+
+CanopyVarValue CANOPY_VALUE_INT8(int8_t x)
+{
+    st_log_trace("CANOPY_VALUE_INT8(%d)", x);
+    return st_cloudvar_value_int8(x);
+}
+
+CanopyVarValue CANOPY_VALUE_UINT8(uint8_t x)
+{
+    st_log_trace("CANOPY_VALUE_UINT8(%f)", x);
+    return st_cloudvar_value_uint8(x);
+}
+CanopyVarValue CANOPY_VALUE_INT16(int16_t x)
+{
+    st_log_trace("CANOPY_VALUE_INT16(%d)", x);
+    return st_cloudvar_value_int16(x);
+}
+
+CanopyVarValue CANOPY_VALUE_UINT16(uint16_t x)
+{
+    st_log_trace("CANOPY_VALUE_UINT16(%f)", x);
+    return st_cloudvar_value_uint16(x);
+}
+
+CanopyVarValue CANOPY_VALUE_INT32(int32_t x)
+{
+    st_log_trace("CANOPY_VALUE_INT32(%d)", x);
+    return st_cloudvar_value_int32(x);
+}
+
+CanopyVarValue CANOPY_VALUE_UINT32(uint32_t x)
+{
+    st_log_trace("CANOPY_VALUE_UINT32(%f)", x);
+    return st_cloudvar_value_uint32(x);
+}
+
+CanopyVarValue CANOPY_VALUE_STRING(const char *sz)
+{
+    st_log_trace("CANOPY_VALUE_STRING(%s)", sz);
     return st_cloudvar_value_string(sz);
 }
 
-CanopyVarValue CANOPY_STRUCT(void * dummy, ...)
+CanopyVarValue CANOPY_VALUE_STRUCT(void * dummy, ...)
 {
     va_list ap;
     CanopyVarValue out;

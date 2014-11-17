@@ -1,82 +1,58 @@
 #include <canopy.h>
+#include <stdio.h>
 
 #define CHECK_RESULT(result) \
     if (result) \
     { \
-        fprintf(stderr, "error\n"); \
+        fprintf(stderr, "error (%d): %d\n", __LINE__, result); \
         return -1; \
     }
 
 int main(void)
 {
     CanopyResultEnum result;
+    CanopyContext canopy;
 
-    result = canopy_global_opt(
+    canopy = canopy_init_context();
+
+    result = canopy_set_opt(canopy,
         CANOPY_CLOUD_SERVER, "dev02.canopy.link",
         CANOPY_DEVICE_UUID, "c31a8ced-b9f1-4b0c-afe9-1afed3b0c21f",
-        CANOPY_VAR_PUSH_PROTOCOL, CANOPY_PROTOCOL_NOOP,
-        CANOPY_VAR_PULL_PROTOCOL, CANOPY_PROTOCOL_NOOP
+        CANOPY_SYNC_BLOCKING, true,
+        CANOPY_SYNC_TIMEOUT_MS, 10000,
+        CANOPY_VAR_SEND_PROTOCOL, CANOPY_PROTOCOL_WS,
+        CANOPY_VAR_RECV_PROTOCOL, CANOPY_PROTOCOL_WS
     );
     CHECK_RESULT(result);
 
-    result = canopy_var_set(
-        CANOPY_VAR_NAME, "var_bool",
-        CANOPY_BOOL, true
-    );
+    result = canopy_var_set(canopy, "var_bool", CANOPY_VALUE_BOOL(true));
     CHECK_RESULT(result);
 
-    result = canopy_var_set(
-        CANOPY_VAR_NAME, "var_i8",
-        CANOPY_INT8, -15
-    );
+    result = canopy_var_set(canopy, "var_i8", CANOPY_VALUE_INT8(-15));
     CHECK_RESULT(result);
     
-    result = canopy_var_set(
-        CANOPY_VAR_NAME, "var_u8",
-        CANOPY_INT8, 15
-    );
+    result = canopy_var_set(canopy, "var_u8", CANOPY_VALUE_UINT8(15));
     CHECK_RESULT(result);
 
-    result = canopy_var_set(
-        CANOPY_VAR_NAME, "var_u16",
-        CANOPY_UINT16, 40000
-    );
+    result = canopy_var_set(canopy, "var_i16", CANOPY_VALUE_INT16(-10000));
     CHECK_RESULT(result);
 
-    result = canopy_var_set(
-        CANOPY_VAR_NAME, "var_u16",
-        CANOPY_INT16, -10000
-    );
+    result = canopy_var_set(canopy, "var_u16", CANOPY_VALUE_UINT16(10000));
     CHECK_RESULT(result);
 
-    result = canopy_var_set(
-        CANOPY_VAR_NAME, "var_u32",
-        CANOPY_UINT32, 85000
-    );
+    result = canopy_var_set(canopy, "var_i32", CANOPY_VALUE_INT32(-85000));
     CHECK_RESULT(result);
 
-    result = canopy_var_set(
-        CANOPY_VAR_NAME, "var_i32",
-        CANOPY_INT32, -85000
-    );
+    result = canopy_var_set(canopy, "var_u32", CANOPY_VALUE_UINT32(85000));
     CHECK_RESULT(result);
 
-    result = canopy_var_set(
-        CANOPY_VAR_NAME, "var_f32",
-        CANOPY_FLOAT32, 1.5f
-    );
+    result = canopy_var_set(canopy, "var_f32", CANOPY_VALUE_FLOAT32(1.5f));
     CHECK_RESULT(result);
 
-    result = canopy_var_set(
-        CANOPY_VAR_NAME, "var_f64",
-        CANOPY_FLOAT32, 1.5000000001
-    );
+    result = canopy_var_set(canopy, "var_f64", CANOPY_VALUE_FLOAT64(1.5000000001));
     CHECK_RESULT(result);
 
-    result = canopy_var_set(
-        CANOPY_VAR_NAME, "var_string",
-        CANOPY_FLOAT32, "Hello World"
-    );
+    result = canopy_var_set(canopy, "var_string", CANOPY_VALUE_STRING("Hello World"));
     CHECK_RESULT(result);
 
     /*struct tm * dt;
@@ -88,7 +64,31 @@ int main(void)
     );
     CHECK_RESULT(result);*/
 
-    result = canopy_sync();
+    result = canopy_sync(canopy, NULL);
+    CHECK_RESULT(result);
+
+    // Set again to see second payload does not send configuration
+
+    result = canopy_var_set(canopy, "var_u32", CANOPY_VALUE_UINT32(8500));
+    CHECK_RESULT(result);
+
+    result = canopy_var_set(canopy, "var_f32", CANOPY_VALUE_FLOAT32(0.15f));
+    CHECK_RESULT(result);
+
+    result = canopy_var_set(canopy, "var_f64", CANOPY_VALUE_FLOAT64(0.15000000001));
+    CHECK_RESULT(result);
+
+    result = canopy_var_set(canopy, "var_string", CANOPY_VALUE_STRING("Hello Again"));
+    CHECK_RESULT(result);
+
+    result = canopy_sync(canopy, NULL);
+    CHECK_RESULT(result);
+
+    // Sync w/ nothing dirty
+    result = canopy_sync(canopy, NULL);
+    CHECK_RESULT(result);
+
+    result = canopy_shutdown_context(canopy);
     CHECK_RESULT(result);
 
     return (result == CANOPY_SUCCESS) ? 0 : -1;

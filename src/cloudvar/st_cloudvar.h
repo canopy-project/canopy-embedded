@@ -44,17 +44,17 @@ CanopyResultEnum st_cloudvar_get_local_value(STCloudVarSystem vars, const char *
 
 CanopyResultEnum st_cloudvar_set_local_value_from_json(STCloudVarSystem vars, const char *varname, RedJsonValue value);
 
-CanopyResultEnum st_cloudvar_set_local_value_bool(STCloudVar var, bool value);
-CanopyResultEnum st_cloudvar_set_local_value_int8(STCloudVar var, int8_t value);
-CanopyResultEnum st_cloudvar_set_local_value_uint8(STCloudVar var, uint8_t value);
-CanopyResultEnum st_cloudvar_set_local_value_int16(STCloudVar var, int16_t value);
-CanopyResultEnum st_cloudvar_set_local_value_uint16(STCloudVar var, uint16_t value);
-CanopyResultEnum st_cloudvar_set_local_value_int32(STCloudVar var, int32_t value);
-CanopyResultEnum st_cloudvar_set_local_value_uint32(STCloudVar var, uint32_t value);
-CanopyResultEnum st_cloudvar_set_local_value_uint32(STCloudVar var, uint32_t value);
-CanopyResultEnum st_cloudvar_set_local_value_float32(STCloudVar var, float value);
+RedJsonValue st_cloudvar_value_to_json(STCloudVar var);
 
+CanopyVarValue st_cloudvar_value_bool(bool x);
+CanopyVarValue st_cloudvar_value_int8(int8_t x);
+CanopyVarValue st_cloudvar_value_uint8(uint8_t x);
+CanopyVarValue st_cloudvar_value_int16(int16_t x);
+CanopyVarValue st_cloudvar_value_uint16(uint16_t x);
+CanopyVarValue st_cloudvar_value_int32(int32_t x);
+CanopyVarValue st_cloudvar_value_uint32(uint32_t x);
 CanopyVarValue st_cloudvar_value_float32(float x);
+CanopyVarValue st_cloudvar_value_float64(double x);
 CanopyVarValue st_cloudvar_value_string(const char *sz);
 CanopyVarValue st_cloudvar_value_struct(va_list ap);
 
@@ -73,6 +73,10 @@ bool st_cloudvar_has_value(STCloudVar var);
 bool st_cloudvar_value_already_used(CanopyVarValue value);
 void st_cloudvar_value_mark_used(CanopyVarValue value);
 
+bool st_cloudvar_is_configured(STCloudVar var);
+void st_cloudvar_mark_configured(STCloudVar var);
+
+const char * st_cloudvar_datatype_string(STCloudVar var);
 #endif // ST_VARS_INCLUDED
 
 

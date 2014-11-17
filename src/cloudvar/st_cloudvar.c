@@ -76,6 +76,7 @@ typedef struct STCloudVarReader_t {
 struct STCloudVar_t {
     STCloudVarSystem sys;
     bool dirty;
+    bool configured; // has this cloud variable been configured yet?
     char *name;
     CanopyVarValue value;
 };
@@ -115,7 +116,7 @@ void st_cloudvar_system_clear_dirty(STCloudVarSystem sys)
     RedHash_Clear(sys->dirty_vars);
 }
 
-static void _mark_dirty2(STCloudVarSystem sys, const char *varname)
+static void _mark_dirty(STCloudVarSystem sys, const char *varname)
 {
     RedHash_InsertS(sys->dirty_vars, varname, (void *)true);
     sys->dirty = true;
@@ -133,7 +134,7 @@ CanopyResultEnum st_cloudvar_system_add(STCloudVarSystem sys, const char *varnam
     var->value = NULL;
 
     RedHash_InsertS(sys->vars, varname, var);
-    _mark_dirty2(sys, varname);
+    _mark_dirty(sys, varname);
 
     return CANOPY_SUCCESS;
 }
@@ -172,10 +173,23 @@ STCloudVar st_cloudvar_system_get_var(STCloudVarSystem sys, const char *varname)
     return RedHash_GetWithDefaultS(sys->vars, varname, NULL);
 }
 
+CanopyVarValue st_cloudvar_value_bool(bool x)
+{
+    CanopyVarValue out;
+    out = calloc(1, sizeof(STCloudVarValue_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    out->datatype = CANOPY_DATATYPE_BOOL;
+    out->val.val_bool = x;
+    return out;
+}
+
 CanopyVarValue st_cloudvar_value_float32(float x)
 {
     CanopyVarValue out;
-    out = malloc(sizeof(STCloudVarValue_t));
+    out = calloc(1, sizeof(STCloudVarValue_t));
     if (!out)
     {
         return NULL;
@@ -185,10 +199,63 @@ CanopyVarValue st_cloudvar_value_float32(float x)
     return out;
 }
 
+CanopyVarValue st_cloudvar_value_float64(double x)
+{
+    CanopyVarValue out;
+    out = calloc(1, sizeof(STCloudVarValue_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    out->datatype = CANOPY_DATATYPE_FLOAT64;
+    out->val.val_float64 = x;
+    return out;
+}
+
+
+CanopyVarValue st_cloudvar_value_int8(int8_t x)
+{
+    CanopyVarValue out;
+    out = calloc(1, sizeof(STCloudVarValue_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    out->datatype = CANOPY_DATATYPE_INT8;
+    out->val.val_int8 = x;
+    return out;
+}
+
+CanopyVarValue st_cloudvar_value_int16(int16_t x)
+{
+    CanopyVarValue out;
+    out = calloc(1, sizeof(STCloudVarValue_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    out->datatype = CANOPY_DATATYPE_INT16;
+    out->val.val_int16 = x;
+    return out;
+}
+
+CanopyVarValue st_cloudvar_value_int32(int32_t x)
+{
+    CanopyVarValue out;
+    out = calloc(1, sizeof(STCloudVarValue_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    out->datatype = CANOPY_DATATYPE_INT32;
+    out->val.val_int32 = x;
+    return out;
+}
+
 CanopyVarValue st_cloudvar_value_string(const char *sz)
 {
     CanopyVarValue out;
-    out = malloc(sizeof(STCloudVarValue_t));
+    out = calloc(1, sizeof(STCloudVarValue_t));
     if (!out)
     {
         return NULL;
@@ -203,11 +270,50 @@ CanopyVarValue st_cloudvar_value_string(const char *sz)
     return out;
 }
 
+CanopyVarValue st_cloudvar_value_uint8(uint8_t x)
+{
+    CanopyVarValue out;
+    out = calloc(1, sizeof(STCloudVarValue_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    out->datatype = CANOPY_DATATYPE_UINT8;
+    out->val.val_int8 = x;
+    return out;
+}
+
+CanopyVarValue st_cloudvar_value_uint16(uint16_t x)
+{
+    CanopyVarValue out;
+    out = calloc(1, sizeof(STCloudVarValue_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    out->datatype = CANOPY_DATATYPE_UINT16;
+    out->val.val_uint16 = x;
+    return out;
+}
+
+CanopyVarValue st_cloudvar_value_uint32(uint32_t x)
+{
+    CanopyVarValue out;
+    out = calloc(1, sizeof(STCloudVarValue_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    out->datatype = CANOPY_DATATYPE_UINT32;
+    out->val.val_uint32 = x;
+    return out;
+}
+
 CanopyVarValue st_cloudvar_value_struct(va_list ap)
 {
     CanopyVarValue out;
     char *fieldname;
-    out = malloc(sizeof(STCloudVarValue_t));
+    out = calloc(1, sizeof(STCloudVarValue_t));
     if (!out)
     {
         return NULL;
@@ -272,60 +378,6 @@ CanopyVarReader st_cloudvar_reader_struct(va_list ap)
     return NULL;
 }
 
-static CanopyResultEnum _mark_dirty(STCloudVar var)
-{
-    var->dirty = true;
-    var->sys->dirty = true;
-    return CANOPY_SUCCESS;
-}
-CanopyResultEnum st_cloudvar_set_local_value_int8(STCloudVar var, int8_t value)
-{
-    assert(var->value->datatype == CANOPY_DATATYPE_INT8);
-    var->value->val.val_int8 = value;
-    return _mark_dirty(var);
-}
-CanopyResultEnum st_cloudvar_set_local_value_int16(STCloudVar var, int16_t value)
-{
-    assert(var->value->datatype == CANOPY_DATATYPE_INT16);
-    var->value->val.val_int16 = value;
-    return _mark_dirty(var);
-}
-CanopyResultEnum st_cloudvar_set_local_value_int32(STCloudVar var, int32_t value)
-{
-    assert(var->value->datatype == CANOPY_DATATYPE_INT32);
-    var->value->val.val_int32 = value;
-    return _mark_dirty(var);
-}
-CanopyResultEnum st_cloudvar_set_local_value_uint8(STCloudVar var, uint8_t value)
-{
-    assert(var->value->datatype == CANOPY_DATATYPE_INT8);
-    var->value->val.val_uint8 = value;
-    return _mark_dirty(var);
-}
-CanopyResultEnum st_cloudvar_set_local_value_uint16(STCloudVar var, uint16_t value)
-{
-    assert(var->value->datatype == CANOPY_DATATYPE_INT16);
-    var->value->val.val_uint16 = value;
-    return _mark_dirty(var);
-}
-CanopyResultEnum st_cloudvar_set_local_value_uint32(STCloudVar var, uint32_t value)
-{
-    assert(var->value->datatype == CANOPY_DATATYPE_INT32);
-    var->value->val.val_uint32 = value;
-    return _mark_dirty(var);
-}
-CanopyResultEnum st_cloudvar_set_local_value_float32(STCloudVar var, float value)
-{
-    assert(var->value->datatype == CANOPY_DATATYPE_FLOAT32);
-    var->value->val.val_float32 = value;
-    return _mark_dirty(var);
-}
-CanopyResultEnum st_cloudvar_set_local_value_float64(STCloudVar var, float value)
-{
-    assert(var->value->datatype == CANOPY_DATATYPE_FLOAT64);
-    return _mark_dirty(var);
-}
-
 const char * st_cloudvar_name(STCloudVar var)
 {
     return var->name;
@@ -367,7 +419,7 @@ CanopyResultEnum st_cloudvar_register_on_change_callback(STCloudVarSystem sys, c
         // TODO: set other properties
 
         RedHash_InsertS(sys->vars, varname, var);
-        _mark_dirty2(sys, varname);
+        _mark_dirty(sys, varname);
     }
 
     entry = calloc(1, sizeof(_CallbackEntry_t));
@@ -407,11 +459,12 @@ CanopyResultEnum st_cloudvar_set_local_value(STCloudVarSystem sys, const char *v
         // TODO: set other properties
 
         RedHash_InsertS(sys->vars, varname, var);
-        _mark_dirty2(sys, varname);
     }
 
     var->value = value;
     /* TODO: copy? Delete old value? */
+
+    _mark_dirty(sys, varname);
 
     return CANOPY_SUCCESS;
 }
@@ -444,6 +497,39 @@ CanopyResultEnum st_cloudvar_set_local_value_from_json(STCloudVarSystem sys, con
     }
     
     return CANOPY_SUCCESS;
+}
+
+RedJsonValue st_cloudvar_value_to_json(STCloudVar var)
+{
+    switch (var->value->datatype)
+    {
+        case CANOPY_DATATYPE_VOID:
+            return RedJsonValue_Null();
+        case CANOPY_DATATYPE_BOOL:
+            return RedJsonValue_FromBoolean(var->value->val.val_bool);
+        case CANOPY_DATATYPE_FLOAT32:
+            return RedJsonValue_FromNumber(var->value->val.val_float32);
+        case CANOPY_DATATYPE_FLOAT64:
+            return RedJsonValue_FromNumber(var->value->val.val_float64);
+        case CANOPY_DATATYPE_INT8:
+            return RedJsonValue_FromNumber(var->value->val.val_int8);
+        case CANOPY_DATATYPE_INT16:
+            return RedJsonValue_FromNumber(var->value->val.val_int16);
+        case CANOPY_DATATYPE_INT32:
+            return RedJsonValue_FromNumber(var->value->val.val_int32);
+        case CANOPY_DATATYPE_STRING:
+            return RedJsonValue_FromString(var->value->val.val_string);
+        case CANOPY_DATATYPE_UINT8:
+            return RedJsonValue_FromNumber(var->value->val.val_uint8);
+        case CANOPY_DATATYPE_UINT16:
+            return RedJsonValue_FromNumber(var->value->val.val_uint16);
+        case CANOPY_DATATYPE_UINT32:
+            return RedJsonValue_FromNumber(var->value->val.val_uint32);
+        default:
+            assert(!"Unsupported datatype");
+            return NULL;
+
+    }
 }
 
 CanopyResultEnum st_cloudvar_get_local_value(STCloudVarSystem sys, const char *varname, CanopyVarReader dest)
@@ -485,4 +571,45 @@ void st_cloudvar_value_mark_used(CanopyVarValue value)
     value->used = true;
 }
 
+bool st_cloudvar_is_configured(STCloudVar var)
+{
+    return var->configured;
+}
 
+void st_cloudvar_mark_configured(STCloudVar var)
+{
+    var->configured = true;
+}
+
+const char * st_cloudvar_datatype_string(STCloudVar var)
+{
+    switch (var->value->datatype)
+    {
+        case CANOPY_DATATYPE_VOID:
+            return "void";
+        case CANOPY_DATATYPE_BOOL:
+            return "bool";
+        case CANOPY_DATATYPE_DATETIME:
+            return "datetime";
+        case CANOPY_DATATYPE_FLOAT32:
+            return "float32";
+        case CANOPY_DATATYPE_FLOAT64:
+            return "float64";
+        case CANOPY_DATATYPE_INT8:
+            return "int8";
+        case CANOPY_DATATYPE_INT16:
+            return "int16";
+        case CANOPY_DATATYPE_INT32:
+            return "int32";
+        case CANOPY_DATATYPE_STRING:
+            return "string";
+        case CANOPY_DATATYPE_UINT8:
+            return "uint8";
+        case CANOPY_DATATYPE_UINT16:
+            return "uint16";
+        case CANOPY_DATATYPE_UINT32:
+            return "uint32";
+        default:
+            return "invalid_datatype";
+    }
+}

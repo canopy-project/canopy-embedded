@@ -351,14 +351,38 @@ CanopyResultEnum canopy_set_global_opt_impl(void *dummy, ...);
     canopy_set_opt_impl(ctx, option, __VA_ARGS__, NULL)
 CanopyResultEnum canopy_set_opt_impl(CanopyContext ctx, ...);
 
+// Create a new CanopyVarValue object from a bool.
+CanopyVarValue CANOPY_VALUE_BOOL(bool x);
+
+// Create a new CanopyVarValue object from an 8-bit signed integer.
+CanopyVarValue CANOPY_VALUE_INT8(int8_t x);
+
+// Create a new CanopyVarValue object from an 8-bit unsigned integer.
+CanopyVarValue CANOPY_VALUE_UINT8(uint8_t x);
+
+// Create a new CanopyVarValue object from a 16-bit signed integer.
+CanopyVarValue CANOPY_VALUE_INT16(int16_t x);
+
+// Create a new CanopyVarValue object from a 16-bit unsigned integer.
+CanopyVarValue CANOPY_VALUE_UINT16(uint16_t x);
+
+// Create a new CanopyVarValue object from a 32-bit signed integer.
+CanopyVarValue CANOPY_VALUE_INT32(int32_t x);
+
+// Create a new CanopyVarValue object from a 32-bit unsigned integer.
+CanopyVarValue CANOPY_VALUE_UINT32(uint32_t x);
+
 // Create a new CanopyVarValue object from a 32-bit float.
-CanopyVarValue CANOPY_FLOAT32(float x);
+CanopyVarValue CANOPY_VALUE_FLOAT32(float x);
+
+// Create a new CanopyVarValue object from a 64-bit float.
+CanopyVarValue CANOPY_VALUE_FLOAT64(double x);
 
 // Create a new CanopyVarValue object from a string.
-CanopyVarValue CANOPY_STRING(const char *sz);
+CanopyVarValue CANOPY_VALUE_STRING(const char *sz);
 
 // Create a new CanopyVarValue object containing a structure.
-CanopyVarValue CANOPY_STRUCT(void * dummy, ...);
+CanopyVarValue CANOPY_VALUE_STRUCT(void * dummy, ...);
 
 // Set the local value of a Cloud Variable.
 //
@@ -391,25 +415,25 @@ CanopyVarValue CANOPY_STRUCT(void * dummy, ...);
 //
 CanopyResultEnum canopy_var_set(CanopyContext ctx, const char *varname, CanopyVarValue value);
 #define canopy_var_set_bool(ctx, varname, value) \
-    canopy_var_set((ctx), (varname), CANOPY_BOOL(value))
+    canopy_var_set((ctx), (varname), CANOPY_VALUE_BOOL(value))
 #define canopy_var_set_float32(ctx, varname, value) \
-    canopy_var_set((ctx), (varname), CANOPY_FLOAT32(value))
+    canopy_var_set((ctx), (varname), CANOPY_VALUE_FLOAT32(value))
 #define canopy_var_set_float64(ctx, varname, value) \
-    canopy_var_set((ctx), (varname), CANOPY_FLOAT64(value))
+    canopy_var_set((ctx), (varname), CANOPY_VALUE_FLOAT64(value))
 #define canopy_var_set_int8(ctx, varname, value) \
-    canopy_var_set((ctx), (varname), CANOPY_INT8(value))
+    canopy_var_set((ctx), (varname), CANOPY_VALUE_INT8(value))
 #define canopy_var_set_int16(ctx, varname, value) \
-    canopy_var_set((ctx), (varname), CANOPY_INT16(value))
+    canopy_var_set((ctx), (varname), CANOPY_VALUE_INT16(value))
 #define canopy_var_set_int32(ctx, varname, value) \
-    canopy_var_set((ctx), (varname), CANOPY_INT32(value))
+    canopy_var_set((ctx), (varname), CANOPY_VALUE_INT32(value))
 #define canopy_var_set_string(ctx, varname, value) \
-    canopy_var_set((ctx), (varname), CANOPY_STRING(value))
+    canopy_var_set((ctx), (varname), CANOPY_VALUE_STRING(value))
 #define canopy_var_set_uint8(ctx, varname, value) \
-    canopy_var_set((ctx), (varname), CANOPY_UINT8(value))
+    canopy_var_set((ctx), (varname), CANOPY_VALUE_UINT8(value))
 #define canopy_var_set_uint16(ctx, varname, value) \
-    canopy_var_set((ctx), (varname), CANOPY_UINT16(value))
+    canopy_var_set((ctx), (varname), CANOPY_VALUE_UINT16(value))
 #define canopy_var_set_uint32(ctx, varname, value) \
-    canopy_var_set((ctx), (varname), CANOPY_UINT32(value))
+    canopy_var_set((ctx), (varname), CANOPY_VALUE_UINT32(value))
 
 // Create a new CanopyVarReader object that reads into a 32-bit float.
 CanopyVarReader CANOPY_READ_FLOAT32(float *x);
