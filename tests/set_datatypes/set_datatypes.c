@@ -25,6 +25,39 @@ int main(void)
     );
     CHECK_RESULT(result);
 
+    // Initialize variables
+    result = canopy_var_init(canopy, "out bool var_bool");
+    CHECK_RESULT(result);
+
+    result = canopy_var_init(canopy, "out int8 var_i8");
+    CHECK_RESULT(result);
+    
+    result = canopy_var_init(canopy, "out uint8 var_u8");
+    CHECK_RESULT(result);
+
+    result = canopy_var_init(canopy, "out int16 var_i16");
+    CHECK_RESULT(result);
+
+    result = canopy_var_init(canopy, "out uint16 var_u16");
+    CHECK_RESULT(result);
+
+    result = canopy_var_init(canopy, "out int32 var_i32");
+    CHECK_RESULT(result);
+
+    result = canopy_var_init(canopy, "out int32 var_u32");
+    CHECK_RESULT(result);
+
+    result = canopy_var_init(canopy, "out float32 var_f32");
+    CHECK_RESULT(result);
+
+    result = canopy_var_init(canopy, "out float64 var_f64");
+    CHECK_RESULT(result);
+
+    result = canopy_var_init(canopy, "out string var_string");
+    CHECK_RESULT(result);
+
+    // Set variables
+
     result = canopy_var_set(canopy, "var_bool", CANOPY_VALUE_BOOL(true));
     CHECK_RESULT(result);
 

@@ -36,13 +36,6 @@ bool st_cloudvar_system_contains(STCloudVarSystem sys, const char *varname);
 // Lookup a local Cloud Variable by name
 STCloudVar st_cloudvar_system_lookup_var(STCloudVarSystem sys, const char *varname);
 
-// Lookup a local Cloud Variable by name.  Create a new local Cloud Variable if
-// it is not found.  Sets *out to a newly allocated Cloud Variable.
-CanopyResultEnum st_cloudvar_system_lookup_or_create_var(
-        STCloudVar *out, 
-        STCloudVarSystem sys, 
-        const char *varname);
-
 // Have any Cloud Variables been touched since the last call to
 // st_cloudvar_system_clear_dirty?
 bool st_cloudvar_system_is_dirty(STCloudVarSystem sys);
@@ -112,6 +105,8 @@ const char * st_cloudvar_direction_string(STCloudVar var);
 const char * st_cloudvar_decl_string(STCloudVar var);
 
 CanopyResultEnum st_cloudvar_config_extend_varargs(STCloudVarSystem sys, const char *varname, va_list ap);
+
+CanopyResultEnum st_cloudvar_init_var(STCloudVarSystem sys, const char *decl, va_list ap);
 
 #endif // ST_VARS_INCLUDED
 

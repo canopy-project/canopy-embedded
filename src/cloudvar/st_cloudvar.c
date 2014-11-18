@@ -16,6 +16,7 @@
 #include "options/st_options.h"
 #include "red_hash.h"
 #include "red_string.h"
+#include <sddl.h>
 #include <assert.h>
 #include <time.h>
 
@@ -79,6 +80,8 @@ struct STCloudVar_t {
     bool configured; // has this cloud variable been configured yet?
     char *name;
     char *decl_string;
+    CanopyDatatypeEnum datatype;
+    CanopyDirectionEnum direction;
     STVarOptions options;
     CanopyVarValue value;
 };
@@ -137,34 +140,6 @@ uint32_t st_cloudvar_system_num_dirty(STCloudVarSystem sys)
 STCloudVar st_cloudvar_system_lookup_var(STCloudVarSystem sys, const char *varname)
 {
     return RedHash_GetWithDefaultS(sys->vars, varname, NULL);
-}
-
-CanopyResultEnum st_cloudvar_system_lookup_or_create_var(STCloudVar *out, STCloudVarSystem sys, const char *varname)
-{
-    STCloudVar var;
-    var = RedHash_GetWithDefaultS(sys->vars, varname, NULL);
-    if (!var)
-    {
-        // Var doesn't exist locally.
-        // Create it.
-        var = calloc(1, sizeof(struct STCloudVar_t));
-        if (!var)
-        {
-            return CANOPY_ERROR_OUT_OF_MEMORY;
-        }
-
-        // Create new Cloud Variable (default configuration)
-        var->sys = sys;
-        var->name = RedString_strdup(varname);
-        var->options = st_var_options_new_default();
-
-        RedHash_InsertS(sys->vars, varname, var);
-        _mark_dirty(sys, varname);
-    }
-
-    *out = var;
-
-    return CANOPY_SUCCESS;
 }
 
 STCloudVar st_cloudvar_system_dirty_var(STCloudVarSystem sys, uint32_t idx)
@@ -447,12 +422,12 @@ CanopyResultEnum st_cloudvar_register_on_change_callback(STCloudVar var, CanopyO
 
 CanopyDirectionEnum st_cloudvar_direction(STCloudVar var)
 {
-    assert(var->options->has_CANOPY_VAR_DIRECTION);
-    return var->options->val_CANOPY_VAR_DIRECTION;
+    return var->direction;
 }
 
 CanopyResultEnum st_cloudvar_set_local_value(STCloudVar var, CanopyVarValue value)
 {
+    // TODO: If inherit, check what was inherited
     if (st_cloudvar_direction(var) == CANOPY_DIRECTION_IN)
     {
         return CANOPY_ERROR_CANNOT_MODIFY_INPUT_VARIABLE;
@@ -572,8 +547,7 @@ void st_cloudvar_mark_configured(STCloudVar var)
 }
 const char * st_cloudvar_direction_string(STCloudVar var)
 {
-    assert(var->options->has_CANOPY_VAR_DIRECTION);
-    switch (var->options->val_CANOPY_VAR_DIRECTION)
+    switch (var->direction)
     {
         case CANOPY_DIRECTION_IN:
             return "in";
@@ -588,8 +562,7 @@ const char * st_cloudvar_direction_string(STCloudVar var)
 
 const char * st_cloudvar_datatype_string(STCloudVar var)
 {
-    assert(var->options->has_CANOPY_VAR_DATATYPE);
-    switch (var->options->val_CANOPY_VAR_DATATYPE)
+    switch (var->datatype)
     {
         case CANOPY_DATATYPE_VOID:
             return "void";
@@ -646,6 +619,75 @@ CanopyResultEnum st_cloudvar_config_extend_varargs(STCloudVarSystem sys, const c
 
     _mark_dirty(sys, varname);
     return result;
+}
+
+CanopyResultEnum st_cloudvar_init_var(STCloudVarSystem sys, const char *decl, va_list ap)
+{
+    SDDLDirectionEnum direction;
+    SDDLDatatypeEnum datatype;
+    char *name;
+    SDDLResultEnum sddlResult;
+    //CanopyVarConfigEnum param;
+    STCloudVar var;
+
+    // Parse declaration
+    sddlResult = sddl_parse_decl(decl, &direction, &datatype, &name);
+    if (sddlResult != SDDL_SUCCESS)
+    {
+        return CANOPY_ERROR_BAD_VARIABLE_DECLARATION;
+    }
+
+    // Error if variable already been initialized?
+    var = st_cloudvar_system_lookup_var(sys, name);
+    if (var)
+    {
+        return CANOPY_ERROR_VARIABLE_ALREADY_INITIALIZED;
+    }
+
+    // Create local cloud variable
+    var = calloc(1, sizeof(struct STCloudVar_t));
+    if (!var)
+    {
+        return CANOPY_ERROR_OUT_OF_MEMORY;
+    }
+    var->sys = sys;
+    var->name = name; // We just assign it instead of doing a dup then free.
+    var->decl_string = RedString_strdup(decl);
+    var->datatype = datatype;
+    var->direction = direction;
+    var->options = st_var_options_new_default();
+
+    RedHash_InsertS(sys->vars, name, var);
+    _mark_dirty(sys, name);
+
+
+    // Parse additional configuration options
+/*
+    #undef _OPTION_LIST_FOREACH
+    #define _OPTION_LIST_FOREACH(opt, datatype, va_datatype, freefn, fromstring) \
+        case opt: \
+        { \
+            base->val_##opt = (datatype)va_arg(ap, va_datatype); \
+            base->has_##opt = true; \
+            break; \
+        }
+
+    while ((param = va_arg(ap, CanopyVarConfigEnum)) != NULL)
+    {
+        switch (param)
+        {
+            _VAR_OPTION_LIST
+            default:
+            {
+                // if (datatype == CANOPY_DATATYPE_TUPLE)
+                return CANOPY_ERROR_INVALID_OPT;
+            }
+        }
+    }*/
+
+    return CANOPY_SUCCESS;
+
+
 }
 
 const char * st_cloudvar_decl_string(STCloudVar var)

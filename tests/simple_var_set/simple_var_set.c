@@ -23,6 +23,9 @@ int main(int argc, const char *argv[])
     );
     RedTest_Verify(test, "Configure canopy options", result == CANOPY_SUCCESS);
 
+    result = canopy_var_init(canopy, "inout float32 temperature");
+    RedTest_Verify(test, "Init cloud variable", result == CANOPY_SUCCESS);
+
     result = canopy_var_set_float32(canopy, "temperature", 16.0f);
     RedTest_Verify(test, "Set cloud variable (local)", result == CANOPY_SUCCESS);
 

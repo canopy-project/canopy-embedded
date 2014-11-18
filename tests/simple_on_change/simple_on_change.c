@@ -36,15 +36,18 @@ int main(int argc, const char *argv[])
         CANOPY_DEVICE_UUID, "c31a8ced-b9f1-4b0c-afe9-1afed3b0c21a",
         CANOPY_SYNC_BLOCKING, true,
         CANOPY_SYNC_TIMEOUT_MS, 10000,
-        CANOPY_VAR_SEND_PROTOCOL, CANOPY_PROTOCOL_NOOP,
+        CANOPY_VAR_SEND_PROTOCOL, CANOPY_PROTOCOL_WS,
         CANOPY_VAR_RECV_PROTOCOL, CANOPY_PROTOCOL_WS
     );
     RedTest_Verify(test, "Configure canopy options", result == CANOPY_SUCCESS);
 
+    result = canopy_var_init(canopy, "inout float32 dimmer_level");
+    RedTest_Verify(test, "Configure cloud variable", result == CANOPY_SUCCESS);
+
     result = canopy_var_on_change(canopy, "dimmer_level", handle_dimmer_level, test);
     RedTest_Verify(test, "Establish on_change callback", result == CANOPY_SUCCESS);
 
-    for (i = 0; i < 10; i++)
+    for (i = 0; i < 100; i++)
     {
         printf("sync...\n");
         result = canopy_sync(canopy, NULL);

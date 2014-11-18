@@ -15,6 +15,9 @@ int main(int argc, const char *argv[])
     canopy = canopy_init_context();
     RedTest_Verify(test, "Canopy init", canopy);
 
+    result = canopy_var_init(canopy, "inout float32 temperature");
+    RedTest_Verify(test, "Initialize cloud var", result == CANOPY_SUCCESS);
+
     result = canopy_set_opt(canopy,
         CANOPY_CLOUD_SERVER, "dev02.canopy.link",
         CANOPY_DEVICE_UUID, "c31a8ced-b9f1-4b0c-afe9-1afed3b0c21f",

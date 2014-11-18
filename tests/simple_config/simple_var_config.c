@@ -30,9 +30,7 @@ int main(int argc, const char *argv[])
             CANOPY_TUPLE_MEMBER("float32 latitude", CANOPY_MIN_VALUE, 0.5f)
     );*/
 
-    result = canopy_var_config(canopy, "dimlevel", 
-            CANOPY_VAR_DATATYPE, CANOPY_DATATYPE_INT16,
-            CANOPY_VAR_DIRECTION, CANOPY_DIRECTION_IN
+    result = canopy_var_init(canopy, "inout float32 dimlevel"
             /*CANOPY_VAR_DESCRIPTION, "Dimmer level",
             CANOPY_VAR_MIN_VALUE, 1,
             CANOPY_VAR_MAX_VALUE, 100,*/
@@ -68,13 +66,13 @@ int main(void)
         CANOPY_INIT_TUPLE_MEMBER("float32 longitude"),
         CANOPY_INIT_TUPLE_MEMBER("float32 altitude"),
     );
-
-    canopy_set_var_float32(ctx, "temperature", 10.0f);
+canopy_var_set_float32(ctx, "temperature", 10.0f);
 
     canopy_sync(ctx, NULL);
 
-    if (canopy_read_var_float32(ctx, "mode", &mode) == CANOPY_SUCCESS)
+    if (canopy_var_get_float32(ctx, "mode", &mode) == CANOPY_SUCCESS)
     {
         printf("mode: %f", mode);
     }
 }
+*/

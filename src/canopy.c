@@ -273,10 +273,10 @@ CanopyResultEnum canopy_var_set(CanopyContext ctx, const char *varname, CanopyVa
         return CANOPY_ERROR_SINGLE_USE_VALUE_ALREADY_USED;
     }
 
-    result = st_cloudvar_system_lookup_or_create_var(&var, ctx->cloudvars, varname);
-    if (result != CANOPY_SUCCESS)
+    var = st_cloudvar_system_lookup_var(ctx->cloudvars, varname);
+    if (!var)
     {
-        return result;
+        return CANOPY_ERROR_VARIABLE_NOT_INITIALIZED;
     }
 
     result = st_cloudvar_set_local_value(var, value);
@@ -303,9 +303,9 @@ CanopyVarReader CANOPY_READ_STRING(const char **sz)
 
 CanopyVarReader CANOPY_READ_STRUCT(void * dummy, ...)
 {
-    st_log_trace("CANOPY_READ_STRUCT(...)");
     va_list ap;
     CanopyVarReader out;
+    st_log_trace("CANOPY_READ_STRUCT(...)");
     va_start(ap, dummy);
     out = st_cloudvar_reader_struct(ap);
     va_end(ap);
@@ -320,7 +320,7 @@ CanopyResultEnum canopy_var_get(CanopyContext ctx, const char *varname, CanopyVa
     var = st_cloudvar_system_lookup_var(ctx->cloudvars, varname);
     if (!var)
     {
-        return CANOPY_ERROR_VARIABLE_NOT_FOUND;
+        return CANOPY_ERROR_VARIABLE_NOT_INITIALIZED;
     }
 
     return st_cloudvar_get_local_value(var, dest);
@@ -328,27 +328,26 @@ CanopyResultEnum canopy_var_get(CanopyContext ctx, const char *varname, CanopyVa
 
 CanopyResultEnum canopy_var_on_change(CanopyContext ctx, const char *varname, CanopyOnChangeCallback cb, void *userdata)
 {
-    st_log_trace("canopy_var_on_change(...)");
-    CanopyResultEnum result;
     STCloudVar var;
+    st_log_trace("canopy_var_on_change(...)");
 
-    result = st_cloudvar_system_lookup_or_create_var(&var, ctx->cloudvars, varname);
-    if (result != CANOPY_SUCCESS)
+    var = st_cloudvar_system_lookup_var(ctx->cloudvars, varname);
+    if (!var)
     {
-        return result;
+        return CANOPY_ERROR_VARIABLE_NOT_INITIALIZED;
     }
 
     return st_cloudvar_register_on_change_callback(var, cb, userdata);
 }
 
-CanopyResultEnum canopy_var_config_impl(CanopyContext ctx, const char *varname, ...)
+CanopyResultEnum canopy_init_var_impl(CanopyContext ctx, const char *decl, ...)
 {
-    st_log_trace("canopy_var_config(...)");
+    st_log_trace("canopy_init_var(...)");
     va_list ap;
     CanopyResultEnum result;
 
-    va_start(ap, varname);
-    result = st_cloudvar_config_extend_varargs(ctx->cloudvars, varname, ap);
+    va_start(ap, decl);
+    result = st_cloudvar_init_var(ctx->cloudvars, decl, ap);
     va_end(ap);
 
     return result;

@@ -70,6 +70,7 @@ typedef enum
 typedef enum
 {
     CANOPY_INVALID_DIRECTION,
+    CANOPY_DIRECTION_INHERIT,
     CANOPY_DIRECTION_INOUT,
     CANOPY_DIRECTION_IN,
     CANOPY_DIRECTION_OUT
@@ -115,10 +116,16 @@ typedef enum
     //  You need to add more RAM :-)
     CANOPY_ERROR_OUT_OF_MEMORY,
 
-    // The requested cloud variable does not exist locally.
-    // You can try canopy_sync(...) if you know the variable exists on the cloud.
-    // Or you can create the cloud variable locally with canopy_var_config(...)
-    CANOPY_ERROR_VARIABLE_NOT_FOUND,
+    // Cloud Variable declaration could not be parsed.
+    CANOPY_ERROR_BAD_VARIABLE_DECLARATION,
+
+    // The requested cloud variable has not been initialized with
+    // canopy_var_init(...).
+    CANOPY_ERROR_VARIABLE_NOT_INITIALIZED,
+
+    // A Cloud Variable cannot be initialized because it has already been
+    // initialized.
+    CANOPY_ERROR_VARIABLE_ALREADY_INITIALIZED,
 
     //  A Cloud Variable exists but its value could not be read because it has
     //  never been set.
@@ -373,6 +380,46 @@ CanopyResultEnum canopy_set_global_opt_impl(void *dummy, ...);
     canopy_set_opt_impl(ctx, option, __VA_ARGS__, NULL)
 CanopyResultEnum canopy_set_opt_impl(CanopyContext ctx, ...);
 
+// Initialize a Cloud Variable
+//
+// Cloud Variables must be initialized before they are used.
+// <decl> is a string containing the datatype, variable name, and qualifiers.
+//
+// For example:
+//
+//      canopy_var_init(ctx, "out float32 temperature");
+// 
+// Additional options can be provided in (key, value) pairs following <decl>:
+//
+//      canopy_var_init(ctx, "out float32 humidity",
+//          CANOPY_VAR_DESCRIPTION, "The current humidity level.",
+//          CANOPY_VAR_MIN_VALUE, 0.0,
+//          CANOPY_VAR_MAX_VALUE, 0.0,
+//      );
+//
+// A fixed-length array can be initialized using:
+//
+//      canopy_var_init(ctx, "out float32 cpu_level[8]");
+//
+// A named tuple can be initialized using:
+//
+//      canopy_var_init(ctx, "in tuple desired_color",
+//          CANOPY_INIT_CHILD("float32 r"),
+//          CANOPY_INIT_CHILD("float32 g"),
+//          CANOPY_INIT_CHILD("float32 b")
+//      );
+//
+// A struct can be initialized using:
+//
+//      canopy_var_init(ctx, "struct status",
+//          CANOPY_INIT_CHILD("out string msg"),
+//          CANOPY_INIT_CHILD("out int16 status_code"),
+//          CANOPY_INIT_CHILD("in void update_trigger"),
+//      );
+#define canopy_var_init(ctx, ...) \
+    canopy_init_var_impl(ctx, __VA_ARGS__, NULL)
+CanopyResultEnum canopy_init_var_impl(CanopyContext ctx, const char *decl, ...);
+
 // Create a new CanopyVarValue object from a bool.
 CanopyVarValue CANOPY_VALUE_BOOL(bool x);
 
@@ -509,7 +556,6 @@ CanopyResultEnum canopy_var_get(CanopyContext ctx, const char *varname, CanopyVa
     canopy_var_get((ctx), (varname), CANOPY_READ_UINT32(outValue))
 
 
-
 // Register a callback that triggers when a Cloud Variable changes.
 //
 // static int handle_temperature(CanopyContext ctx, const char *varname, void *userdata)
@@ -524,14 +570,6 @@ CanopyResultEnum canopy_var_get(CanopyContext ctx, const char *varname, CanopyVa
 // - Creates local variable if it doesn't already exist.
 //
 CanopyResultEnum canopy_var_on_change(CanopyContext ctx, const char *varname, CanopyOnChangeCallback cb, void *userdata);
-
-// Configure a Cloud Variable.
-//
-// Cloud variables have a bunch of metadata and configuration options that can
-// be modified at any time.
-#define canopy_var_config(ctx, varname, ...) \
-    canopy_var_config_impl(ctx, varname, __VA_ARGS__, NULL)
-CanopyResultEnum canopy_var_config_impl(CanopyContext ctx, const char *varname, ...);
 
 // Synchronize with the cloud server.
 //
