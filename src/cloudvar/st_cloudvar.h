@@ -23,24 +23,50 @@
 typedef struct STCloudVar_t * STCloudVar;
 typedef struct STCloudVarSystem_t * STCloudVarSystem;
 
+// Create/initialize a new Cloud Var "system" which holds several cloud
+// variables.
 STCloudVarSystem st_cloudvar_system_new(CanopyContext ctx);
 
-STCloudVar st_cloudvar_new();
-bool st_cloudvar_system_contains(STCloudVarSystem sys, const char *varname);
-CanopyResultEnum st_cloudvar_system_add(STCloudVarSystem sys, const char *varname);
-bool st_cloudvar_system_is_dirty(STCloudVarSystem sys);
-STCloudVar st_cloudvar_system_get_var(STCloudVarSystem sys, const char *varname);
-void st_cloudvar_system_clear_dirty(STCloudVarSystem sys);
+// Shutdown Cloud Var "system"
 void st_cloudvar_system_free(STCloudVarSystem sys);
 
-// TODO: What if multiple callbakcs are registered for single variable?
-CanopyResultEnum st_cloudvar_register_on_change_callback(STCloudVarSystem sys, const char *varname, CanopyOnChangeCallback cb, void *userdata);
+// Does a local Cloud Variable exist?
+bool st_cloudvar_system_contains(STCloudVarSystem sys, const char *varname);
 
+// Lookup a local Cloud Variable by name
+STCloudVar st_cloudvar_system_lookup_var(STCloudVarSystem sys, const char *varname);
+
+// Lookup a local Cloud Variable by name.  Create a new local Cloud Variable if
+// it is not found.  Sets *out to a newly allocated Cloud Variable.
+CanopyResultEnum st_cloudvar_system_lookup_or_create_var(
+        STCloudVar *out, 
+        STCloudVarSystem sys, 
+        const char *varname);
+
+// Have any Cloud Variables been touched since the last call to
+// st_cloudvar_system_clear_dirty?
+bool st_cloudvar_system_is_dirty(STCloudVarSystem sys);
+
+// Clear system's dirty flag
+void st_cloudvar_system_clear_dirty(STCloudVarSystem sys);
+
+// Get number of dirty Cloud Variables
 uint32_t st_cloudvar_system_num_dirty(STCloudVarSystem sys);
+
+// Access a particular dirty Cloud Variable by index.
 STCloudVar st_cloudvar_system_dirty_var(STCloudVarSystem sys, uint32_t idx);
 
-CanopyResultEnum st_cloudvar_set_local_value(STCloudVarSystem vars, const char *varname, CanopyVarValue value);
-CanopyResultEnum st_cloudvar_get_local_value(STCloudVarSystem vars, const char *varname, CanopyVarReader dest);
+// Register a callback that gets triggered when a cloud variable's value
+// changes.
+// TODO: What if multiple callbakcs are registered for single variable?
+CanopyResultEnum st_cloudvar_register_on_change_callback(STCloudVar var, CanopyOnChangeCallback cb, void *userdata);
+
+// Sets Cloud Variable's value.  Consumes <value> (meaning <value> should never
+// be used again)
+CanopyResultEnum st_cloudvar_set_local_value(STCloudVar var, CanopyVarValue value);
+
+// Get Cloud Variable's value using reader.
+CanopyResultEnum st_cloudvar_get_local_value(STCloudVar var, CanopyVarReader dest);
 
 CanopyResultEnum st_cloudvar_set_local_value_from_json(STCloudVarSystem vars, const char *varname, RedJsonValue value);
 

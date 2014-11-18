@@ -119,26 +119,8 @@ void st_cloudvar_system_clear_dirty(STCloudVarSystem sys)
 
 static void _mark_dirty(STCloudVarSystem sys, const char *varname)
 {
-    RedHash_InsertS(sys->dirty_vars, varname, (void *)true);
+    RedHash_UpdateOrInsertS(sys->dirty_vars, NULL, varname, (void *)true);
     sys->dirty = true;
-}
-
-CanopyResultEnum st_cloudvar_system_add(STCloudVarSystem sys, const char *varname)
-{
-    // Deprecated?
-    STCloudVar var;
-    var = calloc(1, sizeof(struct STCloudVar_t));
-
-    // Create new Cloud Variable (default configuration)
-    var->sys = sys;
-    var->name = RedString_strdup(varname);
-    var->options = st_var_options_new_default();
-    var->value = NULL;
-
-    RedHash_InsertS(sys->vars, varname, var);
-    _mark_dirty(sys, varname);
-
-    return CANOPY_SUCCESS;
 }
 
 bool st_cloudvar_system_is_dirty(STCloudVarSystem sys)
@@ -149,6 +131,39 @@ bool st_cloudvar_system_is_dirty(STCloudVarSystem sys)
 uint32_t st_cloudvar_system_num_dirty(STCloudVarSystem sys)
 {
     return RedHash_NumItems(sys->dirty_vars);
+}
+
+STCloudVar st_cloudvar_system_lookup_var(STCloudVarSystem sys, const char *varname)
+{
+    return RedHash_GetWithDefaultS(sys->vars, varname, NULL);
+}
+
+CanopyResultEnum st_cloudvar_system_lookup_or_create_var(STCloudVar *out, STCloudVarSystem sys, const char *varname)
+{
+    STCloudVar var;
+    var = RedHash_GetWithDefaultS(sys->vars, varname, NULL);
+    if (!var)
+    {
+        // Var doesn't exist locally.
+        // Create it.
+        var = calloc(1, sizeof(struct STCloudVar_t));
+        if (!var)
+        {
+            return CANOPY_ERROR_OUT_OF_MEMORY;
+        }
+
+        // Create new Cloud Variable (default configuration)
+        var->sys = sys;
+        var->name = RedString_strdup(varname);
+        var->options = st_var_options_new_default();
+
+        RedHash_InsertS(sys->vars, varname, var);
+        _mark_dirty(sys, varname);
+    }
+
+    *out = var;
+
+    return CANOPY_SUCCESS;
 }
 
 STCloudVar st_cloudvar_system_dirty_var(STCloudVarSystem sys, uint32_t idx)
@@ -404,26 +419,9 @@ typedef struct
     STCloudVarSystem sys;
 } _CallbackEntry_t;
 
-CanopyResultEnum st_cloudvar_register_on_change_callback(STCloudVarSystem sys, const char *varname, CanopyOnChangeCallback cb, void *userdata)
+CanopyResultEnum st_cloudvar_register_on_change_callback(STCloudVar var, CanopyOnChangeCallback cb, void *userdata)
 {
-    STCloudVar var;
     _CallbackEntry_t * entry;
-    var = RedHash_GetWithDefaultS(sys->vars, varname, NULL);
-    if (!var)
-    {
-        // Var doesn't exist locally.
-        // Create it.
-        var = calloc(1, sizeof(struct STCloudVar_t));
-
-        // Create new Cloud Variable (default configuration)
-        var->sys = sys;
-        var->name = RedString_strdup(varname);
-        var->options = st_var_options_new_default();
-        // TODO: set other properties
-
-        RedHash_InsertS(sys->vars, varname, var);
-        _mark_dirty(sys, varname);
-    }
 
     entry = calloc(1, sizeof(_CallbackEntry_t));
     if (!entry)
@@ -432,10 +430,10 @@ CanopyResultEnum st_cloudvar_register_on_change_callback(STCloudVarSystem sys, c
     }
     entry->cb = cb;
     entry->userdata = userdata;
-    entry->varname = RedString_strdup(varname);
-    entry->sys = sys; // TODO: reference?
+    entry->varname = RedString_strdup(var->name);
+    entry->sys = var->sys; // TODO: reference?
 
-    RedHash_InsertS(sys->callbacks, varname, entry);
+    RedHash_InsertS(var->sys->callbacks, var->name, entry);
 
     // TODO: needed?
     //var->dirty = true;
@@ -452,25 +450,8 @@ CanopyDirectionEnum st_cloudvar_direction(STCloudVar var)
     return var->options->val_CANOPY_VAR_DIRECTION;
 }
 
-CanopyResultEnum st_cloudvar_set_local_value(STCloudVarSystem sys, const char *varname, CanopyVarValue value)
+CanopyResultEnum st_cloudvar_set_local_value(STCloudVar var, CanopyVarValue value)
 {
-    STCloudVar var;
-    var = RedHash_GetWithDefaultS(sys->vars, varname, NULL);
-    if (!var)
-    {
-        // Var doesn't exist locally.
-        // Create it.
-        var = calloc(1, sizeof(struct STCloudVar_t));
-
-        // Create new Cloud Variable (default configuration)
-        var->sys = sys;
-        var->name = RedString_strdup(varname);
-        var->options = st_var_options_new_default();
-        // TODO: set other properties
-
-        RedHash_InsertS(sys->vars, varname, var);
-    }
-
     if (st_cloudvar_direction(var) == CANOPY_DIRECTION_IN)
     {
         return CANOPY_ERROR_CANNOT_MODIFY_INPUT_VARIABLE;
@@ -479,7 +460,7 @@ CanopyResultEnum st_cloudvar_set_local_value(STCloudVarSystem sys, const char *v
     var->value = value;
     /* TODO: copy? Delete old value? */
 
-    _mark_dirty(sys, varname);
+    _mark_dirty(var->sys, var->name);
 
     return CANOPY_SUCCESS;
 }
@@ -547,15 +528,8 @@ RedJsonValue st_cloudvar_value_to_json(STCloudVar var)
     }
 }
 
-CanopyResultEnum st_cloudvar_get_local_value(STCloudVarSystem sys, const char *varname, CanopyVarReader dest)
+CanopyResultEnum st_cloudvar_get_local_value(STCloudVar var, CanopyVarReader dest)
 {
-    STCloudVar var;
-    var = RedHash_GetWithDefaultS(sys->vars, varname, NULL);
-    if (!var)
-    {
-        return CANOPY_ERROR_VARIABLE_NOT_FOUND;
-    }
-    
     if (!var->value)
     {
         return CANOPY_ERROR_VARIABLE_NOT_SET;
@@ -598,7 +572,8 @@ void st_cloudvar_mark_configured(STCloudVar var)
 
 const char * st_cloudvar_datatype_string(STCloudVar var)
 {
-    switch (var->value->datatype)
+    assert(var->options->has_CANOPY_VAR_DATATYPE);
+    switch (var->options->val_CANOPY_VAR_DATATYPE)
     {
         case CANOPY_DATATYPE_VOID:
             return "void";

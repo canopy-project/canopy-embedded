@@ -264,6 +264,7 @@ void canopy_var_value_free(CanopyVarValue value)
 CanopyResultEnum canopy_var_set(CanopyContext ctx, const char *varname, CanopyVarValue value)
 {
     CanopyResultEnum result;
+    STCloudVar var;
     st_log_trace("canopy_var_set(0x%p, %s, ...", ctx, varname);
     if (st_cloudvar_value_already_used(value))
     {
@@ -271,7 +272,14 @@ CanopyResultEnum canopy_var_set(CanopyContext ctx, const char *varname, CanopyVa
         // used already, throw an error.
         return CANOPY_ERROR_SINGLE_USE_VALUE_ALREADY_USED;
     }
-    result = st_cloudvar_set_local_value(ctx->cloudvars, varname, value);
+
+    result = st_cloudvar_system_lookup_or_create_var(&var, ctx->cloudvars, varname);
+    if (result != CANOPY_SUCCESS)
+    {
+        return result;
+    }
+
+    result = st_cloudvar_set_local_value(var, value);
 
     // Mark <value> as used, since it is intended to be single-use.
     // This allows, for example:
@@ -306,15 +314,31 @@ CanopyVarReader CANOPY_READ_STRUCT(void * dummy, ...)
 
 CanopyResultEnum canopy_var_get(CanopyContext ctx, const char *varname, CanopyVarReader dest)
 {
+    STCloudVar var;
     st_log_trace("canopy_var_get(...)");
-    return st_cloudvar_get_local_value(ctx->cloudvars, varname, dest);
+
+    var = st_cloudvar_system_lookup_var(ctx->cloudvars, varname);
+    if (!var)
+    {
+        return CANOPY_ERROR_VARIABLE_NOT_FOUND;
+    }
+
+    return st_cloudvar_get_local_value(var, dest);
 }
 
 CanopyResultEnum canopy_var_on_change(CanopyContext ctx, const char *varname, CanopyOnChangeCallback cb, void *userdata)
 {
     st_log_trace("canopy_var_on_change(...)");
+    CanopyResultEnum result;
+    STCloudVar var;
 
-    return st_cloudvar_register_on_change_callback(ctx->cloudvars, varname, cb, userdata);
+    result = st_cloudvar_system_lookup_or_create_var(&var, ctx->cloudvars, varname);
+    if (result != CANOPY_SUCCESS)
+    {
+        return result;
+    }
+
+    return st_cloudvar_register_on_change_callback(var, cb, userdata);
 }
 
 CanopyResultEnum canopy_var_config(CanopyContext ctx, const char *varname, ...)
