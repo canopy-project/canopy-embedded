@@ -108,6 +108,10 @@ CanopyResultEnum st_cloudvar_config_extend_varargs(STCloudVarSystem sys, const c
 
 CanopyResultEnum st_cloudvar_init_var(STCloudVarSystem sys, const char *decl, va_list ap);
 
+CanopyDirectionEnum st_cloudvar_direction(STCloudVar var);
+CanopyDirectionEnum st_cloudvar_concrete_direction(STCloudVar var);
+
+void st_cloudvar_system_mark_dirty(STCloudVarSystem sys, STCloudVar var);
 #endif // ST_VARS_INCLUDED
 
 

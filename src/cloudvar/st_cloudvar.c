@@ -20,39 +20,16 @@
 #include <assert.h>
 #include <time.h>
 
-struct STCloudVarSystem_t {
-    bool dirty;
-    CanopyContext context;
-    RedHash vars; // maps (char *varname) -> (STCloudVar var)
-    RedHash dirty_vars; // maps (char *varname) -> void 
-    RedHash callbacks; // maps (char *varname) -> (STOptions)
-};
-
-
 typedef struct STCloudVarStruct_t
 {
     RedHash hash; // string -> CanopyVarValue
 } STCloudVarStruct_t;
 
-typedef struct STCloudVarValue_t {
-    CanopyDatatypeEnum datatype;
-    bool used;
-    union
-    {
-        bool val_bool;
-        char * val_string;
-        int8_t val_int8;
-        uint8_t val_uint8;
-        int16_t val_int16;
-        uint16_t val_uint16;
-        int32_t val_int32;
-        uint32_t val_uint32;
-        float val_float32;
-        double val_float64;
-        struct tm val_datetime;
-        STCloudVarStruct_t val_strct;
-    } val;
-} STCloudVarValue_t;
+typedef struct STCloudVarArray_t
+{
+    RedHash hash; // index -> CanopyVarValue
+} STCloudVarArray_t;
+
 
 typedef struct STCloudVarReader_t {
     CanopyDatatypeEnum datatype;
@@ -74,97 +51,6 @@ typedef struct STCloudVarReader_t {
     } dest;
 } STCloudVarReader_t;
 
-struct STCloudVar_t {
-    STCloudVarSystem sys;
-    bool dirty;
-    bool configured; // has this cloud variable been configured yet?
-    char *name;
-    char *decl_string;
-    CanopyDatatypeEnum datatype;
-    CanopyDirectionEnum direction;
-    STVarOptions options;
-    CanopyVarValue value;
-};
-
-STCloudVarSystem st_cloudvar_system_new(CanopyContext ctx)
-{
-    STCloudVarSystem sys;
-
-    sys = calloc(1, sizeof(struct STCloudVarSystem_t));
-    sys->dirty = true;
-    sys->context = ctx;
-    sys->vars = RedHash_New(0);
-    sys->dirty_vars = RedHash_New(0);
-    sys->callbacks = RedHash_New(0);
-    return sys;
-}
-
-void st_cloudvar_system_free(STCloudVarSystem sys)
-{
-    if (sys)
-    {
-        // TODO: free all entries in hash table
-        //RedHash_Free(sys->vars);
-        //RedHash_Free(sys->dirty_vars);
-        free(sys);
-    }
-}
-
-bool st_cloudvar_system_contains(STCloudVarSystem sys, const char *varname)
-{
-    return RedHash_HasKeyS(sys->vars, varname);
-}
-
-void st_cloudvar_system_clear_dirty(STCloudVarSystem sys)
-{
-    sys->dirty = false;
-    RedHash_Clear(sys->dirty_vars);
-}
-
-static void _mark_dirty(STCloudVarSystem sys, const char *varname)
-{
-    RedHash_UpdateOrInsertS(sys->dirty_vars, NULL, varname, (void *)true);
-    sys->dirty = true;
-}
-
-bool st_cloudvar_system_is_dirty(STCloudVarSystem sys)
-{
-    return sys->dirty;
-}
-
-uint32_t st_cloudvar_system_num_dirty(STCloudVarSystem sys)
-{
-    return RedHash_NumItems(sys->dirty_vars);
-}
-
-STCloudVar st_cloudvar_system_lookup_var(STCloudVarSystem sys, const char *varname)
-{
-    return RedHash_GetWithDefaultS(sys->vars, varname, NULL);
-}
-
-STCloudVar st_cloudvar_system_dirty_var(STCloudVarSystem sys, uint32_t idx)
-{
-    // TODO: Inefficient!
-    RedHashIterator_t iter;
-    const void *key;
-    size_t keySize;
-    uint32_t i = 0;
-    RED_HASH_FOREACH(iter, sys->dirty_vars, &key, &keySize, NULL)
-    {
-        const char *varname = (const char *)key;
-        if (i == idx)
-        {
-            return RedHash_GetWithDefaultS(sys->vars, varname, NULL);
-        }
-        i++;
-    }
-    return NULL;
-}
-
-STCloudVar st_cloudvar_system_get_var(STCloudVarSystem sys, const char *varname)
-{
-    return RedHash_GetWithDefaultS(sys->vars, varname, NULL);
-}
 
 CanopyVarValue st_cloudvar_value_bool(bool x)
 {
@@ -330,6 +216,34 @@ CanopyVarValue st_cloudvar_value_struct(va_list ap)
     return out;
 }
 
+CanopyVarValue st_cloudvar_value_array(va_list ap)
+{
+    CanopyVarValue out;
+    int index;
+    out = calloc(1, sizeof(STCloudVarValue_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    out->datatype = CANOPY_DATATYPE_ARRAY;
+    out->val.val_array.hash = RedHash_New(0);
+    if (!out->val.val_array.hash)
+    {
+        free(out);
+        return NULL;
+    }
+
+    // Process each parameter
+    while ((index = va_arg(ap, int)) != -1)
+    {
+        CanopyVarValue val = va_arg(ap, CanopyVarValue);
+        RedHash_Insert(out->val.val_array.hash, &index, sizeof(index), val);
+    }
+    va_end(ap);
+
+    return out;
+}
+
 void st_cloudvar_value_free(CanopyVarValue value)
 {
     switch (value->datatype)
@@ -381,12 +295,6 @@ bool st_cloudvar_has_value(STCloudVar var)
     return (var->value != NULL);
 }
 
-float st_cloudvar_local_value_float32(STCloudVar var)
-{
-    assert(var->value->datatype == CANOPY_DATATYPE_FLOAT32);
-    return var->value->val.val_float32;
-}
-
 typedef struct
 {
     CanopyOnChangeCallback cb;
@@ -422,15 +330,71 @@ CanopyResultEnum st_cloudvar_register_on_change_callback(STCloudVar var, CanopyO
 
 CanopyDirectionEnum st_cloudvar_direction(STCloudVar var)
 {
-    return var->direction;
+    return sddl_var_direction(var->decl);
+}
+
+CanopyDirectionEnum st_cloudvar_concrete_direction(STCloudVar var)
+{
+    return sddl_var_concrete_direction(var->decl);
+}
+
+static CanopyResultEnum _validate_value(SDDLVarDecl decl, CanopyVarValue value)
+{
+    // Do datatypes match?
+    if (sddl_var_datatype(decl) != value->datatype)
+    {
+        return CANOPY_ERROR_INCORRECT_DATATYPE;
+    }
+
+    // Array datatype.  Verify that all indices are set properly.
+    if (sddl_var_datatype(decl) == CANOPY_DATATYPE_ARRAY)
+    {
+        RedHashIterator_t iter;
+        void *key, *hashValue;
+        size_t keySize;
+        SDDLVarDecl elementDecl = sddl_var_array_element();
+
+        RED_HASH_FOREACH(iter, value->val_array.hash, &key, &keySize, &hashValue)
+        {
+            int idx = *((int *)key);
+            STCloudVar elementVar = (STCloudVar)hashValue;
+
+            // Check index bounds
+            if (idx < 0)
+            {
+                return CANOPY_ERROR_ARRAY_INDEX_OUT_OF_BOUNDS;
+            }
+            if (idx >= var->array_num_items)
+            {
+                return CANOPY_ERROR_ARRAY_INDEX_OUT_OF_BOUNDS;
+            }
+
+            // Verify each value recursively
+            result = _validate_value(elementDecl, elementVar->value);
+            if (result != CANOPY_SUCCESS)
+            {
+                return result;
+            }
+        }
+    }
+
+    // TODO: other validation
+    return CANOPY_SUCCESS;
 }
 
 CanopyResultEnum st_cloudvar_set_local_value(STCloudVar var, CanopyVarValue value)
 {
-    // TODO: If inherit, check what was inherited
-    if (st_cloudvar_direction(var) == CANOPY_DIRECTION_IN)
+    CanopyResultEnum result;
+
+    if (st_cloudvar_concrete_direction(var) == CANOPY_DIRECTION_IN)
     {
         return CANOPY_ERROR_CANNOT_MODIFY_INPUT_VARIABLE;
+    }
+
+    result = _validate_value(var, value);
+    if (result != CANOPY_SUCCESS)
+    {
+        return result;
     }
 
     var->value = value;
@@ -621,6 +585,64 @@ CanopyResultEnum st_cloudvar_config_extend_varargs(STCloudVarSystem sys, const c
     return result;
 }
 
+// Structure representing the options passed to canopy_var_init
+typedef struct
+{
+} _InitOptions;
+
+_cloudvar_init_array_element()
+{
+}
+
+// Recursively create CloudVar and SDDLVarDecl objects.
+// --------------------------------------------------
+_cloudvar_init_recursive(STCloudVarSystem sys, const char *decl, _InitOptions options)
+{
+    // Parse declaration
+    sddlResult = sddl_parse_decl(decl, &direction, &datatype, &name, &arrayElementDatatype, &arraySize);
+    if (sddlResult != SDDL_SUCCESS)
+    {
+        return CANOPY_ERROR_BAD_VARIABLE_DECLARATION;
+    }
+
+    // Error if top-level variable has already been initialized.
+    if (!parent)
+    {
+        var = st_cloudvar_system_lookup_var(sys, name);
+        if (var)
+        {
+            return CANOPY_ERROR_VARIABLE_ALREADY_INITIALIZED;
+        }
+    }
+
+    // Create local cloud variable
+    var = calloc(1, sizeof(struct STCloudVar_t));
+    if (!var)
+    {
+        return CANOPY_ERROR_OUT_OF_MEMORY;
+    }
+    var->sys = sys;
+
+    // Create SDDL Var Decl object
+    SDDLVarDecl decl = sddl_var_decl_new(direction, datatype, name);
+    // TODO: other properties
+
+    // Handle recursive structures:
+    if (datatype == CANOPY_DATATYPE_ARRAY)
+    {
+        STCloudVar child;
+        for (i = 0; i < arraySize; i++)
+        {
+            child = _cloudvar_init_array_element(arrayElementDatatype, options);
+        }
+        _cloudvar_init_recursive();
+    }
+    else if (datatype == CANOPY_DATATYPE_STRUCT)
+    {
+        // TODO
+    }
+}
+
 CanopyResultEnum st_cloudvar_init_var(STCloudVarSystem sys, const char *decl, va_list ap)
 {
     SDDLDirectionEnum direction;
@@ -637,7 +659,7 @@ CanopyResultEnum st_cloudvar_init_var(STCloudVarSystem sys, const char *decl, va
         return CANOPY_ERROR_BAD_VARIABLE_DECLARATION;
     }
 
-    // Error if variable already been initialized?
+    // Error if variable has already been initialized.
     var = st_cloudvar_system_lookup_var(sys, name);
     if (var)
     {
@@ -653,8 +675,6 @@ CanopyResultEnum st_cloudvar_init_var(STCloudVarSystem sys, const char *decl, va
     var->sys = sys;
     var->name = name; // We just assign it instead of doing a dup then free.
     var->decl_string = RedString_strdup(decl);
-    var->datatype = datatype;
-    var->direction = direction;
     var->options = st_var_options_new_default();
 
     RedHash_InsertS(sys->vars, name, var);

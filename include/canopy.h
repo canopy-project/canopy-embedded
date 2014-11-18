@@ -147,7 +147,8 @@ typedef enum
     CANOPY_ERROR_PROCESSING_PAYLOAD,
 
     // Cannot modify variable that has "in" direction.
-    CANOPY_ERROR_CANNOT_MODIFY_INPUT_VARIABLE
+    CANOPY_ERROR_CANNOT_MODIFY_INPUT_VARIABLE,
+
 } CanopyResultEnum;
 
 // CanopyGlobalOptEnum
@@ -452,6 +453,19 @@ CanopyVarValue CANOPY_VALUE_STRING(const char *sz);
 
 // Create a new CanopyVarValue object containing a structure.
 CanopyVarValue CANOPY_VALUE_STRUCT(void * dummy, ...);
+
+// Create a new CanopyVarValue object containing an array.
+// ex:
+//      <idx>, <value>
+//
+//      CANOPY_VALUE_ARRAY(
+//          0, CANOPY_VALUE_INT8(40),
+//          1, CANOPY_VALUE_INT8(-10),
+//          7, CANOPY_VALUE_INT8(34)
+//      )
+//
+#define CANOPY_VALUE_ARRAY(...) CANOPY_VALUE_ARRAY_IMPL(NULL, __VA_ARGS__, -1)
+CanopyVarValue CANOPY_VALUE_ARRAY_IMPL(void * dummy, ...);
 
 // Set the local value of a Cloud Variable.
 //
