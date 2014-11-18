@@ -24,9 +24,18 @@ int main(int argc, const char *argv[])
     );
     RedTest_Verify(test, "Configure canopy options", result == CANOPY_SUCCESS);
 
+   /* result = canopy_var_config(canopy, "in float32 temp");
+    result = canopy_var_config(canopy, "out tuple gps",
+            CANOPY_TUPLE_MEMBER("float32 longitude", CANOPY_MIN_VALUE, 0.5f),
+            CANOPY_TUPLE_MEMBER("float32 latitude", CANOPY_MIN_VALUE, 0.5f)
+    );*/
+
     result = canopy_var_config(canopy, "dimlevel", 
             CANOPY_VAR_DATATYPE, CANOPY_DATATYPE_INT16,
             CANOPY_VAR_DIRECTION, CANOPY_DIRECTION_IN
+            /*CANOPY_VAR_DESCRIPTION, "Dimmer level",
+            CANOPY_VAR_MIN_VALUE, 1,
+            CANOPY_VAR_MAX_VALUE, 100,*/
     );
     RedTest_Verify(test, "Configure variable \"dimlevel\"", result == CANOPY_SUCCESS);
 
@@ -36,4 +45,36 @@ int main(int argc, const char *argv[])
     RedTest_Verify(test, "Shutdown", result == CANOPY_SUCCESS);
 
     return RedTest_End(test);
+}
+
+/*
+ *
+
+
+int main(void)
+{
+    CanopyContext ctx;
+
+    ctx = canopy_init_context();
+    canopy_set_opt(ctx, 
+        CANOPY_CLOUD_SERVER, "dev02.canopy.link",
+        CANOPY_DEVICE_UUID, "c31a8ced-b9f1-4b0c-afe9-1afed3b0c21f",
+    );
+
+    canopy_init_var(ctx, "in float32 mode");
+    canopy_init_var(ctx, "out float32 temperature");
+    canopy_init_var(ctx, "out tuple gps", 
+        CANOPY_INIT_TUPLE_MEMBER("float32 latitude"),
+        CANOPY_INIT_TUPLE_MEMBER("float32 longitude"),
+        CANOPY_INIT_TUPLE_MEMBER("float32 altitude"),
+    );
+
+    canopy_set_var_float32(ctx, "temperature", 10.0f);
+
+    canopy_sync(ctx, NULL);
+
+    if (canopy_read_var_float32(ctx, "mode", &mode) == CANOPY_SUCCESS)
+    {
+        printf("mode: %f", mode);
+    }
 }

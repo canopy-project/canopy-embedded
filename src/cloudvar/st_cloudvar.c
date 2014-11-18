@@ -78,6 +78,7 @@ struct STCloudVar_t {
     bool dirty;
     bool configured; // has this cloud variable been configured yet?
     char *name;
+    char *decl_string;
     STVarOptions options;
     CanopyVarValue value;
 };
@@ -569,6 +570,21 @@ void st_cloudvar_mark_configured(STCloudVar var)
 {
     var->configured = true;
 }
+const char * st_cloudvar_direction_string(STCloudVar var)
+{
+    assert(var->options->has_CANOPY_VAR_DIRECTION);
+    switch (var->options->val_CANOPY_VAR_DIRECTION)
+    {
+        case CANOPY_DIRECTION_IN:
+            return "in";
+        case CANOPY_DIRECTION_OUT:
+            return "out";
+        case CANOPY_DIRECTION_INOUT:
+            return "inout";
+        default:
+            return "invalid_direction";
+    }
+}
 
 const char * st_cloudvar_datatype_string(STCloudVar var)
 {
@@ -630,4 +646,17 @@ CanopyResultEnum st_cloudvar_config_extend_varargs(STCloudVarSystem sys, const c
 
     _mark_dirty(sys, varname);
     return result;
+}
+
+const char * st_cloudvar_decl_string(STCloudVar var)
+{
+    // TODO: cache
+    free(var->decl_string);
+    
+    var->decl_string = RedString_PrintfToNewChars("%s %s %s", 
+            st_cloudvar_direction_string(var),
+            st_cloudvar_datatype_string(var),
+            st_cloudvar_name(var));
+
+    return var->decl_string;
 }

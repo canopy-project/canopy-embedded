@@ -529,7 +529,9 @@ CanopyResultEnum canopy_var_on_change(CanopyContext ctx, const char *varname, Ca
 //
 // Cloud variables have a bunch of metadata and configuration options that can
 // be modified at any time.
-CanopyResultEnum canopy_var_config(CanopyContext ctx, const char *varname, ...);
+#define canopy_var_config(ctx, varname, ...) \
+    canopy_var_config_impl(ctx, varname, __VA_ARGS__, NULL)
+CanopyResultEnum canopy_var_config_impl(CanopyContext ctx, const char *varname, ...);
 
 // Synchronize with the cloud server.
 //

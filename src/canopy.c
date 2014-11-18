@@ -341,7 +341,7 @@ CanopyResultEnum canopy_var_on_change(CanopyContext ctx, const char *varname, Ca
     return st_cloudvar_register_on_change_callback(var, cb, userdata);
 }
 
-CanopyResultEnum canopy_var_config(CanopyContext ctx, const char *varname, ...)
+CanopyResultEnum canopy_var_config_impl(CanopyContext ctx, const char *varname, ...)
 {
     st_log_trace("canopy_var_config(...)");
     va_list ap;

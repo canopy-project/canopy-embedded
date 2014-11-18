@@ -102,7 +102,14 @@ void st_cloudvar_value_mark_used(CanopyVarValue value);
 bool st_cloudvar_is_configured(STCloudVar var);
 void st_cloudvar_mark_configured(STCloudVar var);
 
+// Get Cloud Variable's datatype as string
 const char * st_cloudvar_datatype_string(STCloudVar var);
+
+// Get Cloud Variable's direction as string
+const char * st_cloudvar_direction_string(STCloudVar var);
+
+// Get Cloud Variables' declaration string, i.e. "inout float32 temperature"
+const char * st_cloudvar_decl_string(STCloudVar var);
 
 CanopyResultEnum st_cloudvar_config_extend_varargs(STCloudVarSystem sys, const char *varname, va_list ap);
 

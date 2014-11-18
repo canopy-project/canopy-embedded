@@ -158,11 +158,9 @@ static char * _gen_outbound_payload(STCloudVarSystem cloudvars)
                 // "sddl" : {
                 //     "uint16 var_u16" : {}
                 // }
-                const char *datatypeString = st_cloudvar_datatype_string(var);
-                char *varDef = RedString_PrintfToNewChars("%s %s", datatypeString, st_cloudvar_name(var));
-                RedJsonObject_SetObject(json_sddl, varDef, RedJsonObject_New());
+                const char * decl = st_cloudvar_decl_string(var);
+                RedJsonObject_SetObject(json_sddl, decl, RedJsonObject_New());
                 // TODO: set other configuration settings
-                free(varDef);
 
                 // TODO: Only actually mark as configured after the server responds.
                 st_cloudvar_mark_configured(var);
