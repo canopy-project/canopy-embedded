@@ -39,6 +39,15 @@ int main(int argc, const char *argv[])
         )
     );
 
+    float val;
+    result = canopy_var_get(canopy, "gps", CANOPY_READ_STRUCT("latitude", CANOPY_READ_FLOAT32(&val)));
+    RedTest_Verify(test, "Read latitude", result == CANOPY_SUCCESS);
+    RedTest_Verify(test, "latitiude value correct", val == 0.38838f);
+
+    result = canopy_var_get(canopy, "gps", CANOPY_READ_STRUCT("longitude", CANOPY_READ_FLOAT32(&val)));
+    RedTest_Verify(test, "Read longitude", result == CANOPY_SUCCESS);
+    RedTest_Verify(test, "longitude value correct", val == 0.494949f);
+
     result = canopy_sync(canopy, NULL);
     RedTest_Verify(test, "set latitude & longitude", result == CANOPY_SUCCESS);
 

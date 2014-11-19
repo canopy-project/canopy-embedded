@@ -156,7 +156,7 @@ CanopyResultEnum st_cloudvar_struct_value_to_json(RedJsonValue *out, STCloudVar 
 CanopyResultEnum st_cloudvar_struct_new(STCloudVar *out, STCloudVarInitOptions options);
 CanopyResultEnum st_cloudvar_struct_validate_value(STCloudVar var, CanopyVarValue value);
 CanopyResultEnum st_cloudvar_struct_set(STCloudVar var, CanopyVarValue value);
-CanopyResultEnum st_cloudvar_struct_read_value(STCloudVar var, CanopyVarReader reader);
+CanopyResultEnum st_cloudvar_struct_read_var(STCloudVar var, CanopyVarReader reader);
 
 CanopyVarInitObject st_cloudvar_init_field(const char *decl, va_list ap);
 

@@ -166,6 +166,7 @@ typedef struct STCloudVarReader_t {
         double *dest_float64;
         struct tm *dest_datetime;
         RedHash array_hash;
+        RedHash struct_hash;
     } dest;
 
 } STCloudVarReader_t;

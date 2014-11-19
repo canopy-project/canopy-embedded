@@ -238,6 +238,10 @@ CanopyResultEnum st_cloudvar_read_var(STCloudVar var, CanopyVarReader reader)
     {
         return st_cloudvar_array_read_var(var, reader);
     }
+    else if (st_cloudvar_datatype(var) == CANOPY_DATATYPE_STRUCT)
+    {
+        return st_cloudvar_struct_read_var(var, reader);
+    }
 
    return CANOPY_ERROR_UNKNOWN;
 }

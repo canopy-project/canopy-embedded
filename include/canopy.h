@@ -548,7 +548,8 @@ CanopyVarReader CANOPY_READ_UINT16(uint16_t *dest);
 CanopyVarReader CANOPY_READ_UINT32(uint32_t *dest);
 
 // Create a new CanopyVarReaader object that reads multiple structure fields.
-CanopyVarReader CANOPY_READ_STRUCT(void * dummy, ...);
+#define CANOPY_READ_STRUCT(...) CANOPY_READ_STRUCT_IMPL(NULL, __VA_ARGS__, NULL)
+CanopyVarReader CANOPY_READ_STRUCT_IMPL(void * dummy, ...);
 
 #define CANOPY_READ_ARRAY(...) CANOPY_READ_ARRAY_IMPL(NULL, __VA_ARGS__, -1)
 CanopyVarReader CANOPY_READ_ARRAY_IMPL(void * dummy, ...);

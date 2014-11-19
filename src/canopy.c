@@ -363,7 +363,7 @@ CanopyVarReader CANOPY_READ_UINT32(uint32_t *dest)
     return st_cloudvar_reader_uint32(dest);
 }
 
-CanopyVarReader CANOPY_READ_STRUCT(void * dummy, ...)
+CanopyVarReader CANOPY_READ_STRUCT_IMPL(void * dummy, ...)
 {
     va_list ap;
     CanopyVarReader out;

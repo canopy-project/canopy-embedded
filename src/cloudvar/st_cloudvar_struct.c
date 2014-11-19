@@ -165,9 +165,9 @@ CanopyResultEnum st_cloudvar_struct_set(STCloudVar var, CanopyVarValue value)
 }
 
 // Gets struct cloud variable's value
-CanopyResultEnum st_cloudvar_struct_read_value(STCloudVar var, CanopyVarReader reader)
+CanopyResultEnum st_cloudvar_struct_read_var(STCloudVar var, CanopyVarReader reader)
 {
-    /*CanopyResultEnum result;
+    CanopyResultEnum result;
     if (reader->datatype != CANOPY_DATATYPE_STRUCT)
     {
         return CANOPY_ERROR_INCORRECT_DATATYPE;
@@ -205,7 +205,5 @@ CanopyResultEnum st_cloudvar_struct_read_value(STCloudVar var, CanopyVarReader r
     }
 
     return CANOPY_SUCCESS;
-    */
-    return CANOPY_ERROR_NOT_IMPLEMENTED;
 }
 

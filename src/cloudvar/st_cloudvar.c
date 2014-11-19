@@ -375,7 +375,31 @@ CanopyVarReader st_cloudvar_reader_string(char **dest)
 
 CanopyVarReader st_cloudvar_reader_struct(va_list ap)
 {
-    return NULL;
+    CanopyVarReader out;
+    char *fieldname;
+
+    out = calloc(1, sizeof(STCloudVarReader_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    out->datatype = CANOPY_DATATYPE_STRUCT;
+    out->dest.struct_hash = RedHash_New(0);
+    if (!out->dest.struct_hash)
+    {
+        free(out);
+        return NULL;
+    }
+
+    // Process each parameter
+    while ((fieldname = va_arg(ap, char *)) != NULL)
+    {
+        CanopyVarReader reader = va_arg(ap, CanopyVarReader);
+        RedHash_InsertS(out->dest.struct_hash, fieldname, reader);
+    }
+    va_end(ap);
+
+    return out;
 }
 
 CanopyVarReader st_cloudvar_reader_array(va_list ap)
