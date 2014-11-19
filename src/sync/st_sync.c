@@ -151,8 +151,9 @@ static char * _gen_outbound_payload(STCloudVarSystem cloudvars)
         {
             STCloudVar var = st_cloudvar_system_dirty_var(cloudvars, i);
 
-            // If the variable's configuration hasn't been sent yet, send it
-            if (!st_cloudvar_is_sddl_dirty(var))
+            // If the variable's configuration hasn't been sent yet, or is
+            // dirty, send it
+            if (st_cloudvar_is_sddl_dirty(var))
             {
                 //
                 // "sddl" : {

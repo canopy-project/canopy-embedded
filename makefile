@@ -1,7 +1,7 @@
 #CFLAGS := --std=c89 --pedantic -Wall -Werror
 CFLAGS := -Wall -Werror
 DEBUG_FLAGS := $(CFLAGS) -g
-RELEASE_FLAGS := $(CFLAGS) -O3
+RELEASE_FLAGS := $(CFLAGS) -Os
 
 LIBRED_DIR := ../3rdparty/libred
 LIBSDDL_DIR := ../libsddl

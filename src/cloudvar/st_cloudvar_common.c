@@ -131,6 +131,7 @@ CanopyResultEnum st_cloudvar_init_var(STCloudVarSystem sys, const char *decl, va
     // Add it to the system
     RedHash_InsertS(sys->vars, options->name, var);
     st_cloudvar_system_mark_dirty(sys, var);
+    var->sddl_dirty_flag = true;
     var->sys = sys;
 
     return CANOPY_SUCCESS;
