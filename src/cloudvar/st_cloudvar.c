@@ -387,30 +387,6 @@ CanopyDirectionEnum st_cloudvar_concrete_direction(STCloudVar var)
     return CANOPY_SUCCESS;
 }*/
 
-CanopyResultEnum st_cloudvar_set_local_value(STCloudVar var, CanopyVarValue value)
-{
-/*    CanopyResultEnum result;
-
-    if (st_cloudvar_concrete_direction(var) == CANOPY_DIRECTION_IN)
-    {
-        return CANOPY_ERROR_CANNOT_MODIFY_INPUT_VARIABLE;
-    }
-
-    result = _validate_value(var, value);
-    if (result != CANOPY_SUCCESS)
-    {
-        return result;
-    }
-
-    var->value = value;
-    // TODO: copy? Delete old value?
-
-    _mark_dirty(var->sys, var->name);
-
-    return CANOPY_SUCCESS;*/
-    return CANOPY_ERROR_NOT_IMPLEMENTED; 
-}
-
 CanopyResultEnum st_cloudvar_set_local_value_from_json(STCloudVarSystem sys, const char *varname, RedJsonValue jsonValue)
 {
     /*// Convert JSON object to STCloudVarValue_t
@@ -557,4 +533,9 @@ const char * st_cloudvar_decl_string(STCloudVar var)
 CanopyDatatypeEnum st_cloudvar_datatype(STCloudVar var)
 {
     return (CanopyDatatypeEnum)sddl_var_datatype(var->decl);
+}
+
+bool st_cloudvar_is_basic(STCloudVar var)
+{
+    return sddl_var_is_basic(var->decl);
 }

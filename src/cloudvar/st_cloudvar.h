@@ -57,7 +57,7 @@ CanopyResultEnum st_cloudvar_register_on_change_callback(STCloudVar var, CanopyO
 
 // Sets Cloud Variable's value.  Consumes <value> (meaning <value> should never
 // be used again)
-CanopyResultEnum st_cloudvar_set_local_value(STCloudVar var, CanopyVarValue value);
+CanopyResultEnum st_cloudvar_set_var(STCloudVar var, CanopyVarValue value);
 
 // Get Cloud Variable's value using reader.
 CanopyResultEnum st_cloudvar_get_local_value(STCloudVar var, CanopyVarReader dest);
@@ -127,6 +127,13 @@ CanopyResultEnum st_cloudvar_generic_new(
 
 void st_cloudvar_clear_sddl_dirty_flag(STCloudVar var);
 bool st_cloudvar_is_sddl_dirty(STCloudVar var);
+
+CanopyResultEnum st_cloudvar_basic_set(STCloudVar var, CanopyVarValue value);
+
+CanopyResultEnum st_cloudvar_array_set(STCloudVar var, CanopyVarValue value);
+
+bool st_cloudvar_is_basic(STCloudVar var);
+
 #endif // ST_VARS_INCLUDED
 
 

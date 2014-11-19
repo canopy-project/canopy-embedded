@@ -131,8 +131,42 @@ CanopyResultEnum st_cloudvar_init_var(STCloudVarSystem sys, const char *decl, va
     // Add it to the system
     RedHash_InsertS(sys->vars, options->name, var);
     st_cloudvar_system_mark_dirty(sys, var);
+    var->sys = sys;
 
     return CANOPY_SUCCESS;
+}
+
+// recursive
+CanopyResultEnum st_cloudvar_generic_set(STCloudVar var, CanopyVarValue value)
+{
+    // Call appropriate set routine
+    if (st_cloudvar_is_basic(var))
+    {
+        return st_cloudvar_basic_set(var, value);
+    }
+    else if (st_cloudvar_datatype(var) == CANOPY_DATATYPE_ARRAY)
+    {
+        return st_cloudvar_array_set(var, value);
+    }
+
+   return CANOPY_ERROR_UNKNOWN;
+}
+
+
+CanopyResultEnum st_cloudvar_set_var(
+        STCloudVar var, 
+        CanopyVarValue value)
+{
+    // non-recursive part
+    if (st_cloudvar_concrete_direction(var) == CANOPY_DIRECTION_IN)
+    {
+        return CANOPY_ERROR_CANNOT_MODIFY_INPUT_VARIABLE;
+    }
+
+    st_cloudvar_system_mark_dirty(var->sys, var);
+
+    // recursive part
+    return st_cloudvar_generic_set(var, value);
 }
 
 void st_cloudvar_clear_sddl_dirty_flag(STCloudVar var)

@@ -291,7 +291,7 @@ CanopyResultEnum canopy_var_set(CanopyContext ctx, const char *varname, CanopyVa
         return CANOPY_ERROR_VARIABLE_NOT_INITIALIZED;
     }
 
-    result = st_cloudvar_set_local_value(var, value);
+    result = st_cloudvar_set_var(var, value);
 
     // Mark <value> as used, since it is intended to be single-use.
     // This allows, for example:
