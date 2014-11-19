@@ -53,9 +53,6 @@
 // 
 typedef struct STCloudVarInitOptions_t
 {
-    // Declaration string, such as "struct[4] ports" or "inout float32 gps"
-    char *decl_string;
-
     // Datatype, as parsed from declstring
     SDDLDatatypeEnum datatype;
 

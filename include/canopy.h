@@ -49,6 +49,7 @@ typedef int (*CanopyOnChangeCallback)(CanopyContext, const char *, void *);
 // can be used to wait for the completion of the event.
 typedef struct CanopyPromise_t * CanopyPromise;
 
+// Must match SDDLDatatypeEnum exactly!
 typedef enum
 {
     CANOPY_INVALID_DATATYPE,
@@ -64,9 +65,11 @@ typedef enum
     CANOPY_DATATYPE_FLOAT32,
     CANOPY_DATATYPE_FLOAT64,
     CANOPY_DATATYPE_DATETIME,
-    CANOPY_DATATYPE_STRUCT
+    CANOPY_DATATYPE_STRUCT,
+    CANOPY_DATATYPE_ARRAY
 } CanopyDatatypeEnum;
 
+// Must match SDDLDirectionEnum exactly!
 typedef enum
 {
     CANOPY_INVALID_DIRECTION,

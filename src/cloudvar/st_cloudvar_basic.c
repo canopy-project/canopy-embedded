@@ -43,6 +43,7 @@ CanopyResultEnum st_cloudvar_basic_new(
 
     // TODO: other properties
 
+    *out = var;
     return CANOPY_SUCCESS;
 }
 

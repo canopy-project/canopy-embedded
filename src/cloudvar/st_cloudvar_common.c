@@ -90,14 +90,13 @@ CanopyResultEnum st_cloudvar_generic_new(
         STCloudVar *out,
         STCloudVarInitOptions options)
 {
-    STCloudVar var;
     if (sddl_datatype_is_basic(options->datatype))
     {
-        return st_cloudvar_basic_new(&var, options);
+        return st_cloudvar_basic_new(out, options);
     }
     else if (options->datatype == SDDL_DATATYPE_ARRAY)
     {
-        return st_cloudvar_array_new(&var, options);
+        return st_cloudvar_array_new(out, options);
     }
     return CANOPY_ERROR_UNKNOWN;
 }
