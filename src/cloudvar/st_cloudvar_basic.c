@@ -22,9 +22,7 @@
 // system.
 CanopyResultEnum st_cloudvar_basic_new(
         STCloudVar *out, 
-        SDDLDatatypeEnum datatype, 
-        SDDLDirectionEnum direction,
-        STCloudVarInitOptions_t *options)
+        STCloudVarInitOptions options)
 {
     STCloudVar var;
 
@@ -37,7 +35,7 @@ CanopyResultEnum st_cloudvar_basic_new(
 
     // Create SDDL declaration
     char *name = RedString_strdup(options->name);
-    var->decl = sddl_var_new_basic(datatype, direction, name);
+    var->decl = sddl_var_new_basic(options->datatype, options->direction, name);
     if (!var->decl)
     {
         return CANOPY_ERROR_UNKNOWN;

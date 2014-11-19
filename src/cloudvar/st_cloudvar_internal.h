@@ -51,7 +51,7 @@
 //      CANOPY_VAR_STRUCT_MEMBER expands to:
 //          CANOPY_VAR_CHILD, CANOPY_VAR_CHILD_INIT(...)
 // 
-typedef struct
+typedef struct STCloudVarInitOptions_t
 {
     // Declaration string, such as "struct[4] ports" or "inout float32 gps"
     char *decl_string;
@@ -128,8 +128,11 @@ typedef struct STCloudVar_t
     // Hash Table: name --> STCloudVar
     RedHash struct_hash;
 
-    // Has this cloud variable been touched since last sync?
+    // Has this cloud variable's value been touched since last sync?
     bool dirty;
+
+    // Has this cloud variable's SDDL been changed since last sync?
+    bool sddl_dirty_flag;
 } STCloudVar_t;
 
 typedef struct STCloudVarValue_t {

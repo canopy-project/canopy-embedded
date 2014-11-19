@@ -256,6 +256,8 @@ typedef enum
     CANOPY_VAR_DIRECTION,
     CANOPY_VAR_MIN_VALUE,
     CANOPY_VAR_MAX_VALUE,
+    CANOPY_VAR_CHILD,
+    CANOPY_VAR_DESCRIPTION,
 } CanopyVarConfigEnum;
 
 // CanopyProtocolEnum
@@ -418,8 +420,8 @@ CanopyResultEnum canopy_set_opt_impl(CanopyContext ctx, ...);
 //          CANOPY_INIT_CHILD("in void update_trigger"),
 //      );
 #define canopy_var_init(ctx, ...) \
-    canopy_init_var_impl(ctx, __VA_ARGS__, NULL)
-CanopyResultEnum canopy_init_var_impl(CanopyContext ctx, const char *decl, ...);
+    canopy_var_init_impl(ctx, __VA_ARGS__, NULL)
+CanopyResultEnum canopy_var_init_impl(CanopyContext ctx, const char *decl, ...);
 
 // Create a new CanopyVarValue object from a bool.
 CanopyVarValue CANOPY_VALUE_BOOL(bool x);

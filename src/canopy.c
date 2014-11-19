@@ -255,15 +255,16 @@ CanopyVarValue CANOPY_VALUE_STRUCT(void * dummy, ...)
     return out;
 }
 
-CanopyVarValue CANOPY_VALUE_ARRAY(void * dummy, ...)
+CanopyVarValue CANOPY_VALUE_ARRAY_IMPL(void * dummy, ...)
 {
-    va_list ap;
+    /*va_list ap;
     CanopyVarValue out;
     st_log_trace("CANOPY_VALUE_ARRAY(...)");
     va_start(ap, dummy);
     out = st_cloudvar_value_array(ap);
     va_end(ap);
-    return out;
+    return out;*/
+    return NULL;
 }
 
 void canopy_var_value_free(CanopyVarValue value)
@@ -351,9 +352,9 @@ CanopyResultEnum canopy_var_on_change(CanopyContext ctx, const char *varname, Ca
     return st_cloudvar_register_on_change_callback(var, cb, userdata);
 }
 
-CanopyResultEnum canopy_init_var_impl(CanopyContext ctx, const char *decl, ...)
+CanopyResultEnum canopy_var_init_impl(CanopyContext ctx, const char *decl, ...)
 {
-    st_log_trace("canopy_init_var(...)");
+    st_log_trace("canopy_var_init(...)");
     va_list ap;
     CanopyResultEnum result;
 

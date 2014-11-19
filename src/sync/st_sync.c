@@ -152,7 +152,7 @@ static char * _gen_outbound_payload(STCloudVarSystem cloudvars)
             STCloudVar var = st_cloudvar_system_dirty_var(cloudvars, i);
 
             // If the variable's configuration hasn't been sent yet, send it
-            if (!st_cloudvar_is_configured(var))
+            if (!st_cloudvar_is_sddl_dirty(var))
             {
                 //
                 // "sddl" : {
@@ -163,7 +163,7 @@ static char * _gen_outbound_payload(STCloudVarSystem cloudvars)
                 // TODO: set other configuration settings
 
                 // TODO: Only actually mark as configured after the server responds.
-                st_cloudvar_mark_configured(var);
+                st_cloudvar_clear_sddl_dirty_flag(var);
             }
 
             // TODO:

@@ -22,6 +22,7 @@
 
 typedef struct STCloudVar_t * STCloudVar;
 typedef struct STCloudVarSystem_t * STCloudVarSystem;
+typedef struct STCloudVarInitOptions_t * STCloudVarInitOptions;
 
 // Create/initialize a new Cloud Var "system" which holds several cloud
 // variables.
@@ -92,9 +93,6 @@ bool st_cloudvar_has_value(STCloudVar var);
 bool st_cloudvar_value_already_used(CanopyVarValue value);
 void st_cloudvar_value_mark_used(CanopyVarValue value);
 
-bool st_cloudvar_is_configured(STCloudVar var);
-void st_cloudvar_mark_configured(STCloudVar var);
-
 // Get Cloud Variable's datatype as string
 const char * st_cloudvar_datatype_string(STCloudVar var);
 
@@ -112,6 +110,23 @@ CanopyDirectionEnum st_cloudvar_direction(STCloudVar var);
 CanopyDirectionEnum st_cloudvar_concrete_direction(STCloudVar var);
 
 void st_cloudvar_system_mark_dirty(STCloudVarSystem sys, STCloudVar var);
+
+CanopyDatatypeEnum st_cloudvar_datatype(STCloudVar var);
+
+CanopyResultEnum st_cloudvar_basic_new(
+        STCloudVar *out, 
+        STCloudVarInitOptions options);
+
+CanopyResultEnum st_cloudvar_array_new(
+        STCloudVar *out, 
+        STCloudVarInitOptions options);
+
+CanopyResultEnum st_cloudvar_generic_new(
+        STCloudVar *out,
+        STCloudVarInitOptions options);
+
+void st_cloudvar_clear_sddl_dirty_flag(STCloudVar var);
+bool st_cloudvar_is_sddl_dirty(STCloudVar var);
 #endif // ST_VARS_INCLUDED
 
 

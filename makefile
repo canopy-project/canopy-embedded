@@ -11,6 +11,10 @@ INCLUDE_FLAGS := -Isrc -Iinclude -I$(LIBSDDL_DIR)/include -I$(LIBRED_DIR)/includ
 SOURCE_FILES = \
     src/canopy.c \
     src/cloudvar/st_cloudvar.c \
+    src/cloudvar/st_cloudvar_common.c \
+    src/cloudvar/st_cloudvar_basic.c \
+    src/cloudvar/st_cloudvar_array.c \
+    src/cloudvar/st_cloudvar_system.c \
     src/http/st_http_curl.c \
     src/log/st_log.c \
     src/options/st_options.c \
