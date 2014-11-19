@@ -220,7 +220,7 @@ CanopyVarValue st_cloudvar_value_struct(va_list ap)
 
 CanopyVarValue st_cloudvar_value_array(va_list ap)
 {
-    /*CanopyVarValue out;
+    CanopyVarValue out;
     int index;
     out = calloc(1, sizeof(STCloudVarValue_t));
     if (!out)
@@ -228,8 +228,8 @@ CanopyVarValue st_cloudvar_value_array(va_list ap)
         return NULL;
     }
     out->datatype = CANOPY_DATATYPE_ARRAY;
-    out->val.val_array.hash = RedHash_New(0);
-    if (!out->val.val_array.hash)
+    out->array_hash = RedHash_New(0);
+    if (!out->array_hash)
     {
         free(out);
         return NULL;
@@ -239,12 +239,11 @@ CanopyVarValue st_cloudvar_value_array(va_list ap)
     while ((index = va_arg(ap, int)) != -1)
     {
         CanopyVarValue val = va_arg(ap, CanopyVarValue);
-        RedHash_Insert(out->val.val_array.hash, &index, sizeof(index), val);
+        RedHash_Insert(out->array_hash, &index, sizeof(index), val);
     }
     va_end(ap);
 
-    return out;*/
-    return NULL;
+    return out;
 }
 
 void st_cloudvar_value_free(CanopyVarValue value)

@@ -53,15 +53,22 @@ CanopyResultEnum st_cloudvar_array_new(
     {
         CanopyResultEnum result;
 
-        result = st_cloudvar_generic_new(&(var->array_items[i]), options); 
-        // TODO: This above line is probably wrong.
-        // We need to create a new options object for the children.  Yes?
+        // Fake an options object for the array elements.
+        // TODO: This doesn't seem like the cleanest way to handle array
+        // elements.
+        STCloudVarInitOptions_t childOptions;
+        memcpy(&childOptions, options, sizeof(STCloudVarInitOptions_t));
+        childOptions.datatype = childOptions.array_datatype;
+
+        result = st_cloudvar_generic_new(&(var->array_items[i]), &childOptions); 
+
         if (result != CANOPY_SUCCESS)
         {
             return result;
         }
     }
 
+    *out = var;
     return CANOPY_SUCCESS;
 }
 
@@ -70,8 +77,54 @@ CanopyResultEnum st_cloudvar_array_validate_value(STCloudVar var, CanopyVarValue
     return CANOPY_ERROR_NOT_IMPLEMENTED;
 }
 
-// Sets a basic cloud variable's value
+// Sets an array cloud variable's value
 CanopyResultEnum st_cloudvar_array_set(STCloudVar var, CanopyVarValue value)
 {
-    return CANOPY_ERROR_NOT_IMPLEMENTED;
+    CanopyResultEnum result;
+    assert(st_cloudvar_datatype(var) == CANOPY_DATATYPE_ARRAY);
+
+    // Is variable writeable?
+    if (st_cloudvar_concrete_direction(var) == CANOPY_DIRECTION_IN)
+    {
+        return CANOPY_ERROR_CANNOT_MODIFY_INPUT_VARIABLE;
+    }
+
+    // TODO: Validate value before assignment
+    /*result = st_cloudvar_array_validate_value(var, value);
+    if (result != CANOPY_SUCCESS)
+    {
+        return result;
+    }*/
+
+    // Assign value recursively
+    // Loop over each value
+    RedHashIterator_t iter;
+    const void *key;
+    const void *hashValue;
+    size_t keySize;
+
+    RED_HASH_FOREACH(iter, value->array_hash, &key, &keySize, &hashValue)
+    {
+        int idx = *((int *)key);
+        CanopyVarValue elementValue = (CanopyVarValue)hashValue;
+
+        // Check index bounds
+        if (idx < 0)
+        {
+            return CANOPY_ERROR_ARRAY_INDEX_OUT_OF_BOUNDS;
+        }
+        if (idx >= var->array_num_items)
+        {
+            return CANOPY_ERROR_ARRAY_INDEX_OUT_OF_BOUNDS;
+        }
+
+        // Assign value
+        result = st_cloudvar_generic_set(var->array_items[idx], elementValue);
+        if (result != CANOPY_SUCCESS)
+        {
+            return result;
+        }
+    }
+
+    return CANOPY_SUCCESS;
 }

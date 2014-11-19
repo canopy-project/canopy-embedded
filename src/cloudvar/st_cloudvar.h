@@ -77,6 +77,7 @@ CanopyVarValue st_cloudvar_value_float32(float x);
 CanopyVarValue st_cloudvar_value_float64(double x);
 CanopyVarValue st_cloudvar_value_string(const char *sz);
 CanopyVarValue st_cloudvar_value_struct(va_list ap);
+CanopyVarValue st_cloudvar_value_array(va_list ap);
 
 void st_cloudvar_value_free(CanopyVarValue value);
 
@@ -124,6 +125,8 @@ CanopyResultEnum st_cloudvar_array_new(
 CanopyResultEnum st_cloudvar_generic_new(
         STCloudVar *out,
         STCloudVarInitOptions options);
+
+CanopyResultEnum st_cloudvar_generic_set(STCloudVar var, CanopyVarValue value);
 
 void st_cloudvar_clear_sddl_dirty_flag(STCloudVar var);
 bool st_cloudvar_is_sddl_dirty(STCloudVar var);

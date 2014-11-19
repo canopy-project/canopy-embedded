@@ -51,6 +51,8 @@ CanopyResultEnum st_cloudvar_parse_init_options(
     }
     options->direction = direction;
     options->datatype = datatype;
+    options->array_num_items = arraySize;
+    options->array_datatype = arrayElementDatatype;
     options->name = RedString_strdup(name);
 
     // process varargs

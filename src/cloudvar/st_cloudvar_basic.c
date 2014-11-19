@@ -86,7 +86,9 @@ CanopyResultEnum st_cloudvar_basic_set(STCloudVar var, CanopyVarValue value)
     }
     memcpy(var->basic_value, &value->basic_value, sizeof(STCloudVarBasicValue_t));
 
-    st_cloudvar_system_mark_dirty(var->sys, var);
+    // TODO: rethink the dirty flag now that things are recursive
+    if (var->sys)
+        st_cloudvar_system_mark_dirty(var->sys, var);
 
     return CANOPY_SUCCESS;
 }

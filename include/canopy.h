@@ -152,6 +152,8 @@ typedef enum
     // Cannot modify variable that has "in" direction.
     CANOPY_ERROR_CANNOT_MODIFY_INPUT_VARIABLE,
 
+    // Array index out-of-bounds
+    CANOPY_ERROR_ARRAY_INDEX_OUT_OF_BOUNDS,
 } CanopyResultEnum;
 
 // CanopyGlobalOptEnum

@@ -66,7 +66,7 @@ typedef struct STCloudVarInitOptions_t
     unsigned array_num_items;
     
     // (Array only) Datatype of array elements
-    unsigned array_datatype;
+    SDDLDatatypeEnum array_datatype;
 
     // Description provided with CANOPY_VAR_DESCRIPTION
     char *description;
@@ -135,6 +135,10 @@ typedef struct STCloudVar_t
 typedef struct STCloudVarValue_t {
     CanopyDatatypeEnum datatype;
     STCloudVarBasicValue_t basic_value;
+
+    // idx --> CanopyVarValue
+    RedHash array_hash;
+
     bool used;
 } STCloudVarValue_t;
 

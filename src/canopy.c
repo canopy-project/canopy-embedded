@@ -257,14 +257,13 @@ CanopyVarValue CANOPY_VALUE_STRUCT(void * dummy, ...)
 
 CanopyVarValue CANOPY_VALUE_ARRAY_IMPL(void * dummy, ...)
 {
-    /*va_list ap;
+    va_list ap;
     CanopyVarValue out;
     st_log_trace("CANOPY_VALUE_ARRAY(...)");
     va_start(ap, dummy);
     out = st_cloudvar_value_array(ap);
     va_end(ap);
-    return out;*/
-    return NULL;
+    return out;
 }
 
 void canopy_var_value_free(CanopyVarValue value)
