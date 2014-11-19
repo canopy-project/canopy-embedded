@@ -296,7 +296,7 @@ const char * st_cloudvar_name(STCloudVar var)
 bool st_cloudvar_has_value(STCloudVar var)
 {
     // TODO: should this be recursive routine?
-    return (var->basic_value != NULL);
+    return (var->basic_value != NULL) || !(st_cloudvar_is_basic(var));
 }
 
 typedef struct
@@ -415,40 +415,6 @@ CanopyResultEnum st_cloudvar_set_local_value_from_json(STCloudVarSystem sys, con
     
     return CANOPY_SUCCESS;*/
     return CANOPY_ERROR_NOT_IMPLEMENTED;
-}
-
-RedJsonValue st_cloudvar_value_to_json(STCloudVar var)
-{
-    CanopyDatatypeEnum datatype = st_cloudvar_datatype(var);
-    switch (datatype)
-    {
-        case CANOPY_DATATYPE_VOID:
-            return RedJsonValue_Null();
-        case CANOPY_DATATYPE_BOOL:
-            return RedJsonValue_FromBoolean(var->basic_value->val.val_bool);
-        case CANOPY_DATATYPE_FLOAT32:
-            return RedJsonValue_FromNumber(var->basic_value->val.val_float32);
-        case CANOPY_DATATYPE_FLOAT64:
-            return RedJsonValue_FromNumber(var->basic_value->val.val_float64);
-        case CANOPY_DATATYPE_INT8:
-            return RedJsonValue_FromNumber(var->basic_value->val.val_int8);
-        case CANOPY_DATATYPE_INT16:
-            return RedJsonValue_FromNumber(var->basic_value->val.val_int16);
-        case CANOPY_DATATYPE_INT32:
-            return RedJsonValue_FromNumber(var->basic_value->val.val_int32);
-        case CANOPY_DATATYPE_STRING:
-            return RedJsonValue_FromString(var->basic_value->val.val_string);
-        case CANOPY_DATATYPE_UINT8:
-            return RedJsonValue_FromNumber(var->basic_value->val.val_uint8);
-        case CANOPY_DATATYPE_UINT16:
-            return RedJsonValue_FromNumber(var->basic_value->val.val_uint16);
-        case CANOPY_DATATYPE_UINT32:
-            return RedJsonValue_FromNumber(var->basic_value->val.val_uint32);
-        default:
-            assert(!"Unsupported datatype");
-            return NULL;
-
-    }
 }
 
 CanopyResultEnum st_cloudvar_get_local_value(STCloudVar var, CanopyVarReader dest)

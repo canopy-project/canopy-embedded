@@ -64,7 +64,7 @@ CanopyResultEnum st_cloudvar_get_local_value(STCloudVar var, CanopyVarReader des
 
 CanopyResultEnum st_cloudvar_set_local_value_from_json(STCloudVarSystem vars, const char *varname, RedJsonValue value);
 
-RedJsonValue st_cloudvar_value_to_json(STCloudVar var);
+CanopyResultEnum st_cloudvar_value_to_json(RedJsonValue *out, STCloudVar var);
 
 CanopyVarValue st_cloudvar_value_bool(bool x);
 CanopyVarValue st_cloudvar_value_int8(int8_t x);
@@ -137,6 +137,8 @@ CanopyResultEnum st_cloudvar_array_set(STCloudVar var, CanopyVarValue value);
 
 bool st_cloudvar_is_basic(STCloudVar var);
 
+CanopyResultEnum st_cloudvar_array_value_to_json(RedJsonValue *out, STCloudVar var);
+CanopyResultEnum st_cloudvar_basic_value_to_json(RedJsonValue *out, STCloudVar var);
 #endif // ST_VARS_INCLUDED
 
 

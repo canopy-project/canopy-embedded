@@ -17,6 +17,35 @@
 #include "red_string.h"
 #include <assert.h>
 
+// Convert array cloud variable's value to JSON, recursively
+CanopyResultEnum st_cloudvar_array_value_to_json(RedJsonValue *out, STCloudVar var)
+{
+    RedJsonObject jsonObj = RedJsonObject_New();
+    unsigned i;
+    for (i = 0; i < var->array_num_items; i++)
+    {
+        CanopyResultEnum result;
+        RedJsonValue childValueJson;
+        if (st_cloudvar_has_value(var->array_items[i]))
+        {
+            result = st_cloudvar_value_to_json(&childValueJson, var->array_items[i]);
+            if (result != CANOPY_SUCCESS)
+            {
+                return result;
+            }
+            char *key = RedString_PrintfToNewChars("%d", i);
+            if (!key)
+            {
+                return CANOPY_ERROR_OUT_OF_MEMORY;
+            }
+            RedJsonObject_Set(jsonObj, key, childValueJson);
+        }
+    }
+
+    *out = RedJsonValue_FromObject(jsonObj);
+    return CANOPY_SUCCESS;
+}
+
 // Create a new array cloud variable instance.
 // Caller is responsible for setting up relationships to parent & cloudvar
 // system.

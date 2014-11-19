@@ -172,9 +172,9 @@ static char * _gen_outbound_payload(STCloudVarSystem cloudvars)
             if (st_cloudvar_has_value(var))
             {
                 RedJsonValue val;
-                val = st_cloudvar_value_to_json(var);
-                assert(val);
-                if (!val)
+                CanopyResultEnum result;
+                result = st_cloudvar_value_to_json(&val, var);
+                if (result != CANOPY_SUCCESS)
                 {
                     return NULL;
                 }

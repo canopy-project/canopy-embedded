@@ -17,6 +17,59 @@
 #include "red_string.h"
 #include <assert.h>
 
+
+// Convert basic cloud variable's value to JSON
+CanopyResultEnum st_cloudvar_basic_value_to_json(RedJsonValue *out, STCloudVar var)
+{
+    CanopyDatatypeEnum datatype = st_cloudvar_datatype(var);
+    *out = NULL;
+    switch (datatype)
+    {
+        case CANOPY_DATATYPE_VOID:
+            *out = RedJsonValue_Null();
+            break;
+        case CANOPY_DATATYPE_BOOL:
+            *out = RedJsonValue_FromBoolean(var->basic_value->val.val_bool);
+            break;
+        case CANOPY_DATATYPE_FLOAT32:
+            *out = RedJsonValue_FromNumber(var->basic_value->val.val_float32);
+            break;
+        case CANOPY_DATATYPE_FLOAT64:
+            *out = RedJsonValue_FromNumber(var->basic_value->val.val_float64);
+            break;
+        case CANOPY_DATATYPE_INT8:
+            *out = RedJsonValue_FromNumber(var->basic_value->val.val_int8);
+            break;
+        case CANOPY_DATATYPE_INT16:
+            *out = RedJsonValue_FromNumber(var->basic_value->val.val_int16);
+            break;
+        case CANOPY_DATATYPE_INT32:
+            *out = RedJsonValue_FromNumber(var->basic_value->val.val_int32);
+            break;
+        case CANOPY_DATATYPE_STRING:
+            *out = RedJsonValue_FromString(var->basic_value->val.val_string);
+            break;
+        case CANOPY_DATATYPE_UINT8:
+            *out = RedJsonValue_FromNumber(var->basic_value->val.val_uint8);
+            break;
+        case CANOPY_DATATYPE_UINT16:
+            *out = RedJsonValue_FromNumber(var->basic_value->val.val_uint16);
+            break;
+        case CANOPY_DATATYPE_UINT32:
+            *out = RedJsonValue_FromNumber(var->basic_value->val.val_uint32);
+            break;
+        default:
+            return CANOPY_ERROR_UNKNOWN;
+            break;
+    }
+    if (*out == NULL)
+    {
+        return CANOPY_ERROR_OUT_OF_MEMORY;
+    }
+
+    return CANOPY_SUCCESS;
+}
+
 // Create a new basic cloud variable instance.
 // Caller is responsible for setting up relationships to parent & cloudvar
 // system.
