@@ -84,6 +84,7 @@ void st_cloudvar_value_free(CanopyVarValue value);
 CanopyVarReader st_cloudvar_reader_bool(bool *dest);
 CanopyVarReader st_cloudvar_reader_int8(int8_t *dest);
 CanopyVarReader st_cloudvar_reader_uint8(uint8_t *dest);
+CanopyVarReader st_cloudvar_reader_int16(int16_t *dest);
 CanopyVarReader st_cloudvar_reader_uint16(uint16_t *dest);
 CanopyVarReader st_cloudvar_reader_int32(int32_t *dest);
 CanopyVarReader st_cloudvar_reader_uint32(uint32_t *dest);

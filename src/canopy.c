@@ -301,15 +301,55 @@ CanopyResultEnum canopy_var_set(CanopyContext ctx, const char *varname, CanopyVa
     return result;
 }
 
+CanopyVarReader CANOPY_READ_BOOL(bool *dest)
+{
+    st_log_trace("CANOPY_READ_BOOL(0x%p)", dest);
+    return st_cloudvar_reader_bool(dest);
+}
 CanopyVarReader CANOPY_READ_FLOAT32(float *dest)
 {
     st_log_trace("CANOPY_READ_FLOAT32(0x%p)", dest);
     return st_cloudvar_reader_float32(dest);
 }
+CanopyVarReader CANOPY_READ_FLOAT64(double *dest)
+{
+    st_log_trace("CANOPY_READ_FLOAT64(0x%p)", dest);
+    return st_cloudvar_reader_float64(dest);
+}
+CanopyVarReader CANOPY_READ_INT8(int8_t *dest)
+{
+    st_log_trace("CANOPY_READ_INT8(0x%p)", dest);
+    return st_cloudvar_reader_int8(dest);
+}
+CanopyVarReader CANOPY_READ_INT16(int16_t *dest)
+{
+    st_log_trace("CANOPY_READ_INT16(0x%p)", dest);
+    return st_cloudvar_reader_int16(dest);
+}
+CanopyVarReader CANOPY_READ_INT32(int32_t *dest)
+{
+    st_log_trace("CANOPY_READ_INT32(0x%p)", dest);
+    return st_cloudvar_reader_int32(dest);
+}
 CanopyVarReader CANOPY_READ_STRING(char **sz)
 {
     st_log_trace("CANOPY_READ_STRING(0x%p)", sz);
     return st_cloudvar_reader_string(sz);
+}
+CanopyVarReader CANOPY_READ_UINT8(uint8_t *dest)
+{
+    st_log_trace("CANOPY_READ_UINT8(0x%p)", dest);
+    return st_cloudvar_reader_uint8(dest);
+}
+CanopyVarReader CANOPY_READ_UINT16(uint16_t *dest)
+{
+    st_log_trace("CANOPY_READ_UINT16(0x%p)", dest);
+    return st_cloudvar_reader_uint16(dest);
+}
+CanopyVarReader CANOPY_READ_UINT32(uint32_t *dest)
+{
+    st_log_trace("CANOPY_READ_UINT32(0x%p)", dest);
+    return st_cloudvar_reader_uint32(dest);
 }
 
 CanopyVarReader CANOPY_READ_STRUCT(void * dummy, ...)
@@ -319,6 +359,16 @@ CanopyVarReader CANOPY_READ_STRUCT(void * dummy, ...)
     st_log_trace("CANOPY_READ_STRUCT(...)");
     va_start(ap, dummy);
     out = st_cloudvar_reader_struct(ap);
+    va_end(ap);
+    return out;
+}
+CanopyVarReader CANOPY_READ_ARRAY_IMPL(void * dummy, ...)
+{
+    va_list ap;
+    CanopyVarReader out;
+    st_log_trace("CANOPY_READ_ARRAY(...)");
+    va_start(ap, dummy);
+    out = st_cloudvar_reader_array(ap);
     va_end(ap);
     return out;
 }

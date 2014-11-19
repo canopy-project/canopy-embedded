@@ -51,8 +51,22 @@ int main(int argc, const char *argv[])
     RedTest_Verify(test, "Set float array", result == CANOPY_SUCCESS);
 
     result = canopy_sync(canopy, NULL);
-
     RedTest_Verify(test, "Sync", result == CANOPY_SUCCESS);
+
+    bool readBool1, readBool2;
+    double readFloat64;
+
+    result = canopy_var_get(canopy, "bool_ary",
+            CANOPY_READ_ARRAY(
+                1, CANOPY_READ_BOOL(&readBool1),
+                2, CANOPY_READ_BOOL(&readBool2)));
+    RedTest_Verify(test, "Bool[1] correct value", readBool1 == false);
+    RedTest_Verify(test, "Bool[2] correct value", readBool2 == true);
+
+    result = canopy_var_get(canopy, "float64_ary",
+            CANOPY_READ_ARRAY(
+                3, CANOPY_READ_FLOAT64(&readFloat64)));
+    RedTest_Verify(test, "readFloat64 correct value", readFloat64 == 143.04040);
 
     result = canopy_shutdown_context(canopy);
     RedTest_Verify(test, "Shutdown", result == CANOPY_SUCCESS);

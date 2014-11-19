@@ -525,14 +525,25 @@ CanopyResultEnum canopy_var_set(CanopyContext ctx, const char *varname, CanopyVa
 #define canopy_var_set_uint32(ctx, varname, value) \
     canopy_var_set((ctx), (varname), CANOPY_VALUE_UINT32(value))
 
+CanopyVarReader CANOPY_READ_BOOL(bool *dest);
+
 // Create a new CanopyVarReader object that reads into a 32-bit float.
 CanopyVarReader CANOPY_READ_FLOAT32(float *x);
-
+CanopyVarReader CANOPY_READ_FLOAT64(double *dest);
+CanopyVarReader CANOPY_READ_INT8(int8_t *dest);
+CanopyVarReader CANOPY_READ_INT16(int16_t *dest);
+CanopyVarReader CANOPY_READ_INT32(int32_t *dest);
 // Create a new CanopyVarReader object that reads into a string.
 CanopyVarReader CANOPY_READ_STRING(char **sz);
+CanopyVarReader CANOPY_READ_UINT8(uint8_t *dest);
+CanopyVarReader CANOPY_READ_UINT16(uint16_t *dest);
+CanopyVarReader CANOPY_READ_UINT32(uint32_t *dest);
 
 // Create a new CanopyVarReaader object that reads multiple structure fields.
 CanopyVarReader CANOPY_READ_STRUCT(void * dummy, ...);
+
+#define CANOPY_READ_ARRAY(...) CANOPY_READ_ARRAY_IMPL(NULL, __VA_ARGS__, -1)
+CanopyVarReader CANOPY_READ_ARRAY_IMPL(void * dummy, ...);
 
 // Get the local value of a Cloud Variable.
 //
