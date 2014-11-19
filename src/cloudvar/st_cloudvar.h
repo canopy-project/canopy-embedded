@@ -60,7 +60,7 @@ CanopyResultEnum st_cloudvar_register_on_change_callback(STCloudVar var, CanopyO
 CanopyResultEnum st_cloudvar_set_var(STCloudVar var, CanopyVarValue value);
 
 // Get Cloud Variable's value using reader.
-CanopyResultEnum st_cloudvar_get_local_value(STCloudVar var, CanopyVarReader dest);
+CanopyResultEnum st_cloudvar_read_var(STCloudVar var, CanopyVarReader dest);
 
 CanopyResultEnum st_cloudvar_set_local_value_from_json(STCloudVarSystem vars, const char *varname, RedJsonValue value);
 
@@ -81,9 +81,17 @@ CanopyVarValue st_cloudvar_value_array(va_list ap);
 
 void st_cloudvar_value_free(CanopyVarValue value);
 
+CanopyVarReader st_cloudvar_reader_bool(bool *dest);
+CanopyVarReader st_cloudvar_reader_int8(int8_t *dest);
+CanopyVarReader st_cloudvar_reader_uint8(uint8_t *dest);
+CanopyVarReader st_cloudvar_reader_uint16(uint16_t *dest);
+CanopyVarReader st_cloudvar_reader_int32(int32_t *dest);
+CanopyVarReader st_cloudvar_reader_uint32(uint32_t *dest);
 CanopyVarReader st_cloudvar_reader_float32(float *dest);
-CanopyVarReader st_cloudvar_reader_string(const char **dest);
+CanopyVarReader st_cloudvar_reader_float64(double *dest);
+CanopyVarReader st_cloudvar_reader_string(char **dest);
 CanopyVarReader st_cloudvar_reader_struct(va_list ap);
+CanopyVarReader st_cloudvar_reader_array(va_list ap);
 
 void st_cloudvar_reader_free(CanopyVarReader value);
 
@@ -139,6 +147,10 @@ bool st_cloudvar_is_basic(STCloudVar var);
 
 CanopyResultEnum st_cloudvar_array_value_to_json(RedJsonValue *out, STCloudVar var);
 CanopyResultEnum st_cloudvar_basic_value_to_json(RedJsonValue *out, STCloudVar var);
+
+CanopyResultEnum st_cloudvar_basic_read_var(STCloudVar var, CanopyVarReader reader);
+CanopyResultEnum st_cloudvar_array_read_var(STCloudVar var, CanopyVarReader reader);
+
 #endif // ST_VARS_INCLUDED
 
 

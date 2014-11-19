@@ -529,7 +529,7 @@ CanopyResultEnum canopy_var_set(CanopyContext ctx, const char *varname, CanopyVa
 CanopyVarReader CANOPY_READ_FLOAT32(float *x);
 
 // Create a new CanopyVarReader object that reads into a string.
-CanopyVarReader CANOPY_READ_STRING(const char **sz);
+CanopyVarReader CANOPY_READ_STRING(char **sz);
 
 // Create a new CanopyVarReaader object that reads multiple structure fields.
 CanopyVarReader CANOPY_READ_STRUCT(void * dummy, ...);

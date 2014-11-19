@@ -32,26 +32,6 @@ typedef struct STCloudVarArray_t
 } STCloudVarArray_t;
 
 
-typedef struct STCloudVarReader_t {
-    CanopyDatatypeEnum datatype;
-    bool used;
-    union
-    {
-        bool *dest_bool;
-        char ** dest_string;
-        int8_t dest_int8;
-        uint8_t *dest_uint8;
-        int16_t *dest_int16;
-        uint16_t *dest_uint16;
-        int32_t *dest_int32;
-        uint32_t *dest_uint32;
-        float *dest_float32;
-        double *dest_float64;
-        struct tm *dest_datetime;
-        STCloudVarStruct_t *dest_strct;
-    } dest;
-} STCloudVarReader_t;
-
 
 CanopyVarValue st_cloudvar_value_bool(bool x)
 {
@@ -264,6 +244,96 @@ void st_cloudvar_value_free(CanopyVarValue value)
     assert(!"Not implemented");
 }
 
+CanopyVarReader st_cloudvar_reader_bool(bool *dest)
+{
+    CanopyVarReader out;
+    out = malloc(sizeof(STCloudVarReader_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    out->datatype = CANOPY_DATATYPE_BOOL;
+    out->dest.dest_bool = dest;
+    return out;
+}
+
+CanopyVarReader st_cloudvar_reader_int8(int8_t *dest)
+{
+    CanopyVarReader out;
+    out = malloc(sizeof(STCloudVarReader_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    out->datatype = CANOPY_DATATYPE_INT8;
+    out->dest.dest_int8 = dest;
+    return out;
+}
+
+CanopyVarReader st_cloudvar_reader_uint8(uint8_t *dest)
+{
+    CanopyVarReader out;
+    out = malloc(sizeof(STCloudVarReader_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    out->datatype = CANOPY_DATATYPE_UINT8;
+    out->dest.dest_uint8 = dest;
+    return out;
+}
+
+CanopyVarReader st_cloudvar_reader_int16(int16_t *dest)
+{
+    CanopyVarReader out;
+    out = malloc(sizeof(STCloudVarReader_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    out->datatype = CANOPY_DATATYPE_INT16;
+    out->dest.dest_int16 = dest;
+    return out;
+}
+
+CanopyVarReader st_cloudvar_reader_uint16(uint16_t *dest)
+{
+    CanopyVarReader out;
+    out = malloc(sizeof(STCloudVarReader_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    out->datatype = CANOPY_DATATYPE_UINT16;
+    out->dest.dest_uint16 = dest;
+    return out;
+}
+
+CanopyVarReader st_cloudvar_reader_int32(int32_t *dest)
+{
+    CanopyVarReader out;
+    out = malloc(sizeof(STCloudVarReader_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    out->datatype = CANOPY_DATATYPE_INT32;
+    out->dest.dest_int32 = dest;
+    return out;
+}
+
+CanopyVarReader st_cloudvar_reader_uint32(uint32_t *dest)
+{
+    CanopyVarReader out;
+    out = malloc(sizeof(STCloudVarReader_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    out->datatype = CANOPY_DATATYPE_UINT32;
+    out->dest.dest_uint32 = dest;
+    return out;
+}
 
 CanopyVarReader st_cloudvar_reader_float32(float *dest)
 {
@@ -278,14 +348,63 @@ CanopyVarReader st_cloudvar_reader_float32(float *dest)
     return out;
 }
 
-CanopyVarReader st_cloudvar_reader_string(const char **dest)
+CanopyVarReader st_cloudvar_reader_float64(double *dest)
 {
-    return NULL;
+    CanopyVarReader out;
+    out = malloc(sizeof(STCloudVarReader_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    out->datatype = CANOPY_DATATYPE_FLOAT64;
+    out->dest.dest_float64 = dest;
+    return out;
+}
+
+CanopyVarReader st_cloudvar_reader_string(char **dest)
+{
+    CanopyVarReader out;
+    out = malloc(sizeof(STCloudVarReader_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    out->datatype = CANOPY_DATATYPE_STRING;
+    out->dest.dest_string = dest;
+    return out;
 }
 
 CanopyVarReader st_cloudvar_reader_struct(va_list ap)
 {
     return NULL;
+}
+
+CanopyVarReader st_cloudvar_reader_array(va_list ap)
+{
+    CanopyVarReader out;
+    int index;
+    out = calloc(1, sizeof(STCloudVarReader_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    out->datatype = CANOPY_DATATYPE_ARRAY;
+    out->dest.array_hash = RedHash_New(0);
+    if (!out->dest.array_hash)
+    {
+        free(out);
+        return NULL;
+    }
+
+    // Process each parameter
+    while ((index = va_arg(ap, int)) != -1)
+    {
+        CanopyVarReader reader = va_arg(ap, CanopyVarReader);
+        RedHash_Insert(out->dest.array_hash, &index, sizeof(index), reader);
+    }
+    va_end(ap);
+
+    return out;
 }
 
 const char * st_cloudvar_name(STCloudVar var)
@@ -413,30 +532,6 @@ CanopyResultEnum st_cloudvar_set_local_value_from_json(STCloudVarSystem sys, con
         val->val.val_float32 = newValue;
     }
     
-    return CANOPY_SUCCESS;*/
-    return CANOPY_ERROR_NOT_IMPLEMENTED;
-}
-
-CanopyResultEnum st_cloudvar_get_local_value(STCloudVar var, CanopyVarReader dest)
-{
-    /*if (!var->basic_value)
-    {
-        return CANOPY_ERROR_VARIABLE_NOT_SET;
-    }
-    if (dest->datatype != var->value->datatype)
-    {
-        return CANOPY_ERROR_INCORRECT_DATATYPE;
-    }
-
-    switch (dest->datatype)
-    {
-        case CANOPY_DATATYPE_FLOAT32:
-            *dest->dest.dest_float32 = var->value->val.val_float32;
-            break;
-        default:
-            return CANOPY_ERROR_NOT_IMPLEMENTED;
-    }
-
     return CANOPY_SUCCESS;*/
     return CANOPY_ERROR_NOT_IMPLEMENTED;
 }

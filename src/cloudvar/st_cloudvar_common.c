@@ -182,7 +182,7 @@ bool st_cloudvar_is_sddl_dirty(STCloudVar var)
     return var->sddl_dirty_flag;
 }
 
-// Convert array cloud variable's value to JSON, recursively
+// Convert cloud variable's value to JSON, recursively
 CanopyResultEnum st_cloudvar_value_to_json(RedJsonValue *out, STCloudVar var)
 {
     // Call appropriate value_to_json routine
@@ -193,6 +193,22 @@ CanopyResultEnum st_cloudvar_value_to_json(RedJsonValue *out, STCloudVar var)
     else if (st_cloudvar_datatype(var) == CANOPY_DATATYPE_ARRAY)
     {
         return st_cloudvar_array_value_to_json(out, var);
+    }
+
+   return CANOPY_ERROR_UNKNOWN;
+}
+
+// Read cloud variable's value recursively, using CanopyVarReader
+CanopyResultEnum st_cloudvar_read_var(STCloudVar var, CanopyVarReader reader)
+{
+    // Call appropriate value_to_json routine
+    if (st_cloudvar_is_basic(var))
+    {
+        return st_cloudvar_basic_read_var(var, reader);
+    }
+    else if (st_cloudvar_datatype(var) == CANOPY_DATATYPE_ARRAY)
+    {
+        return st_cloudvar_array_read_var(var, reader);
     }
 
    return CANOPY_ERROR_UNKNOWN;

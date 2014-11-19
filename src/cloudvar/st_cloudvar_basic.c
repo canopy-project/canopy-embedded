@@ -145,3 +145,55 @@ CanopyResultEnum st_cloudvar_basic_set(STCloudVar var, CanopyVarValue value)
 
     return CANOPY_SUCCESS;
 }
+
+CanopyResultEnum st_cloudvar_basic_read_var(STCloudVar var, CanopyVarReader reader)
+{
+    if (st_cloudvar_datatype(var) != reader->datatype)
+    {
+        return CANOPY_ERROR_INCORRECT_DATATYPE;
+    }
+
+    if (!st_cloudvar_has_value(var))
+    {
+        return CANOPY_ERROR_VARIABLE_NOT_SET;
+    }
+
+    switch (reader->datatype)
+    {
+        case CANOPY_DATATYPE_BOOL:
+            *reader->dest.dest_bool = var->basic_value->val.val_bool;
+            break;
+        case CANOPY_DATATYPE_FLOAT32:
+            *reader->dest.dest_float32 = var->basic_value->val.val_float32;
+            break;
+        case CANOPY_DATATYPE_FLOAT64:
+            *reader->dest.dest_float64 = var->basic_value->val.val_float64;
+            break;
+        case CANOPY_DATATYPE_INT8:
+            *reader->dest.dest_int8 = var->basic_value->val.val_int8;
+            break;
+        case CANOPY_DATATYPE_INT16:
+            *reader->dest.dest_int16 = var->basic_value->val.val_int16;
+            break;
+        case CANOPY_DATATYPE_INT32:
+            *reader->dest.dest_int32 = var->basic_value->val.val_int32;
+            break;
+        case CANOPY_DATATYPE_STRING:
+            *reader->dest.dest_string = RedString_strdup(var->basic_value->val.val_string);
+            break;
+        case CANOPY_DATATYPE_UINT8:
+            *reader->dest.dest_uint8 = var->basic_value->val.val_uint8;
+            break;
+        case CANOPY_DATATYPE_UINT16:
+            *reader->dest.dest_uint16 = var->basic_value->val.val_uint16;
+            break;
+        case CANOPY_DATATYPE_UINT32:
+            *reader->dest.dest_uint32 = var->basic_value->val.val_uint32;
+            break;
+        default:
+            return CANOPY_ERROR_UNKNOWN;
+            break;
+    }
+    return CANOPY_SUCCESS;
+}
+

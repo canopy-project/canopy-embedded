@@ -142,4 +142,25 @@ typedef struct STCloudVarValue_t {
     bool used;
 } STCloudVarValue_t;
 
+typedef struct STCloudVarReader_t {
+    CanopyDatatypeEnum datatype;
+    bool used;
+    union
+    {
+        bool *dest_bool;
+        char ** dest_string;
+        int8_t *dest_int8;
+        uint8_t *dest_uint8;
+        int16_t *dest_int16;
+        uint16_t *dest_uint16;
+        int32_t *dest_int32;
+        uint32_t *dest_uint32;
+        float *dest_float32;
+        double *dest_float64;
+        struct tm *dest_datetime;
+        RedHash array_hash;
+    } dest;
+
+} STCloudVarReader_t;
+
 #endif // ST_CLOUDVAR_INTERNAL_INCLUDED

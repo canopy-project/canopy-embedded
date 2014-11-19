@@ -43,6 +43,13 @@ int main(int argc, const char *argv[])
     );
     RedTest_Verify(test, "Set bool array", result == CANOPY_SUCCESS);
 
+    result = canopy_var_set(canopy, "float64_ary", 
+        CANOPY_VALUE_ARRAY(
+            3, CANOPY_VALUE_FLOAT64(143.04040)
+        )
+    );
+    RedTest_Verify(test, "Set float array", result == CANOPY_SUCCESS);
+
     result = canopy_sync(canopy, NULL);
 
     RedTest_Verify(test, "Sync", result == CANOPY_SUCCESS);

@@ -157,3 +157,49 @@ CanopyResultEnum st_cloudvar_array_set(STCloudVar var, CanopyVarValue value)
 
     return CANOPY_SUCCESS;
 }
+
+// Gets an array cloud variable's value
+CanopyResultEnum st_cloudvar_array_read_var(STCloudVar var, CanopyVarReader reader)
+{
+    CanopyResultEnum result;
+    if (reader->datatype != CANOPY_DATATYPE_ARRAY)
+    {
+        return CANOPY_ERROR_INCORRECT_DATATYPE;
+    }
+    if (st_cloudvar_datatype(var) != CANOPY_DATATYPE_ARRAY)
+    {
+        return CANOPY_ERROR_INCORRECT_DATATYPE;
+    }
+
+    // Read values recursively
+    // Loop over each reader
+    RedHashIterator_t iter;
+    const void *key;
+    const void *hashValue;
+    size_t keySize;
+
+    RED_HASH_FOREACH(iter, reader->dest.array_hash, &key, &keySize, &hashValue)
+    {
+        int idx = *((int *)key);
+        CanopyVarReader elementReader = (CanopyVarReader)hashValue;
+
+        // Check index bounds
+        if (idx < 0)
+        {
+            return CANOPY_ERROR_ARRAY_INDEX_OUT_OF_BOUNDS;
+        }
+        if (idx >= var->array_num_items)
+        {
+            return CANOPY_ERROR_ARRAY_INDEX_OUT_OF_BOUNDS;
+        }
+
+        // Assign value
+        result = st_cloudvar_read_var(var->array_items[idx], elementReader);
+        if (result != CANOPY_SUCCESS)
+        {
+            return result;
+        }
+    }
+
+    return CANOPY_SUCCESS;
+}

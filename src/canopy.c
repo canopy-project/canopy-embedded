@@ -306,7 +306,7 @@ CanopyVarReader CANOPY_READ_FLOAT32(float *dest)
     st_log_trace("CANOPY_READ_FLOAT32(0x%p)", dest);
     return st_cloudvar_reader_float32(dest);
 }
-CanopyVarReader CANOPY_READ_STRING(const char **sz)
+CanopyVarReader CANOPY_READ_STRING(char **sz)
 {
     st_log_trace("CANOPY_READ_STRING(0x%p)", sz);
     return st_cloudvar_reader_string(sz);
@@ -334,7 +334,7 @@ CanopyResultEnum canopy_var_get(CanopyContext ctx, const char *varname, CanopyVa
         return CANOPY_ERROR_VARIABLE_NOT_INITIALIZED;
     }
 
-    return st_cloudvar_get_local_value(var, dest);
+    return st_cloudvar_read_var(var, dest);
 }
 
 CanopyResultEnum canopy_var_on_change(CanopyContext ctx, const char *varname, CanopyOnChangeCallback cb, void *userdata)
