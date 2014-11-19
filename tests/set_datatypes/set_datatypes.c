@@ -44,7 +44,7 @@ int main(void)
     result = canopy_var_init(canopy, "out int32 var_i32");
     CHECK_RESULT(result);
 
-    result = canopy_var_init(canopy, "out int32 var_u32");
+    result = canopy_var_init(canopy, "out uint32 var_u32");
     CHECK_RESULT(result);
 
     result = canopy_var_init(canopy, "out float32 var_f32");
