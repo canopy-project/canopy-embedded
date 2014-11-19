@@ -171,7 +171,7 @@ CanopyVarValue st_cloudvar_value_uint32(uint32_t x)
 
 CanopyVarValue st_cloudvar_value_struct(va_list ap)
 {
-    /*CanopyVarValue out;
+    CanopyVarValue out;
     char *fieldname;
     out = calloc(1, sizeof(STCloudVarValue_t));
     if (!out)
@@ -179,8 +179,8 @@ CanopyVarValue st_cloudvar_value_struct(va_list ap)
         return NULL;
     }
     out->datatype = CANOPY_DATATYPE_STRUCT;
-    out->val.val_strct.hash = RedHash_New(0);
-    if (!out->val.val_strct.hash)
+    out->struct_hash = RedHash_New(0);
+    if (!out->struct_hash)
     {
         free(out);
         return NULL;
@@ -190,12 +190,11 @@ CanopyVarValue st_cloudvar_value_struct(va_list ap)
     while ((fieldname = va_arg(ap, char *)) != NULL)
     {
         CanopyVarValue val = va_arg(ap, CanopyVarValue);
-        RedHash_InsertS(out->val.val_strct.hash, fieldname, val);
+        RedHash_InsertS(out->struct_hash, fieldname, val);
     }
     va_end(ap);
 
-    return out;*/
-    return NULL;
+    return out;
 }
 
 CanopyVarValue st_cloudvar_value_array(va_list ap)
@@ -598,4 +597,9 @@ CanopyDatatypeEnum st_cloudvar_datatype(STCloudVar var)
 bool st_cloudvar_is_basic(STCloudVar var)
 {
     return sddl_var_is_basic(var->decl);
+}
+
+RedJsonObject st_cloudvar_definition_json(STCloudVar var)
+{
+    return sddl_var_json(var->decl);
 }

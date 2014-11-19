@@ -42,6 +42,9 @@ typedef struct STCloudVarValue_t * CanopyVarValue;
 // A CanopyVarReader represents a destination for reading a Cloud Variable.
 typedef struct STCloudVarReader_t * CanopyVarReader;
 
+// A CanopyInitObject represents structure fields being initialized.
+typedef struct STCloudVarInitObject_t * CanopyVarInitObject;
+
 typedef int (*CanopyOnChangeCallback)(CanopyContext, const char *, void *);
 
 // A CanopyPromise is a synchronization primitive.  When the libcanopy library
@@ -261,8 +264,8 @@ typedef enum
     CANOPY_VAR_DIRECTION,
     CANOPY_VAR_MIN_VALUE,
     CANOPY_VAR_MAX_VALUE,
-    CANOPY_VAR_CHILD,
     CANOPY_VAR_DESCRIPTION,
+    CANOPY_VAR_FIELD
 } CanopyVarConfigEnum;
 
 // CanopyProtocolEnum
@@ -412,21 +415,25 @@ CanopyResultEnum canopy_set_opt_impl(CanopyContext ctx, ...);
 // A named tuple can be initialized using:
 //
 //      canopy_var_init(ctx, "in tuple desired_color",
-//          CANOPY_INIT_CHILD("float32 r"),
-//          CANOPY_INIT_CHILD("float32 g"),
-//          CANOPY_INIT_CHILD("float32 b")
+//          CANOPY_INIT_FIELD("float32 r"),
+//          CANOPY_INIT_FIELD("float32 g"),
+//          CANOPY_INIT_FIELD("float32 b")
 //      );
 //
 // A struct can be initialized using:
 //
 //      canopy_var_init(ctx, "struct status",
-//          CANOPY_INIT_CHILD("out string msg"),
-//          CANOPY_INIT_CHILD("out int16 status_code"),
-//          CANOPY_INIT_CHILD("in void update_trigger"),
+//          CANOPY_INIT_FIELD("out string msg"),
+//          CANOPY_INIT_FIELD("out int16 status_code"),
+//          CANOPY_INIT_FIELD("in void update_trigger"),
 //      );
 #define canopy_var_init(ctx, ...) \
     canopy_var_init_impl(ctx, __VA_ARGS__, NULL)
 CanopyResultEnum canopy_var_init_impl(CanopyContext ctx, const char *decl, ...);
+
+
+#define CANOPY_INIT_FIELD(...) CANOPY_VAR_FIELD, CANOPY_INIT_FIELD_IMPL(__VA_ARGS__, NULL)
+CanopyVarInitObject CANOPY_INIT_FIELD_IMPL(const char *decl, ...);
 
 // Create a new CanopyVarValue object from a bool.
 CanopyVarValue CANOPY_VALUE_BOOL(bool x);
@@ -459,7 +466,8 @@ CanopyVarValue CANOPY_VALUE_FLOAT64(double x);
 CanopyVarValue CANOPY_VALUE_STRING(const char *sz);
 
 // Create a new CanopyVarValue object containing a structure.
-CanopyVarValue CANOPY_VALUE_STRUCT(void * dummy, ...);
+#define CANOPY_VALUE_STRUCT(...) CANOPY_VALUE_STRUCT_IMPL(NULL, __VA_ARGS__, NULL)
+CanopyVarValue CANOPY_VALUE_STRUCT_IMPL(void *dummy, ...);
 
 // Create a new CanopyVarValue object containing an array.
 // ex:

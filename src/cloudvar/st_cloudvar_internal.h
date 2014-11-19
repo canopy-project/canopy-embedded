@@ -68,6 +68,10 @@ typedef struct STCloudVarInitOptions_t
     // (Array only) Datatype of array elements
     SDDLDatatypeEnum array_datatype;
 
+    // (Struct only) Options for child members
+    // Hash: "name" -> STCloudVarOptions
+    RedHash struct_hash;
+
     // Description provided with CANOPY_VAR_DESCRIPTION
     char *description;
 } STCloudVarInitOptions_t;
@@ -139,6 +143,9 @@ typedef struct STCloudVarValue_t {
     // idx --> CanopyVarValue
     RedHash array_hash;
 
+    // name -> CanopyVarValue
+    RedHash struct_hash;
+
     bool used;
 } STCloudVarValue_t;
 
@@ -162,5 +169,12 @@ typedef struct STCloudVarReader_t {
     } dest;
 
 } STCloudVarReader_t;
+
+typedef struct STCloudVarInitObject_t
+{
+    // TODO: is this structure even necessary, maybe we can use
+    // STCloudVarInitOptions_t directly?
+    STCloudVarInitOptions options;
+} STCloudVarInitObject_t;
 
 #endif // ST_CLOUDVAR_INTERNAL_INCLUDED

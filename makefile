@@ -14,6 +14,7 @@ SOURCE_FILES = \
     src/cloudvar/st_cloudvar_common.c \
     src/cloudvar/st_cloudvar_basic.c \
     src/cloudvar/st_cloudvar_array.c \
+    src/cloudvar/st_cloudvar_struct.c \
     src/cloudvar/st_cloudvar_system.c \
     src/http/st_http_curl.c \
     src/log/st_log.c \

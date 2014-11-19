@@ -175,6 +175,17 @@ CanopyResultEnum canopy_set_global_opt_impl(void *dummy, ...)
     return CANOPY_SUCCESS;
 }
 
+CanopyVarInitObject CANOPY_INIT_FIELD_IMPL(const char *decl, ...)
+{
+    va_list ap;
+    CanopyVarInitObject out;
+    st_log_trace("CANOPY_INIT_FIELD_IMPL");
+    va_start(ap, decl);
+    out = st_cloudvar_init_field(decl, ap);
+    va_end(ap);
+    return out;
+}
+
 CanopyResultEnum canopy_set_opt_impl(CanopyContext ctx, ...)
 {
     va_list ap;
@@ -244,7 +255,7 @@ CanopyVarValue CANOPY_VALUE_STRING(const char *sz)
     return st_cloudvar_value_string(sz);
 }
 
-CanopyVarValue CANOPY_VALUE_STRUCT(void * dummy, ...)
+CanopyVarValue CANOPY_VALUE_STRUCT_IMPL(void * dummy, ...)
 {
     va_list ap;
     CanopyVarValue out;

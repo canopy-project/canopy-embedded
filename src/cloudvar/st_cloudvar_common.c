@@ -55,18 +55,34 @@ CanopyResultEnum st_cloudvar_parse_init_options(
     options->array_datatype = arrayElementDatatype;
     options->name = RedString_strdup(name);
 
+    if (datatype == SDDL_DATATYPE_STRUCT)
+    {
+        options->struct_hash = RedHash_New(0);
+        if (!options->struct_hash)
+        {
+            return CANOPY_ERROR_OUT_OF_MEMORY;
+        }
+    }
+
     // process varargs
     while ((param = va_arg(ap, CanopyVarConfigEnum)) != 0)
     {
         switch (param)
         {
-            case CANOPY_VAR_CHILD:
+            case CANOPY_VAR_FIELD:
             {
                 if (datatype != SDDL_DATATYPE_STRUCT)
                 {
                     return CANOPY_ERROR_INVALID_OPT;
                 }
-                // TODO recursive processing
+
+                CanopyVarInitObject childObj = va_arg(ap, CanopyVarInitObject);
+                if (!childObj)
+                {
+                    return CANOPY_ERROR_INVALID_VALUE;
+                }
+
+                RedHash_InsertS(options->struct_hash, childObj->options->name, childObj->options);
                 break;
             }
             case CANOPY_VAR_DESCRIPTION:
@@ -99,6 +115,10 @@ CanopyResultEnum st_cloudvar_generic_new(
     else if (options->datatype == SDDL_DATATYPE_ARRAY)
     {
         return st_cloudvar_array_new(out, options);
+    }
+    else if (options->datatype == SDDL_DATATYPE_STRUCT)
+    {
+        return st_cloudvar_struct_new(out, options);
     }
     return CANOPY_ERROR_UNKNOWN;
 }
@@ -151,6 +171,10 @@ CanopyResultEnum st_cloudvar_generic_set(STCloudVar var, CanopyVarValue value)
     {
         return st_cloudvar_array_set(var, value);
     }
+    else if (st_cloudvar_datatype(var) == CANOPY_DATATYPE_STRUCT)
+    {
+        return st_cloudvar_struct_set(var, value);
+    }
 
    return CANOPY_ERROR_UNKNOWN;
 }
@@ -194,6 +218,10 @@ CanopyResultEnum st_cloudvar_value_to_json(RedJsonValue *out, STCloudVar var)
     {
         return st_cloudvar_array_value_to_json(out, var);
     }
+    else if (st_cloudvar_datatype(var) == CANOPY_DATATYPE_STRUCT)
+    {
+        return st_cloudvar_struct_value_to_json(out, var);
+    }
 
    return CANOPY_ERROR_UNKNOWN;
 }
@@ -212,4 +240,21 @@ CanopyResultEnum st_cloudvar_read_var(STCloudVar var, CanopyVarReader reader)
     }
 
    return CANOPY_ERROR_UNKNOWN;
+}
+
+CanopyVarInitObject st_cloudvar_init_field(const char *decl, va_list ap)
+{
+    CanopyVarInitObject out;
+    CanopyResultEnum result;
+    out = calloc(1, sizeof(STCloudVarInitObject_t));
+    if (!out)
+    {
+        return NULL;
+    }
+    result = st_cloudvar_parse_init_options(&out->options, decl, ap);
+    if (result != CANOPY_SUCCESS)
+    {
+        return NULL;
+    }
+    return out;
 }

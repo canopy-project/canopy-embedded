@@ -22,6 +22,7 @@
 #include "websocket/st_websocket.h"
 #include "red_json.h"
 #include "red_string.h"
+#include <sddl.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -160,7 +161,8 @@ static char * _gen_outbound_payload(STCloudVarSystem cloudvars)
                 //     "uint16 var_u16" : {}
                 // }
                 const char * decl = st_cloudvar_decl_string(var);
-                RedJsonObject_SetObject(json_sddl, decl, RedJsonObject_New());
+                RedJsonObject properties = st_cloudvar_definition_json(var);
+                RedJsonObject_SetObject(json_sddl, decl, properties);
                 // TODO: set other configuration settings
 
                 // TODO: Only actually mark as configured after the server responds.
