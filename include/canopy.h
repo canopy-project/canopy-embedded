@@ -69,7 +69,8 @@ typedef enum
     CANOPY_DATATYPE_FLOAT64,
     CANOPY_DATATYPE_DATETIME,
     CANOPY_DATATYPE_STRUCT,
-    CANOPY_DATATYPE_ARRAY
+    CANOPY_DATATYPE_ARRAY,
+    CANOPY_DATATYPE_TUPLE,
 } CanopyDatatypeEnum;
 
 // Must match SDDLDirectionEnum exactly!
@@ -469,6 +470,10 @@ CanopyVarValue CANOPY_VALUE_STRING(const char *sz);
 #define CANOPY_VALUE_STRUCT(...) CANOPY_VALUE_STRUCT_IMPL(NULL, __VA_ARGS__, NULL)
 CanopyVarValue CANOPY_VALUE_STRUCT_IMPL(void *dummy, ...);
 
+// Create a new CanopyVarValue object containing a tuple.
+#define CANOPY_VALUE_TUPLE(...) CANOPY_VALUE_TUPLE_IMPL(NULL, __VA_ARGS__, NULL)
+CanopyVarValue CANOPY_VALUE_TUPLE_IMPL(void *dummy, ...);
+
 // Create a new CanopyVarValue object containing an array.
 // ex:
 //      <idx>, <value>
@@ -550,6 +555,10 @@ CanopyVarReader CANOPY_READ_UINT32(uint32_t *dest);
 // Create a new CanopyVarReaader object that reads multiple structure fields.
 #define CANOPY_READ_STRUCT(...) CANOPY_READ_STRUCT_IMPL(NULL, __VA_ARGS__, NULL)
 CanopyVarReader CANOPY_READ_STRUCT_IMPL(void * dummy, ...);
+
+// Create a new CanopyVarReaader object that reads multiple tuple fields.
+#define CANOPY_READ_TUPLE(...) CANOPY_READ_TUPLE_IMPL(NULL, __VA_ARGS__, NULL)
+CanopyVarReader CANOPY_READ_TUPLE_IMPL(void * dummy, ...);
 
 #define CANOPY_READ_ARRAY(...) CANOPY_READ_ARRAY_IMPL(NULL, __VA_ARGS__, -1)
 CanopyVarReader CANOPY_READ_ARRAY_IMPL(void * dummy, ...);

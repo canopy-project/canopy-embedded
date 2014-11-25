@@ -72,6 +72,10 @@ typedef struct STCloudVarInitOptions_t
     // Hash: "name" -> STCloudVarOptions
     RedHash struct_hash;
 
+    // (Tuple only) Options for child members
+    // Hash: "name" -> STCloudVarOptions
+    RedHash struct_hash;
+
     // Description provided with CANOPY_VAR_DESCRIPTION
     char *description;
 } STCloudVarInitOptions_t;

@@ -78,6 +78,7 @@ CanopyVarValue st_cloudvar_value_float64(double x);
 CanopyVarValue st_cloudvar_value_string(const char *sz);
 CanopyVarValue st_cloudvar_value_struct(va_list ap);
 CanopyVarValue st_cloudvar_value_array(va_list ap);
+CanopyVarValue st_cloudvar_value_tuple(va_list ap);
 
 void st_cloudvar_value_free(CanopyVarValue value);
 
@@ -93,6 +94,7 @@ CanopyVarReader st_cloudvar_reader_float64(double *dest);
 CanopyVarReader st_cloudvar_reader_string(char **dest);
 CanopyVarReader st_cloudvar_reader_struct(va_list ap);
 CanopyVarReader st_cloudvar_reader_array(va_list ap);
+CanopyVarReader st_cloudvar_reader_tuple(va_list ap);
 
 void st_cloudvar_reader_free(CanopyVarReader value);
 
@@ -157,6 +159,12 @@ CanopyResultEnum st_cloudvar_struct_new(STCloudVar *out, STCloudVarInitOptions o
 CanopyResultEnum st_cloudvar_struct_validate_value(STCloudVar var, CanopyVarValue value);
 CanopyResultEnum st_cloudvar_struct_set(STCloudVar var, CanopyVarValue value);
 CanopyResultEnum st_cloudvar_struct_read_var(STCloudVar var, CanopyVarReader reader);
+
+CanopyResultEnum st_cloudvar_tuple_value_to_json(RedJsonValue *out, STCloudVar var);
+CanopyResultEnum st_cloudvar_tuple_new(STCloudVar *out, STCloudVarInitOptions options);
+CanopyResultEnum st_cloudvar_tuple_validate_value(STCloudVar var, CanopyVarValue value);
+CanopyResultEnum st_cloudvar_tuple_set(STCloudVar var, CanopyVarValue value);
+CanopyResultEnum st_cloudvar_tuple_read_var(STCloudVar var, CanopyVarReader reader);
 
 CanopyVarInitObject st_cloudvar_init_field(const char *decl, va_list ap);
 

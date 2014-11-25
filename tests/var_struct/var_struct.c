@@ -25,7 +25,10 @@ int main(int argc, const char *argv[])
     result = canopy_var_init(canopy, "inout struct gps",
             CANOPY_INIT_FIELD("float32 latitude"),
             CANOPY_INIT_FIELD("float32 longitude"),
-            CANOPY_INIT_FIELD("float32 altitude")
+            CANOPY_INIT_FIELD("float32 altitude"),
+            CANOPY_INIT_FIELD("struct status",
+                CANOPY_INIT_FIELD("bool ok")
+            )
     );
     RedTest_Verify(test, "Init gps struct", result == CANOPY_SUCCESS);
 
@@ -38,6 +41,7 @@ int main(int argc, const char *argv[])
             "longitude", CANOPY_VALUE_FLOAT32(0.494949f)
         )
     );
+    RedTest_Verify(test, "set latitude & longitude", result == CANOPY_SUCCESS);
 
     float val;
     result = canopy_var_get(canopy, "gps", CANOPY_READ_STRUCT("latitude", CANOPY_READ_FLOAT32(&val)));
@@ -49,6 +53,15 @@ int main(int argc, const char *argv[])
     RedTest_Verify(test, "longitude value correct", val == 0.494949f);
 
     result = canopy_sync(canopy, NULL);
+    RedTest_Verify(test, "sync", result == CANOPY_SUCCESS);
+
+    result = canopy_var_set(canopy, "gps", 
+        CANOPY_VALUE_STRUCT(
+            "status", CANOPY_VALUE_STRUCT(
+                "ok", CANOPY_VALUE_BOOL(true)
+            )
+        )
+    );
     RedTest_Verify(test, "set latitude & longitude", result == CANOPY_SUCCESS);
 
     result = canopy_sync(canopy, NULL);
