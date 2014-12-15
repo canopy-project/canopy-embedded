@@ -5,8 +5,15 @@ RELEASE_FLAGS := $(CFLAGS) -Os
 
 LIBRED_DIR := ../3rdparty/libred
 LIBSDDL_DIR := ../libsddl
+LIBWEBSOCKETS_DIR := ../3rdparty/libwebsockets
 
-INCLUDE_FLAGS := -Isrc -Iinclude -I$(LIBSDDL_DIR)/include -I$(LIBRED_DIR)/include -I$(LIBRED_DIR)/under_construction
+INCLUDE_FLAGS := \
+	-Isrc \
+	-Iinclude \
+	-I$(LIBSDDL_DIR)/include \
+	-I$(LIBRED_DIR)/include \
+	-I$(LIBRED_DIR)/under_construction \
+	-I$(LIBWEBSOCKETS_DIR)/lib
 
 SOURCE_FILES = \
     src/canopy.c \
