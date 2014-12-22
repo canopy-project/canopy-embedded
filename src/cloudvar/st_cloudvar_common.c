@@ -226,6 +226,16 @@ CanopyResultEnum st_cloudvar_value_to_json(RedJsonValue *out, STCloudVar var)
    return CANOPY_ERROR_UNKNOWN;
 }
 
+// This is used for incoming values from the cloud server
+CanopyResultEnum st_cloudvar_update_from_json(STCloudVar var, RedJsonValue json)
+{
+    if (st_cloudvar_is_basic(var))
+    {
+        return st_cloudvar_basic_update_from_json(var, json);
+    }
+    return CANOPY_ERROR_NOT_IMPLEMENTED;
+}
+
 // Read cloud variable's value recursively, using CanopyVarReader
 CanopyResultEnum st_cloudvar_read_var(STCloudVar var, CanopyVarReader reader)
 {

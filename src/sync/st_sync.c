@@ -80,6 +80,7 @@ static CanopyResultEnum _send_payload(
 static CanopyResultEnum _process_payload(STCloudVarSystem sys, const char *payload)
 {
     st_log_debug("Processing payload %s", payload); // TODO: Only log if payload logging enabled
+    fprintf(stderr, "_process_payload'%s'\n", payload);
 
     RedJsonObject json = RedJson_Parse(payload);
     if (!json)
@@ -110,7 +111,16 @@ static CanopyResultEnum _process_payload(STCloudVarSystem sys, const char *paylo
         }
         for (i = 0 ; i < numVars; i++)
         {
-            result = st_cloudvar_set_local_value_from_json(sys, varnames[i], RedJsonObject_Get(varsJson, varnames[i]));
+            STCloudVar cloudvar;
+            RedJsonValue json;
+            cloudvar = st_cloudvar_system_lookup_var(sys, varnames[i]);
+            if (!cloudvar)
+            {
+                // TODO: is this an error?
+                continue;
+            }
+            json = RedJsonObject_Get(varsJson, varnames[i]);
+            result = st_cloudvar_update_from_json(cloudvar, json);
             if (result != CANOPY_SUCCESS)
             {
                 return result;
@@ -124,6 +134,7 @@ static CanopyResultEnum _process_payload(STCloudVarSystem sys, const char *paylo
 
 static void _handle_ws_recv(STWebSocket ws, const char *payload, void *userdata)
 {
+    fprintf(stderr, "_handle_ws_recv '%s'\n", payload);
     _process_payload((STCloudVarSystem)userdata, payload);
 }
 

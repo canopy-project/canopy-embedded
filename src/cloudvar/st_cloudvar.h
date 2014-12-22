@@ -62,6 +62,9 @@ CanopyResultEnum st_cloudvar_set_var(STCloudVar var, CanopyVarValue value);
 // Get Cloud Variable's value using reader.
 CanopyResultEnum st_cloudvar_read_var(STCloudVar var, CanopyVarReader dest);
 
+// Update Cloud Variable's value from JSON.
+CanopyResultEnum st_cloudvar_update_from_json(STCloudVar var, RedJsonValue json);
+
 CanopyResultEnum st_cloudvar_set_local_value_from_json(STCloudVarSystem vars, const char *varname, RedJsonValue value);
 
 CanopyResultEnum st_cloudvar_value_to_json(RedJsonValue *out, STCloudVar var);
@@ -143,6 +146,7 @@ void st_cloudvar_clear_sddl_dirty_flag(STCloudVar var);
 bool st_cloudvar_is_sddl_dirty(STCloudVar var);
 
 CanopyResultEnum st_cloudvar_basic_set(STCloudVar var, CanopyVarValue value);
+CanopyResultEnum st_cloudvar_basic_update_from_json(STCloudVar var, RedJsonValue json);
 
 CanopyResultEnum st_cloudvar_array_set(STCloudVar var, CanopyVarValue value);
 

@@ -70,6 +70,79 @@ CanopyResultEnum st_cloudvar_basic_value_to_json(RedJsonValue *out, STCloudVar v
     return CANOPY_SUCCESS;
 }
 
+// This is used for incoming values from the cloud server
+CanopyResultEnum st_cloudvar_basic_update_from_json(STCloudVar var, RedJsonValue json)
+{
+    STCloudVarBasicValue_t newVal;
+    CanopyDatatypeEnum datatype = st_cloudvar_datatype(var);
+    switch (datatype)
+    {
+        case CANOPY_DATATYPE_BOOL:
+            if (!RedJsonValue_IsBoolean(json))
+                return CANOPY_ERROR_INCORRECT_DATATYPE;
+            newVal.val.val_bool = RedJsonValue_GetBoolean(json);
+            break;
+        case CANOPY_DATATYPE_FLOAT32:
+            if (!RedJsonValue_IsNumber(json))
+                return CANOPY_ERROR_INCORRECT_DATATYPE;
+            newVal.val.val_float32 = (float)(RedJsonValue_GetNumber(json));
+            break;
+        case CANOPY_DATATYPE_FLOAT64:
+            if (!RedJsonValue_IsNumber(json))
+                return CANOPY_ERROR_INCORRECT_DATATYPE;
+            newVal.val.val_float64 = RedJsonValue_GetNumber(json);
+            break;
+        case CANOPY_DATATYPE_INT8:
+            if (!RedJsonValue_IsNumber(json))
+                return CANOPY_ERROR_INCORRECT_DATATYPE;
+            newVal.val.val_int8 = (int8_t)RedJsonValue_GetNumber(json);
+            break;
+        case CANOPY_DATATYPE_INT16:
+            if (!RedJsonValue_IsNumber(json))
+                return CANOPY_ERROR_INCORRECT_DATATYPE;
+            newVal.val.val_int16 = (int16_t)RedJsonValue_GetNumber(json);
+            break;
+        case CANOPY_DATATYPE_INT32:
+            if (!RedJsonValue_IsNumber(json))
+                return CANOPY_ERROR_INCORRECT_DATATYPE;
+            newVal.val.val_int32 = (int32_t)RedJsonValue_GetNumber(json);
+            break;
+        case CANOPY_DATATYPE_STRING:
+            if (!RedJsonValue_IsString(json))
+                return CANOPY_ERROR_INCORRECT_DATATYPE;
+            newVal.val.val_string = RedJsonValue_GetString(json);
+            break;
+        case CANOPY_DATATYPE_UINT8:
+            if (!RedJsonValue_IsNumber(json))
+                return CANOPY_ERROR_INCORRECT_DATATYPE;
+            newVal.val.val_uint8 = (uint8_t)RedJsonValue_GetNumber(json);
+            break;
+        case CANOPY_DATATYPE_UINT16:
+            if (!RedJsonValue_IsNumber(json))
+                return CANOPY_ERROR_INCORRECT_DATATYPE;
+            newVal.val.val_uint16 = (uint16_t)RedJsonValue_GetNumber(json);
+            break;
+        case CANOPY_DATATYPE_UINT32:
+            if (!RedJsonValue_IsNumber(json))
+                return CANOPY_ERROR_INCORRECT_DATATYPE;
+            newVal.val.val_uint32 = (uint32_t)RedJsonValue_GetNumber(json);
+            break;
+        default:
+            return CANOPY_ERROR_UNKNOWN;
+            break;
+    }
+
+    // Copy value
+    var->basic_value = calloc(1, sizeof(STCloudVarBasicValue_t));
+    if (!var->basic_value)
+    {
+        return CANOPY_ERROR_OUT_OF_MEMORY;
+    }
+    memcpy(var->basic_value, &newVal, sizeof(STCloudVarBasicValue_t));
+
+    return CANOPY_SUCCESS;
+}
+
 // Create a new basic cloud variable instance.
 // Caller is responsible for setting up relationships to parent & cloudvar
 // system.

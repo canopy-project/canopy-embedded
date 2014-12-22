@@ -56,6 +56,7 @@ STOptions st_options_new_default()
 
     _OPTION_SET_AND_FREE_OLD(options, CANOPY_CLOUD_SERVER, "canopy.link");
     _OPTION_SET(options, CANOPY_VAR_SEND_PROTOCOL, CANOPY_PROTOCOL_WS);
+    _OPTION_SET(options, CANOPY_VAR_RECV_PROTOCOL, CANOPY_PROTOCOL_WS);
 
     return options;
 }
