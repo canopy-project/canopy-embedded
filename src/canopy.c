@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 typedef struct _Global_t
@@ -82,6 +83,20 @@ static CanopyResultEnum _global_init()
 
     _global.initialized = true;
     return CANOPY_SUCCESS;
+}
+
+bool canopy_once_every(uint64_t *timer, uint64_t us) {
+    // Timer holds the start time.
+    struct timespec t;
+    uint64_t curtime;
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    curtime = t.tv_sec*CANOPY_SECONDS + (t.tv_nsec/1000);
+    if (curtime > (*timer + us))
+    {
+        *timer = curtime;
+        return true;
+    }
+    return false;
 }
 
 CanopyContext canopy_init_context()
@@ -424,6 +439,14 @@ CanopyResultEnum canopy_var_init_impl(CanopyContext ctx, const char *decl, ...)
 
     return result;
 }
+
+CanopyResultEnum canopy_sync_blocking(CanopyContext ctx, int timeout_us)
+{
+    // TODO: don't ignore timeout_us!
+    st_log_trace("canopy_sync_blocking(...)");
+    return st_sync(ctx, ctx->options, ctx->ws, ctx->cloudvars);
+}
+
 
 CanopyResultEnum canopy_sync(CanopyContext ctx, CanopyPromise promise)
 {

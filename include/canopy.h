@@ -52,6 +52,9 @@ typedef int (*CanopyOnChangeCallback)(CanopyContext, const char *, void *);
 // can be used to wait for the completion of the event.
 typedef struct CanopyPromise_t * CanopyPromise;
 
+
+#define CANOPY_SECONDS 1000000
+
 // Must match SDDLDatatypeEnum exactly!
 typedef enum
 {
@@ -217,10 +220,15 @@ typedef enum
     // "localhost:8080".  Defaults to "canopy.link".
     CANOPY_CLOUD_SERVER,
 
+    // Configures the device's secret key.
+    // The value must be a string, or NULL if unconfigured.
+    // Defaults to NULL.
+    CANOPY_DEVICE_SECRET_KEY,
+
     // Configures the UUID of the current device.  The value must be a string
     // containing a type-4 UUID, such as
     // "16eeca6a-e8dc-4c54-b78e-6a7416803ca8", or NULL if unconfigured.
-    // Defaults to nULL.
+    // Defaults to NULL.
     CANOPY_DEVICE_UUID,
 
     // Configures the protocol to use for reporting Cloud Variable changes to
@@ -629,5 +637,22 @@ CanopyResultEnum canopy_var_on_change(CanopyContext ctx, const char *varname, Ca
 // Updates the local and remote copies of each Cloud Variable with the latest
 // values.
 CanopyResultEnum canopy_sync(CanopyContext ctx, CanopyPromise promise);
+
+// Synchronize with the cloud server (blocking the current thread).
+//
+// Updates the local and remote copies of each Cloud Variable with the latest
+// values.
+CanopyResultEnum canopy_sync_blocking(CanopyContext ctx, int timeout_us);
+
+// Helper routine for performing an operation once in a while.
+// <timer> is a pointer to a long that holds internal state for the time.
+// *timer should be initialized to 0 by your application.
+//
+// <us> is the desired period in microseconds.  You can use constants such as
+// CANOPY_SECONDS for covenience.
+//
+// Returns true once every <us> microseconds.
+//
+bool canopy_once_every(uint64_t *timer, uint64_t us);
 
 #endif // CANOPY_INCLUDED
