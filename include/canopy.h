@@ -158,6 +158,9 @@ typedef enum
 
     // Array index out-of-bounds
     CANOPY_ERROR_ARRAY_INDEX_OUT_OF_BOUNDS,
+
+    // Operation timed out
+    CANOPY_ERROR_TIMED_OUT
 } CanopyResultEnum;
 
 // CanopyGlobalOptEnum
