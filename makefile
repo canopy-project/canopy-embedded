@@ -26,7 +26,7 @@ SOURCE_FILES = \
 
 .PHONY: default
 default:
-	$(CC) -fPIC -rdynamic -shared $(INCLUDE_FLAGS) $(SOURCE_FILES) $(CFLAGS) -o libcanopy.so
+	$(CC) -fPIC -rdynamic -shared $(INCLUDE_FLAGS) $(SOURCE_FILES) $(CANOPY_CFLAGS) -o libcanopy.so
 
 .PHONY: clean
 clean:
