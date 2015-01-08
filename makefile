@@ -10,7 +10,7 @@ INCLUDE_FLAGS := \
 	-I$(LIBRED_DIR)/under_construction \
 	-I$(LIBWEBSOCKETS_DIR)/lib
 
-SOURCE_FILES = \
+SOURCE_FILES := \
     src/canopy.c \
     src/cloudvar/st_cloudvar.c \
     src/cloudvar/st_cloudvar_common.c \
@@ -18,11 +18,17 @@ SOURCE_FILES = \
     src/cloudvar/st_cloudvar_array.c \
     src/cloudvar/st_cloudvar_struct.c \
     src/cloudvar/st_cloudvar_system.c \
-    src/http/st_http_curl.c \
     src/log/st_log.c \
     src/options/st_options.c \
     src/sync/st_sync.c \
     src/websocket/st_websocket.c
+
+# Hack: For now, remove curl dependency if cross compiling
+ifeq ($(CANOPY_CROSS_COMPILE),1)
+    SOURCE_FILES += src/http/st_http_stubs.c
+else
+    SOURCE_FILES += src/http/st_http_curl.c
+endif
 
 .PHONY: default
 default:
