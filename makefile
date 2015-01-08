@@ -1,8 +1,3 @@
-#CFLAGS := --std=c89 --pedantic -Wall -Werror
-CFLAGS := -Wall -Werror
-DEBUG_FLAGS := $(CFLAGS) -g
-RELEASE_FLAGS := $(CFLAGS) -Os
-
 LIBRED_DIR := ../3rdparty/libred
 LIBSDDL_DIR := ../libsddl
 LIBWEBSOCKETS_DIR := ../3rdparty/libwebsockets
@@ -29,11 +24,10 @@ SOURCE_FILES = \
     src/sync/st_sync.c \
     src/websocket/st_websocket.c
 
-debug:
-	$(CC) -fPIC -rdynamic -shared $(INCLUDE_FLAGS) $(SOURCE_FILES) $(DEBUG_FLAGS) -o libcanopy.so
+.PHONY: default
+default:
+	$(CC) -fPIC -rdynamic -shared $(INCLUDE_FLAGS) $(SOURCE_FILES) $(CFLAGS) -o libcanopy.so
 
-release:
-	$(CC) -fPIC -rdynamic -shared $(INCLUDE_FLAGS) $(SOURCE_FILES) $(RELEASE_FLAGS) -o libcanopy.so
-
+.PHONY: clean
 clean:
 	rm libcanopy.so
