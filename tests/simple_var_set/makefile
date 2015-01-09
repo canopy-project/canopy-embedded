@@ -17,7 +17,7 @@ INCLUDE_FLAGS := \
         -I$(CANOPY_EMBEDDED_ROOT)/build/_out/include
 
 ifneq ($(CANOPY_CROSS_COMPILE),1)
-    LIBS += curl
+    LIB_FLAGS += -lcurl
 endif
 
 default: all

@@ -1,6 +1,7 @@
 #include <canopy.h>
 #include <red_test.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 int main(int argc, const char *argv[])
 {
@@ -10,12 +11,22 @@ int main(int argc, const char *argv[])
 
     test = RedTest_Begin(argv[0], NULL, NULL);
 
+    if (!getenv("CANOPY_CLOUD_SERVER"))
+    {
+        return RedTest_Abort(test, "You must set CANOPY_CLOUD_SERVER env var");
+    }
+
+    if (!getenv("CANOPY_DEVICE_UUID"))
+    {
+        return RedTest_Abort(test, "You must set CANOPY_CLOUD_SERVER env var");
+    }
+
     canopy = canopy_init_context();
     RedTest_Verify(test, "Canopy init", canopy);
 
     result = canopy_set_opt(canopy,
-        CANOPY_CLOUD_SERVER, "dev02.canopy.link",
-        CANOPY_DEVICE_UUID, "c31a8ced-b9f1-4b0c-afe9-1afed3b0c212",
+        CANOPY_CLOUD_SERVER, getenv("CANOPY_CLOUD_SERVER"),
+        CANOPY_DEVICE_UUID, getenv("CANOPY_DEVICE_UUID"),
         CANOPY_SYNC_BLOCKING, true,
         CANOPY_SYNC_TIMEOUT_MS, 10000,
         CANOPY_VAR_SEND_PROTOCOL, CANOPY_PROTOCOL_WS,
