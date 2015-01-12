@@ -14,8 +14,8 @@ int main(int argc, const char *argv[])
     RedTest_Verify(test, "Canopy init", canopy);
 
     result = canopy_set_opt(canopy,
-        CANOPY_CLOUD_SERVER, "dev02.canopy.link",
-        CANOPY_DEVICE_UUID, "c31a8ced-b9f1-4b0c-afe9-1afed3b0c212",
+        CANOPY_CLOUD_SERVER, "sandbox.canopy.link",
+        CANOPY_DEVICE_UUID, "927437e0-5ce9-4fea-9cab-3dc2fc4198bf",
         CANOPY_SYNC_BLOCKING, true,
         CANOPY_SYNC_TIMEOUT_MS, 10000,
         CANOPY_VAR_SEND_PROTOCOL, CANOPY_PROTOCOL_WS,
