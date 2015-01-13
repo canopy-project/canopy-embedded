@@ -1,5 +1,6 @@
 libcanopy - Canopy Embedded Software Library
 Copyright 2014 Gregory Prisament
+Copyright 2014-2015 SimpleThings, Inc.
 
 This product includes files from the "libred" C utility library.
 Written by Gregory Prisament and licensced under the CC0 Public Domain license.
