@@ -15,6 +15,10 @@
 #ifndef CANOPY_INCLUDED
 #define CANOPY_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -654,5 +658,9 @@ CanopyResultEnum canopy_sync_blocking(CanopyContext ctx, int timeout_us);
 // Returns true once every <us> microseconds.
 //
 bool canopy_once_every(uint64_t *timer, uint64_t us);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // CANOPY_INCLUDED
