@@ -41,3 +41,36 @@ Other Canopy libraries
     red_test.h   - Used for reporting by unit tests
 
     PORTING EFFORT REQUIRED: TBD
+
+
+libsddl External Dependencies (Named by header file)
+-------------------------------------------------------------------------------
+
+Common C libraries
+
+    assert.h
+    stdbool.h - bool datatype
+    stdio.h   - printf used (inappropriately?) for logging
+    stdlib.h  - malloc, calloc
+    string.h  - strcmp used in a few places
+
+    PORTING EFFORT REQUIRED: 
+    Same effort as for libcanopy.  The only addition is "strcmp".
+
+Third party libraries
+
+    None
+
+Other Canopy libraries
+
+    red_string - Used a bunch for string manipulation
+    red_json   - Encoding/decoding of JSON
+    red_test   - Used for reporting by unit tests
+
+    PORTING EFFORT REQUIRED: 
+    Same effort as for libcanopy.  The only addition is some more RedString_
+    functions are used here.
+
+
+
+
