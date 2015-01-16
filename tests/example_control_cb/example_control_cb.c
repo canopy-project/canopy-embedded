@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 #include "../include/canopy.h"
-#include <math.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 int handle_brightness(CanopyContext ctx, const char *propname, float value, void *extra)
 {
