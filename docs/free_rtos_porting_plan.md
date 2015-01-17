@@ -16,6 +16,7 @@ Common C libaries
     stdlib.h  - malloc, calloc
     stdio.h   - printf, fprintf, snprintf
     stdbool.h - bool datatype
+    stdint.h -  int datatypes
 
     PORTING EFFORT REQUIRED: TBD
 
@@ -50,6 +51,7 @@ Common C libraries
 
     assert.h
     stdbool.h - bool datatype
+    stdint.h  - int datatypes
     stdio.h   - printf used (inappropriately?) for logging
     stdlib.h  - malloc, calloc
     string.h  - strcmp used in a few places
@@ -63,9 +65,9 @@ Third party libraries
 
 Other Canopy libraries
 
-    red_string - Used a bunch for string manipulation
-    red_json   - Encoding/decoding of JSON
-    red_test   - Used for reporting by unit tests
+    red_string.h - Used a bunch for string manipulation
+    red_json.h   - Encoding/decoding of JSON
+    red_test.h   - Used for reporting by unit tests
 
     PORTING EFFORT REQUIRED: 
     Same effort as for libcanopy.  The only addition is some more RedString_
@@ -73,4 +75,56 @@ Other Canopy libraries
 
 
 
+libred External Dependencies (Named by header file)
+-------------------------------------------------------------------------------
 
+Common C libraries
+
+    stdio.h
+    stdlib.h
+    stdbool.h
+    string.h
+    assert.h
+    stdint.h
+    stdint.h
+    sys/time.h
+    ctype.h
+    math.h
+    stdarg.h
+
+    PORTING EFFORT REQUIRED: 
+    TBD.  Some overlap with libcanopy.
+
+Third party libraries
+
+    None
+
+Other Canopy libraries
+
+    None
+
+Other Notes
+
+    The "red_hash" module is used a lot.  The implementation is not very space
+    efficient and does a lot of memory allocation.  Not sure if the memory/cpu
+    usage will be too high for certain target platforms.
+
+
+libwebsocket External Dependencies
+-------------------------------------------------------------------------------
+    openssl
+    zlib
+    Others?
+
+    PORTING EFFORT REQUIRED: 
+    TBD: We need to figure out if we port libwebsockets ourselves, or if the
+    chip vendor has provided an appropriate alternative.
+
+libcurl External Dependencies
+-------------------------------------------------------------------------------
+    openssl
+    Others?
+
+    PORTING EFFORT REQUIRED: 
+    TBD: We need to figure out if we port libcurl ourselves, or if the chip
+    vendor has provided an appropriate alternative.
