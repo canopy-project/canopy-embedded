@@ -1,5 +1,0 @@
-cano - Canopy Embedded Utility
-Copyright 2014 Gregory Prisament
-
-This product includes files from the "libred" C utility library.
-Written by Gregory Prisament and licensced under the CC0 Public Domain license.
