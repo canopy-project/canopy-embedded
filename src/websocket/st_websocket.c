@@ -120,6 +120,7 @@ CanopyResultEnum st_websocket_connect(
         const char *hostname,
         uint16_t port,
         bool useSSL,
+        bool skipSSLCertCheck,
         const char *url)
 {
     static struct libwebsocket_protocols sCanopyWsProtocols[] = {
@@ -164,11 +165,12 @@ CanopyResultEnum st_websocket_connect(
     printf("Host: %s\n", hostname);
     printf("Port: %d\n", port);
     printf("UseSSL: %d\n", useSSL);
+    printf("Skip SSL Cert Check: %d\n", skipSSLCertCheck);
     ws->ws = libwebsocket_client_connect(
             ws->ws_ctx, 
             hostname, 
             port,
-            useSSL,
+            useSSL ? (skipSSLCertCheck ? 2 : 1) : 0,
             url, // "/echo"
             hostname ,
             "localhost", // origin

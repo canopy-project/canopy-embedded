@@ -31,11 +31,14 @@ STWebSocket st_websocket_new();
 void st_websocket_free(STWebSocket ws);
 
 // Connect to WebSocket server.
+// Set <skipSSLCertCheck> to true if you are using SSL with a self-signed
+// certificate.
 CanopyResultEnum st_websocket_connect(
         STWebSocket ws,
         const char *hostname,
         uint16_t port,
         bool useSSL,
+        bool skipSSLCertCheck,
         const char *url);
 
 // Is STWebSocket connected?

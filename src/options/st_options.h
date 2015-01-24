@@ -60,6 +60,9 @@
     _OPTION_LIST_FOREACH(CANOPY_CLOUD_SERVER, char *, char *, free, (char *)) \
     _OPTION_LIST_FOREACH(CANOPY_DEVICE_UUID, char *, char *, free, (char *)) \
     _OPTION_LIST_FOREACH(CANOPY_DEVICE_SECRET_KEY, char *, char *, free, (char *)) \
+    _OPTION_LIST_FOREACH(CANOPY_HTTP_PORT, int, int, _noop, atoi) \
+    _OPTION_LIST_FOREACH(CANOPY_HTTPS_PORT, int, int, _noop, atoi) \
+    _OPTION_LIST_FOREACH(CANOPY_SKIP_SSL_CERT_CHECK, bool, int, _noop, atoi) \
     _OPTION_LIST_FOREACH(CANOPY_SYNC_BLOCKING, bool, int, _noop, atoi) \
     _OPTION_LIST_FOREACH(CANOPY_SYNC_TIMEOUT_MS, int, int, _noop, atoi) \
     _OPTION_LIST_FOREACH(CANOPY_VAR_SEND_PROTOCOL, CanopyProtocolEnum, int, _noop, atoi) \

@@ -235,15 +235,34 @@ typedef enum
     // Defaults to NULL.
     CANOPY_DEVICE_UUID,
 
+    // Configures the port to use for HTTP and WS communications with the
+    // Canopy Server.
+    // Defaults to 80
+    CANOPY_HTTP_PORT,
+
+    // Configures the port to use for HTTPS and WSS communications with the
+    // Canopy Server.
+    // Defaults to 443
+    CANOPY_HTTPS_PORT,
+
+    // Configures whether or not to permit SSL-based communications when the
+    // server's certificate is self-signed or invalid.  WARNING: This opens
+    // Canopy up to vulnerabilities (such as server spoofing) and should not be
+    // enabled in production.
+    // Defaults to false
+    CANOPY_SKIP_SSL_CERT_CHECK,
+
     // Configures the protocol to use for reporting Cloud Variable changes to
     // the Canopy Cloud Service.  The value must be a CanopyProtocolEnum value.
     // Currently, the following protocols are supported:
     //
     //     CANOPY_PROTOCOL_NOOP
     //     CANOPY_PROTOCOL_HTTP
+    //     CANOPY_PROTOCOL_HTTPS
     //     CANOPY_PROTOCOL_WS
+    //     CANOPY_PROTOCOL_WSS
     //
-    // Defaults to CANOPY_PROTOCOL_HTTP
+    // Defaults to CANOPY_PROTOCOL_WSS
     CANOPY_VAR_SEND_PROTOCOL,
 
     // Configures the protocol to use for receiving Cloud Variable changes from
@@ -252,8 +271,9 @@ typedef enum
     //
     //     CANOPY_PROTOCOL_NOOP
     //     CANOPY_PROTOCOL_WS
+    //     CANOPY_PROTOCOL_WSS
     //
-    // Defaults to CANOPY_PROTOCOL_WS
+    // Defaults to CANOPY_PROTOCOL_WSS
     CANOPY_VAR_RECV_PROTOCOL,
 
     // Configures whether canopy_sync blocks the calling thread.  The value
@@ -379,8 +399,9 @@ CanopyResultEnum canopy_set_global_opt_impl(void *dummy, ...);
 //          CANOPY_PROTOCOL_NOOP
 //          CANOPY_PROTOCOL_HTTP
 //          CANOPY_PROTOCOL_WS
+//          CANOPY_PROTOCOL_WSS
 //
-//      Defaults to CANOPY_PROTOCOL_HTTP
+//      Defaults to CANOPY_PROTOCOL_WSS
 //
 // CANOPY_VAR_RECV_PROTOCOL
 //
@@ -390,8 +411,9 @@ CanopyResultEnum canopy_set_global_opt_impl(void *dummy, ...);
 //
 //          CANOPY_PROTOCOL_NOOP
 //          CANOPY_PROTOCOL_WS
+//          CANOPY_PROTOCOL_WSS
 //
-//      Defaults to CANOPY_PROTOCOL_WS
+//      Defaults to CANOPY_PROTOCOL_WSS
 //
 // For example:
 //

@@ -39,7 +39,8 @@ static CanopyResultEnum _send_payload(
         return CANOPY_ERROR_MISSING_REQUIRED_OPTION;
     }
 
-    if (options->val_CANOPY_VAR_SEND_PROTOCOL == CANOPY_PROTOCOL_HTTP)
+    if (options->val_CANOPY_VAR_SEND_PROTOCOL == CANOPY_PROTOCOL_HTTP ||
+        options->val_CANOPY_VAR_SEND_PROTOCOL == CANOPY_PROTOCOL_HTTPS)
     {
         // Push: HTTP implementation
         char *url;
@@ -55,7 +56,8 @@ static CanopyResultEnum _send_payload(
         st_http_post(ctx, url, payload, &promise);
         free(url);
     }
-    else if (options->val_CANOPY_VAR_SEND_PROTOCOL == CANOPY_PROTOCOL_WS)
+    else if (options->val_CANOPY_VAR_SEND_PROTOCOL == CANOPY_PROTOCOL_WS ||
+            options->val_CANOPY_VAR_SEND_PROTOCOL == CANOPY_PROTOCOL_WSS)
     {
         // Push: WS implementation
         if (!(st_websocket_is_connected(ws) && st_websocket_is_write_ready(ws)))
@@ -215,18 +217,31 @@ CanopyResultEnum st_sync(CanopyContext ctx, STOptions options, STWebSocket ws, S
     {
         // Noop Pull: 
     }
-    else if (options->val_CANOPY_VAR_RECV_PROTOCOL == CANOPY_PROTOCOL_WS)
+    else if (options->val_CANOPY_VAR_RECV_PROTOCOL == CANOPY_PROTOCOL_WS ||
+            options->val_CANOPY_VAR_RECV_PROTOCOL == CANOPY_PROTOCOL_WSS)
     {
         // WS Pull:
         // Initiate websocket connection if necessary:
         if (!st_websocket_is_connected(ws))
         {
             CanopyResultEnum result;
+            int16_t port;
+            bool useSSL = false;
+            if (options->val_CANOPY_VAR_RECV_PROTOCOL == CANOPY_PROTOCOL_WSS)
+            {
+                port = options->val_CANOPY_HTTPS_PORT;
+                useSSL = true;
+            }
+            else 
+            {
+                port = options->val_CANOPY_HTTP_PORT;
+            }
             result = st_websocket_connect(
                     ws,
                     options->val_CANOPY_CLOUD_SERVER,
-                    80, // TODO: don't hardcode
-                    false, // TODO: don't hardcode
+                    port,
+                    useSSL,
+                    options->val_CANOPY_SKIP_SSL_CERT_CHECK,
                     "/echo"); // TODO: rename
             if (result != CANOPY_SUCCESS)
                 return result;
@@ -267,7 +282,8 @@ CanopyResultEnum st_sync(CanopyContext ctx, STOptions options, STWebSocket ws, S
         st_cloudvar_system_clear_dirty(cloudvars);
     }
 
-    if (options->val_CANOPY_VAR_RECV_PROTOCOL == CANOPY_PROTOCOL_WS)
+    if (options->val_CANOPY_VAR_RECV_PROTOCOL == CANOPY_PROTOCOL_WS ||
+        options->val_CANOPY_VAR_RECV_PROTOCOL == CANOPY_PROTOCOL_WSS)
     {
         // Service websockets
         // TODO: don't hardcode timeout
