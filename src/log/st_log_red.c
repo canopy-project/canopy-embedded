@@ -95,22 +95,13 @@ CanopyResultEnum st_log_set_payload_logging(STLogger logger, bool enabled)
     return CANOPY_SUCCESS;
 
 }
-CanopyResultEnum st_log_set_level(STLogger logger, int level)
+CanopyResultEnum st_log_set_level(STLogger logger, int levels)
 {
-    const int levels[6] =
-    {
-        RED_LOG_LEVEL_ALL,
-        RED_LOG_LEVEL_DEBUG_AND_HIGHER,
-        RED_LOG_LEVEL_INFO_AND_HIGHER,
-        RED_LOG_LEVEL_WARN_AND_HIGHER,
-        RED_LOG_LEVEL_ERROR_AND_HIGHER,
-        RED_LOG_LEVEL_FATAL
-    };
-    if (level < 0 || level > 5)
-    {
-        return CANOPY_ERROR_INVALID_VALUE;
-    }
-    RedLog_SetLogLevelsEnabled("canopy", levels[level]);
+    RedLog_SetLogLevelsEnabled("canopy", levels);
     return CANOPY_SUCCESS;
 }
 
+void st_log_common(const char *file, int line, STLogLevel level, const char *fmt, ...)
+{
+
+}

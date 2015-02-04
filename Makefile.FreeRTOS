@@ -23,12 +23,16 @@ AR=$(CROSS_COMPILE)-ar
 CFLAGS+=-mthumb -g -Os -ffunction-sections -ffreestanding -MMD -Wall \
 	-fno-strict-aliasing -mcpu=cortex-m3 -fdata-sections -fno-common
 
-CFLAGS += -I$(CURDIR) -I$(CURDIR)/incl -I$(CURDIR)/../libcanopy-os/include
+CFLAGS += -I$(CURDIR) \
+          -I$(CURDIR)/include \
+          -I$(CURDIR)/src \
+          -I$(CURDIR)/../libcanopy-os/include
 
-include ../canopy_os_mrvl/Makefile.platform
+include ../canopy_os_mrvl/Makefile.platform 
 
-VPATH = src
-C_SRCS := canopy_libtest.c
+VPATH = src:src/log
+C_SRCS := canopy_libtest.c \
+          st_log_minimal.c
 
 C_OBJS := $(patsubst %.c, %.o,$(C_SRCS))
 C_DEPS := $(patsubst %.o, %.d,$(C_OBJS))
@@ -37,7 +41,7 @@ C_OBJS := $(addprefix $(OBJDIR)/, $(C_OBJS))
 C_DEPS := $(addprefix $(OBJDIR)/, $(C_DEPS))
 
 $(OBJDIR)/%.o : %.c
-	${AT}mkdir -p obj
+	${AT}mkdir -p $(dir $@)
 	${AT}mkdir -p lib
 	@echo " [cc] $<"
 	${AT}$(CC) -MD $(CFLAGS) -c -o $@  $<
