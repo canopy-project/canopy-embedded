@@ -30,9 +30,10 @@ CFLAGS += -I$(CURDIR) \
 
 include ../canopy_os_mrvl/Makefile.platform 
 
-VPATH = src:src/log
+VPATH = src:src/log:src/options
 C_SRCS := canopy_libtest.c \
-          st_log_minimal.c
+          st_log_minimal.c \
+          st_options.c
 
 C_OBJS := $(patsubst %.c, %.o,$(C_SRCS))
 C_DEPS := $(patsubst %.o, %.d,$(C_OBJS))

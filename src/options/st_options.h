@@ -48,6 +48,7 @@
 
 #include <stdbool.h>
 #include <canopy.h>
+#include <canopy_os.h>
 #include <stdarg.h>
 
 // _OPTION_LIST allows you to write macros that easily perform an action on all
@@ -57,9 +58,9 @@
 //
 //                       ENUM VALUE,  DATATYPE,  VARARG_DATATYPE, FREE_ROUTINE, CONVER_FROM_STRING
 #define _OPTION_LIST \
-    _OPTION_LIST_FOREACH(CANOPY_CLOUD_SERVER, char *, char *, free, (char *)) \
-    _OPTION_LIST_FOREACH(CANOPY_DEVICE_UUID, char *, char *, free, (char *)) \
-    _OPTION_LIST_FOREACH(CANOPY_DEVICE_SECRET_KEY, char *, char *, free, (char *)) \
+    _OPTION_LIST_FOREACH(CANOPY_CLOUD_SERVER, char *, char *, canopy_os_free, (char *)) \
+    _OPTION_LIST_FOREACH(CANOPY_DEVICE_UUID, char *, char *, canopy_os_free, (char *)) \
+    _OPTION_LIST_FOREACH(CANOPY_DEVICE_SECRET_KEY, char *, char *, canopy_os_free, (char *)) \
     _OPTION_LIST_FOREACH(CANOPY_HTTP_PORT, int, int, _noop, atoi) \
     _OPTION_LIST_FOREACH(CANOPY_HTTPS_PORT, int, int, _noop, atoi) \
     _OPTION_LIST_FOREACH(CANOPY_SKIP_SSL_CERT_CHECK, bool, int, _noop, atoi) \
@@ -70,7 +71,7 @@
 
 #define _GLOBAL_OPTION_LIST \
     _OPTION_LIST_FOREACH(CANOPY_LOG_ENABLED, bool, int, _noop, atoi) \
-    _OPTION_LIST_FOREACH(CANOPY_LOG_FILE, char *, char *, free, (char *)) \
+    _OPTION_LIST_FOREACH(CANOPY_LOG_FILE, char *, char *, canopy_os_free, (char *)) \
     _OPTION_LIST_FOREACH(CANOPY_LOG_LEVEL, int, int, _noop, atoi) \
     _OPTION_LIST_FOREACH(CANOPY_LOG_PAYLOADS, bool, int, _noop, atoi)
 

@@ -15,27 +15,25 @@
 // Configuration state manager for Canopy contexts and routines.
 
 #include "options/st_options.h"
-#include "red_log.h"
-#include "red_string.h"
+#include "log/st_log.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 // Create a new STOptions object with all options unset.
 STOptions st_options_new_empty()
 {
-    return calloc(1, sizeof(struct STOptions_t));
+    return canopy_os_calloc(1, sizeof(struct STOptions_t));
 }
 
 #define _OPTION_SET_AND_FREE_OLD(options, prop, szVal) \
     do { \
         if ((options)->has_##prop) \
         { \
-            free((options)->val_##prop); \
+            canopy_os_free((options)->val_##prop); \
         } \
         (options)->has_##prop = true; \
-        (options)->val_##prop = RedString_strdup(szVal); \
+        (options)->val_##prop = canopy_os_strdup(szVal); \
     } while (0)
 
 #define _OPTION_SET(options, prop, szVal) \
@@ -48,7 +46,7 @@ STOptions st_options_new_empty()
 STOptions st_options_new_default()
 {
     STOptions options;
-    options = calloc(1, sizeof(struct STOptions_t));
+    options = canopy_os_calloc(1, sizeof(struct STOptions_t));
     if (!options)
     {
         return NULL;
@@ -66,16 +64,20 @@ STOptions st_options_new_default()
 STGlobalOptions st_global_options_new_default()
 {
     STGlobalOptions options;
-    char filename[1024];
-    options = calloc(1, sizeof(struct STGlobalOptions_t));
+    options = canopy_os_calloc(1, sizeof(struct STGlobalOptions_t));
     if (!options)
     {
         return NULL;
     }
 
-    snprintf(filename, 1024, "%s/.canopy/log", getenv("HOME"));
+#if __linux__
+    {
+        char filename[1024];
+        snprintf(filename, 1024, "%s/.canopy/log", getenv("HOME"));
+        _OPTION_SET_AND_FREE_OLD(options, CANOPY_LOG_FILE, filename);
+    }
+#endif
     _OPTION_SET(options, CANOPY_LOG_ENABLED, true);
-    _OPTION_SET_AND_FREE_OLD(options, CANOPY_LOG_FILE, filename);
     _OPTION_SET(options, CANOPY_LOG_LEVEL, 2);
     _OPTION_SET(options, CANOPY_LOG_PAYLOADS, false);
 
@@ -84,7 +86,7 @@ STGlobalOptions st_global_options_new_default()
 STVarOptions st_var_options_new_default()
 {
     STVarOptions options;
-    options = calloc(1, sizeof(struct STVarOptions_t));
+    options = canopy_os_calloc(1, sizeof(struct STVarOptions_t));
     if (!options)
     {
         return NULL;
@@ -142,7 +144,7 @@ CanopyResultEnum st_options_extend_varargs(STOptions base, va_list ap)
         }
 
     CanopyOptEnum param;
-    while ((param = va_arg(ap, CanopyOptEnum)) != CANOPY_OPT_LIST_END)
+    while ((param = (CanopyOptEnum)va_arg(ap, int)) != CANOPY_OPT_LIST_END)
     {
         switch (param)
         {
@@ -158,7 +160,7 @@ CanopyResultEnum st_options_extend_varargs(STOptions base, va_list ap)
 CanopyResultEnum st_global_options_extend_varargs(STGlobalOptions base, va_list ap)
 {
     CanopyGlobalOptEnum param;
-    while ((param = va_arg(ap, CanopyGlobalOptEnum)) != CANOPY_GLOBAL_OPT_LIST_END)
+    while ((param = (CanopyGlobalOptEnum)va_arg(ap, int)) != CANOPY_GLOBAL_OPT_LIST_END)
     {
         switch (param)
         {
@@ -175,7 +177,7 @@ CanopyResultEnum st_global_options_extend_varargs(STGlobalOptions base, va_list 
 CanopyResultEnum st_var_options_extend_varargs(STVarOptions base, va_list ap)
 {
     CanopyVarConfigEnum param;
-    while ((param = va_arg(ap, CanopyVarConfigEnum)) != CANOPY_VAR_OPT_LIST_END)
+    while ((param = (CanopyVarConfigEnum)va_arg(ap, int)) != CANOPY_VAR_OPT_LIST_END)
     {
         switch (param)
         {
@@ -204,7 +206,7 @@ CanopyResultEnum st_options_new_extend_varargs_impl(STOptions *newOptions, STOpt
 // Free STOption object.
 void st_options_free(STOptions options)
 {
-    free(options);
+    canopy_os_free(options);
 }
 
 STOptions st_options_dup(STOptions options)
@@ -259,30 +261,7 @@ bool st_option_is_set(STOptions options, CanopyOptEnum option)
     {
         _OPTION_LIST
         default:
-            RedLog_Error("Invalid option to st_option_is_set: %d\n", option);
+            st_log_error("Invalid option to st_option_is_set: %d\n", option);
             return false;
     }
-}
-
-void st_options_load_from_env(STOptions options)
-{
-    // TODO: free old value
-    char *envVal;
-    #undef _OPTION_LIST_FOREACH
-    #define _OPTION_LIST_FOREACH(opt, datatype, va_datatype, freefn, fromstring) \
-        envVal = getenv(#opt); \
-        if (envVal)  \
-        { \
-            options->has_##opt = true; \
-            options->val_##opt = (datatype)fromstring(envVal); \
-        }
-
-    _OPTION_LIST
-}
-
-void st_global_options_load_from_env(STGlobalOptions options)
-{
-    // TODO: free old value
-    char *envVal;
-    _GLOBAL_OPTION_LIST
 }
