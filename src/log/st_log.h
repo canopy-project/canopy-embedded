@@ -57,7 +57,7 @@ CanopyResultEnum st_log_set_enabled(bool enabled);
 CanopyResultEnum st_log_set_filename(const char *filename);
 
 // Enable/disable logging to the system's default output destination.
-// For linux, this is stderr.
+// For linux, this is stderr.  Defaults to true.
 CanopyResultEnum st_log_use_system_default(bool enabled);
 
 // Set the enabled logging levels.
@@ -74,22 +74,22 @@ CanopyResultEnum st_log_set_payload_logging(bool enabled);
 CanopyResultEnum st_log_common(const char *file, int line, STLogLevel level, const char *fmt, ...);
 
 #define st_log_trace(fmt, ...)  \
-    st_log_common(__FILE__, __LINE__, ST_LOG_LEVEL_TRACE, ##__VA_ARGS__)
+    st_log_common(__FILE__, __LINE__, ST_LOG_LEVEL_TRACE, fmt, ##__VA_ARGS__)
 
 #define st_log_debug(fmt, ...)  \
-    st_log_common(__FILE__, __LINE__, ST_LOG_LEVEL_DEBUG, ##__VA_ARGS__)
+    st_log_common(__FILE__, __LINE__, ST_LOG_LEVEL_DEBUG, fmt, ##__VA_ARGS__)
 
 #define st_log_info(fmt, ...)  \
-    st_log_common(__FILE__, __LINE__, ST_LOG_LEVEL_INFO, ##__VA_ARGS__)
+    st_log_common(__FILE__, __LINE__, ST_LOG_LEVEL_INFO, fmt, ##__VA_ARGS__)
 
 #define st_log_warn(fmt, ...)  \
-    st_log_common(__FILE__, __LINE__, ST_LOG_LEVEL_WARN, ##__VA_ARGS__)
+    st_log_common(__FILE__, __LINE__, ST_LOG_LEVEL_WARN, fmt, ##__VA_ARGS__)
 
 #define st_log_error(fmt, ...)  \
-    st_log_common(__FILE__, __LINE__, ST_LOG_LEVEL_ERROR, ##__VA_ARGS__)
+    st_log_common(__FILE__, __LINE__, ST_LOG_LEVEL_ERROR, fmt, ##__VA_ARGS__)
 
 #define st_log_fatal(fmt, ...)  \
-    st_log_common(__FILE__, __LINE__, ST_LOG_LEVEL_FATAL, ##__VA_ARGS__)
+    st_log_common(__FILE__, __LINE__, ST_LOG_LEVEL_FATAL, fmt, ##__VA_ARGS__)
 
 #endif // ST_LOG_INCLUDED
 

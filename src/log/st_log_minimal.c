@@ -22,6 +22,7 @@
 typedef struct STLogger_t
 {
     bool enabled;
+    bool use_system_default;
     bool send_payloads;
     int levels;
 } STLogger_t;
@@ -33,6 +34,7 @@ void st_log_init()
     // TODO: only allow a singleton logger for now?
     g_logger.enabled = false;
     g_logger.send_payloads = false;
+    g_logger.use_system_default = true;
     g_logger.levels = 0;
 }
 
@@ -47,6 +49,12 @@ CanopyResultEnum st_log_set_filename(const char *filename)
     return CANOPY_ERROR_NOT_IMPLEMENTED;
 }
 
+CanopyResultEnum st_log_use_system_default(bool enabled)
+{
+    g_logger.use_system_default = enabled;
+    return CANOPY_SUCCESS;
+}
+
 CanopyResultEnum st_log_set_payload_logging(bool enabled)
 {
     // TBD
@@ -54,7 +62,7 @@ CanopyResultEnum st_log_set_payload_logging(bool enabled)
     return CANOPY_SUCCESS;
 
 }
-CanopyResultEnum st_log_set_level(int levels)
+CanopyResultEnum st_log_set_levels(int levels)
 {
     // TODO: VALIDATE PARAMETERS
     g_logger.levels = levels;
@@ -74,6 +82,11 @@ CanopyResultEnum st_log_common(const char *file, int line, STLogLevel level, con
 
     // Is logging for this particular log level enabled?
     if (!(g_logger.levels & level)) {
+        return CANOPY_SUCCESS;
+    }
+
+    // Is logging to the system default output enabled?
+    if (!g_logger.use_system_default) {
         return CANOPY_SUCCESS;
     }
 
