@@ -42,19 +42,7 @@ static CanopyResultEnum _send_payload(
     if (options->val_CANOPY_VAR_SEND_PROTOCOL == CANOPY_PROTOCOL_HTTP ||
         options->val_CANOPY_VAR_SEND_PROTOCOL == CANOPY_PROTOCOL_HTTPS)
     {
-        // Push: HTTP implementation
-        char *url;
-        url = RedString_PrintfToNewChars("http://%s/di/device/%s", 
-                options->val_CANOPY_CLOUD_SERVER,
-                options->val_CANOPY_DEVICE_UUID);
-        if (!url)
-        {
-            return CANOPY_ERROR_OUT_OF_MEMORY;
-        }
-
-        CanopyPromise promise;
-        st_http_post(ctx, url, payload, &promise);
-        free(url);
+        return CANOPY_ERROR_PROTOCOL_NOT_SUPPORTED;
     }
     else if (options->val_CANOPY_VAR_SEND_PROTOCOL == CANOPY_PROTOCOL_WS ||
             options->val_CANOPY_VAR_SEND_PROTOCOL == CANOPY_PROTOCOL_WSS)
@@ -140,9 +128,9 @@ static void _handle_ws_recv(STWebSocket ws, const char *payload, void *userdata)
     _process_payload((STCloudVarSystem)userdata, payload);
 }
 
-static char * _gen_handshake_payload(const char *uuid)
+static char * _gen_handshake_payload(const char *uuid, const char *secret)
 {
-    return RedString_PrintfToNewChars("{\"device_id\" : \"%s\" }", uuid);
+    return RedString_PrintfToNewChars("{\"device_id\" : \"%s\", \"secret_key\" : \"%s\"  }", uuid, secret);
 }
 
 static char * _gen_outbound_payload(STCloudVarSystem cloudvars)
@@ -253,7 +241,9 @@ CanopyResultEnum st_sync(CanopyContext ctx, STOptions options, STWebSocket ws, S
 
             // send handhsake
             char *handshakePayload;
-            handshakePayload = _gen_handshake_payload(options->val_CANOPY_DEVICE_UUID);
+            handshakePayload = _gen_handshake_payload(
+                    options->val_CANOPY_DEVICE_UUID,
+                    options->val_CANOPY_DEVICE_SECRET_KEY);
 
             while (!(st_websocket_is_connected(ws) && st_websocket_is_write_ready(ws)))
             {
